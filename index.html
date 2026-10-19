@@ -87,7 +87,7 @@
     <button class="nav-btn" onclick="switchTab('entry')">+ Saisie</button>
   </div>
 
-  <!-- PAGE 1 : DASHBOARD & SYNTHÈSE NETTE -->
+  <!-- PAGE 1 : DASHBOARD & SYNTHÈSE -->
   <div id="tab-dashboard" class="tab-content active">
     <div class="card">
       <label>Patrimoine Net Actuel (Actifs − Crédits)</label>
@@ -98,11 +98,11 @@
     <div class="card">
       <label>Enrichissement Mensuel Estimé</label>
       <div id="monthlyEnrichment" class="enrich-val">+0,00 € / mois</div>
-      <div id="subEnrichment" class="sub-val">Épargne investie : 0 € | Capital immobilier remboursé : 0 €</div>
+      <div id="subEnrichment" class="sub-val">Épargne DCA : 0 € | Capital immo remboursé : 0 €</div>
     </div>
 
     <div class="card">
-      <h2>Évolution Temporelle du Patrimoine Net</h2>
+      <h2>Évolution Temporelle (Brut vs Net)</h2>
       <canvas id="evolutionChart" height="190"></canvas>
     </div>
 
@@ -194,7 +194,7 @@
     </div>
   </div>
 
-  <!-- PAGE 4 : SIMULATEUR DYNAMIQUE & ENRICHISSEMENT -->
+  <!-- PAGE 4 : SIMULATEUR DYNAMIQUE & SCÉNARIOS -->
   <div id="tab-projection" class="tab-content">
     <div class="card">
       <h2>1. DCA & Rendements des Actifs</h2>
@@ -453,7 +453,7 @@
       const totalNet = totalActifs - totalPassifs;
 
       document.getElementById('totalPatrimoineNet').innerText = totalNet.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-      document.getElementById('subPatrimoineBrut').innerText = `Actifs Bruts : ${totalActifs.toLocaleString('fr-FR')} € | Passifs/Crédits : ${totalPassifs.toLocaleString('fr-FR')} €`;
+      document.getElementById('subPatrimoineBrut').innerText = `Actifs Bruts : ${totalActifs.toLocaleString('fr-FR')} € | Crédits restants : ${totalPassifs.toLocaleString('fr-FR')} €`;
 
       // Calcul de l'enrichissement mensuel
       const monthlyDcaTotal = Object.values(dcaSettings).reduce((a, b) => a + b, 0);
@@ -471,19 +471,19 @@
       document.getElementById('monthlyEnrichment').innerText = `+${totalMonthlyEnrichment.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} € / mois`;
       document.getElementById('subEnrichment').innerText = `Épargne DCA : ${monthlyDcaTotal.toLocaleString('fr-FR')} €/m | Capital Immo Remboursé : ${monthlyAmortizationTotal.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €/m`;
 
-      // RECONSTRUCTION PROPRE DU GRAPHIQUE HISTORIQUE
+      // DOUBLE COURBE TEMPORELLE (BRUT & NET)
       const ctx = document.getElementById('evolutionChart').getContext('2d');
-      let datesMap = {};
+      let datesMapBrut = {};
       let stateMap = {};
 
       records.forEach(r => {
         stateMap[r.category] = r.value;
-        datesMap[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0);
+        datesMapBrut[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0);
       });
 
-      let netDatesMap = {};
-      Object.keys(datesMap).forEach(date => {
-        netDatesMap[date] = datesMap[date] - totalPassifs;
+      let datesMapNet = {};
+      Object.keys(datesMapBrut).forEach(date => {
+        datesMapNet[date] = datesMapBrut[date] - totalPassifs;
       });
 
       if (lineChartInstance) lineChartInstance.destroy();
@@ -491,19 +491,31 @@
       lineChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: Object.keys(netDatesMap),
-          datasets: [{
-            label: 'Patrimoine Net (€)',
-            data: Object.values(netDatesMap),
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.15)',
-            fill: true,
-            tension: 0.3
-          }]
+          labels: Object.keys(datesMapBrut),
+          datasets: [
+            {
+              label: 'Patrimoine Brut (€)',
+              data: Object.values(datesMapBrut),
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.1)',
+              fill: false,
+              tension: 0.3
+            },
+            {
+              label: 'Patrimoine Net (€)',
+              data: Object.values(datesMapNet),
+              borderColor: '#34d399',
+              backgroundColor: 'rgba(52, 211, 153, 0.1)',
+              fill: false,
+              tension: 0.3
+            }
+          ]
         },
         options: {
           responsive: true,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: true, position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } }
+          },
           scales: {
             x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
             y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
@@ -806,4 +818,4 @@
   </script>
 </body>
 </html>
-"Version sept de l'app de patrimoine"
+"Version 8 de l'app de patrimoine"
