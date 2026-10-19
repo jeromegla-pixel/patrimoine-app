@@ -1,3 +1,31 @@
+Voici le code mis à jour pour votre fichier index.html.
+
+Cette nouvelle version ajoute un tout nouvel onglet "Projections" qui :
+
+Pronoie vos versements mensuels (DCA) par enveloppe : Vous pouvez définir votre effort d'épargne mensuel dédié pour chaque support (ex: PEA, Louve Infinity, PEG/PERCO, etc.).
+
+Applique des rendements annuels réalistes nets par type d'actif :
+
+PEA / Actions Monde (MSCI World) : ~7,0 % / an
+
+PEG / PERCO (Actions / Diversifié) : ~6,0 % / an
+
+SCPI (Louve Infinity / Direct) : ~5,0 % / an
+
+Comptes / Liquidités / Fonds Euros : ~2,5 % / an
+
+Calcule les Intérêts Composés mois par mois à partir de votre patrimoine actuel.
+
+Génère le franchissement des Paliers de 100k€ (ex: 200k€, 300k€, 400k€, 500k€, 600k€, 700k€...) avec :
+
+La date estimée (mois/année) d'atteinte du palier.
+
+La durée nécessaire (en années/mois).
+
+La part des apports personnels par rapport à la part générée par les intérêts composés.
+
+Le code index.html complet mis à jour :
+HTML
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -13,12 +41,11 @@
     h1 { font-size: 22px; margin-bottom: 12px; color: #38bdf8; }
     h2 { font-size: 18px; margin-bottom: 12px; color: #f8fafc; }
     
-    /* Banner Mise à jour */
     #updateBanner { display: none; background-color: #2563eb; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; }
 
-    /* Navigation par onglets */
-    .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; background-color: #1e293b; padding: 6px; border-radius: 12px; border: 1px solid #334155; }
-    .nav-btn { flex: 1; padding: 10px; background: none; border: none; color: #94a3b8; font-weight: 600; font-size: 13px; border-radius: 8px; cursor: pointer; text-align: center; }
+    /* Navigation par onglets (4 onglets) */
+    .nav-tabs { display: flex; gap: 4px; margin-bottom: 16px; background-color: #1e293b; padding: 4px; border-radius: 12px; border: 1px solid #334155; }
+    .nav-btn { flex: 1; padding: 10px 4px; background: none; border: none; color: #94a3b8; font-weight: 600; font-size: 12px; border-radius: 8px; cursor: pointer; text-align: center; }
     .nav-btn.active { background-color: #2563eb; color: #ffffff; }
 
     .tab-content { display: none; }
@@ -38,13 +65,18 @@
     .delete-btn { background: none; border: none; color: #ef4444; width: auto; padding: 0; font-size: 14px; cursor: pointer; }
     .custom-input-group { display: none; }
     .btn-row { display: flex; justify-content: space-between; margin-top: 10px; }
+    
+    .milestone-card { background: #0f172a; border-left: 4px solid #38bdf8; padding: 12px; margin-bottom: 10px; border-radius: 6px; }
+    .milestone-title { font-weight: bold; font-size: 16px; color: #38bdf8; }
+    .milestone-details { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    .highlight-interest { color: #34d399; font-weight: bold; }
   </style>
 </head>
 <body>
 
   <h1>Mon Patrimoine</h1>
 
-  <!-- BANDEAU MISE À JOUR DISPONIBLE -->
+  <!-- BANDEAU MISE À JOUR -->
   <div id="updateBanner" onclick="window.location.reload(true)">
     🚀 Une nouvelle version est disponible ! Cliquez ici pour recharger.
   </div>
@@ -76,6 +108,7 @@
   <div class="nav-tabs">
     <button class="nav-btn active" onclick="switchTab('dashboard')">Évolution</button>
     <button class="nav-btn" onclick="switchTab('allocation')">Allocation</button>
+    <button class="nav-btn" onclick="switchTab('projection')">Projections</button>
     <button class="nav-btn" onclick="switchTab('entry')">+ Saisie</button>
   </div>
 
@@ -129,7 +162,27 @@
     </div>
   </div>
 
-  <!-- PAGE 3 : SAISIE & SAUVEGARDE -->
+  <!-- PAGE 3 : PROJECTIONS ET INTÉRÊTS COMPOSÉS (PALIERS 100K) -->
+  <div id="tab-projection" class="tab-content">
+    <div class="card">
+      <h2>Paramétrage des Mensualités (DCA)</h2>
+      <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">Définissez vos apports mensuels par enveloppe pour calculer la vitesse de franchissement des paliers de 100k€.</p>
+      <div id="dcaInputs"></div>
+      <button type="button" class="submit-btn" style="margin-top:8px;" onclick="calculateProjections()">Recalculer les Projections</button>
+    </div>
+
+    <div class="card">
+      <h2>Trajectoire des Paliers (+100k€)</h2>
+      <div id="milestonesList"></div>
+    </div>
+
+    <div class="card">
+      <h2>Projection Intérêts Composés (20 ans)</h2>
+      <canvas id="projectionChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- PAGE 4 : SAISIE & SAUVEGARDE -->
   <div id="tab-entry" class="tab-content">
     <div class="card">
       <h2>Saisir un Relevé</h2>
@@ -138,9 +191,7 @@
         <input type="date" id="entryDate" required>
 
         <label for="assetCategory">Enveloppe / Support</label>
-        <select id="assetCategory" onchange="toggleCustomInput(this.value)" required>
-          <!-- Les options de base et personnalisées sont chargées dynamiquement -->
-        </select>
+        <select id="assetCategory" onchange="toggleCustomInput(this.value)" required></select>
 
         <div id="customGroup" class="custom-input-group">
           <label for="customCategory">Nom de l'enveloppe personnalisée</label>
@@ -154,7 +205,6 @@
       </form>
     </div>
 
-    <!-- SAUVEGARDE ET RESTAURATION -->
     <div class="card">
       <h2>Gestion des Données</h2>
       <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">Vos données sont enregistrées localement sur votre appareil sans jamais écraser l'historique lors des mises à jour.</p>
@@ -170,9 +220,17 @@
     document.getElementById('entryDate').valueAsDate = new Date();
 
     const STORAGE_KEY = 'patrimoine_records_v1';
+    const DCA_STORAGE_KEY = 'patrimoine_dca_settings_v1';
+
     let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    
-    // Catégories par défaut
+    let dcaSettings = JSON.parse(localStorage.getItem(DCA_STORAGE_KEY)) || {
+      'PEA': 300,
+      'Louve Infinity': 100,
+      'Linxea Spirit 2': 0,
+      'PEG / PERCO': 450,
+      'Comptes / Liquidités': 0
+    };
+
     const DEFAULT_CATEGORIES = [
       "Linxea Spirit 2",
       "Louve Infinity",
@@ -182,21 +240,29 @@
       "Comptes / Liquidités"
     ];
 
+    // Rendements annuels réalistes par défaut selon l'actif
+    const DEFAULT_RETURNS = {
+      'PEA': 0.07,              // 7% Actions Monde
+      'PEG / PERCO': 0.06,       // 6% Diversifié / Actions
+      'Louve Infinity': 0.05,    // 5% SCPI & Mix
+      'Louve Invest Direct': 0.05,
+      'Linxea Spirit 2': 0.05,
+      'Comptes / Liquidités': 0.025, // 2.5% Livrets
+      'DEFAULT': 0.05
+    };
+
     let lineChartInstance = null;
     let pieChartInstance = null;
+    let projectionChartInstance = null;
 
     function populateCategoriesSelect() {
       const select = document.getElementById('assetCategory');
       const currentValue = select.value;
       select.innerHTML = '';
 
-      // Collecter toutes les catégories uniques (défaut + enregistrées)
       let customCategories = new Set(DEFAULT_CATEGORIES);
-      records.forEach(r => {
-        if (r.category) customCategories.add(r.category);
-      });
+      records.forEach(r => { if (r.category) customCategories.add(r.category); });
 
-      // Ajouter les options dans le select
       customCategories.forEach(cat => {
         const option = document.createElement('option');
         option.value = cat;
@@ -204,7 +270,6 @@
         select.appendChild(option);
       });
 
-      // Option pour créer une nouvelle catégorie
       const customOption = document.createElement('option');
       customOption.value = 'CUSTOM';
       customOption.textContent = '➕ Autre / Personnalisé...';
@@ -224,6 +289,7 @@
 
       if (tabName === 'dashboard') renderDashboard();
       if (tabName === 'allocation') renderAllocation();
+      if (tabName === 'projection') renderProjectionTab();
       if (tabName === 'entry') populateCategoriesSelect();
     }
 
@@ -368,6 +434,163 @@
       });
     }
 
+    // --- LOGIQUE DE PROJECTION DES INTÉRÊTS COMPOSÉS & PALIERS DE 100K ---
+    function renderProjectionTab() {
+      const latestMap = getLatestByCategory();
+      const container = document.getElementById('dcaInputs');
+      container.innerHTML = '';
+
+      Object.keys(latestMap).forEach(cat => {
+        const val = dcaSettings[cat] !== undefined ? dcaSettings[cat] : 0;
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <label style="color:#f8fafc; font-weight:600; margin-top:8px;">${cat} (€/mois)</label>
+          <input type="number" data-cat="${cat}" class="dca-field" value="${val}" min="0" placeholder="0">
+        `;
+        container.appendChild(div);
+      });
+
+      calculateProjections();
+    }
+
+    function calculateProjections() {
+      // Enregistrer les réglages DCA
+      document.querySelectorAll('.dca-field').forEach(input => {
+        const cat = input.getAttribute('data-cat');
+        dcaSettings[cat] = parseFloat(input.value) || 0;
+      });
+      localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
+
+      const latestMap = getLatestByCategory();
+      let currentBalances = { ...latestMap };
+      let initialTotal = Object.values(currentBalances).reduce((a, b) => a + b, 0);
+
+      let totalApportsCumules = initialTotal;
+      let totalInteretsCumules = 0;
+
+      const milestones = [];
+      let nextMilestone = Math.floor(initialTotal / 100000) * 100000 + 100000;
+      const maxMilestoneTarget = initialTotal + 600000; // Calcule les 6 prochains paliers de 100k
+
+      const currentDate = new Date();
+      const labelsYear = [];
+      const dataTotalSeries = [];
+      const dataApportsSeries = [];
+
+      let monthsCounter = 0;
+      const maxMonths = 240; // Projection sur 20 ans (240 mois)
+
+      labelsYear.push("Aujourd'hui");
+      dataTotalSeries.push(Math.round(initialTotal));
+      dataApportsSeries.push(Math.round(initialTotal));
+
+      while (monthsCounter < maxMonths) {
+        monthsCounter++;
+        let monthlyApportsAll = 0;
+
+        // Calcul mois par mois pour chaque enveloppe avec son taux spécifique
+        Object.keys(currentBalances).forEach(cat => {
+          const rate = DEFAULT_RETURNS[cat] !== undefined ? DEFAULT_RETURNS[cat] : DEFAULT_RETURNS['DEFAULT'];
+          const monthlyRate = Math.pow(1 + rate, 1/12) - 1;
+          const monthlyDca = dcaSettings[cat] || 0;
+
+          // Intérêts du mois sur le solde
+          const interestMonth = currentBalances[cat] * monthlyRate;
+          currentBalances[cat] += interestMonth + monthlyDca;
+          
+          monthlyApportsAll += monthlyDca;
+          totalInteretsCumules += interestMonth;
+        });
+
+        totalApportsCumules += monthlyApportsAll;
+        const currentTotal = Object.values(currentBalances).reduce((a, b) => a + b, 0);
+
+        // Détection franchissement de palier 100k
+        if (currentTotal >= nextMilestone && nextMilestone <= maxMilestoneTarget) {
+          const dateReached = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthsCounter, 1);
+          const yearsNeeded = (monthsCounter / 12).toFixed(1);
+          
+          milestones.push({
+            target: nextMilestone,
+            dateStr: dateReached.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+            duration: yearsNeeded,
+            totalApports: Math.round(totalApportsCumules),
+            totalInterets: Math.round(totalInteretsCumules)
+          });
+
+          nextMilestone += 100000;
+        }
+
+        // Point de courbe tous les 12 mois
+        if (monthsCounter % 12 === 0) {
+          labelsYear.push(`An +${monthsCounter/12}`);
+          dataTotalSeries.push(Math.round(currentTotal));
+          dataApportsSeries.push(Math.round(totalApportsCumules));
+        }
+      }
+
+      // Rendu HTML des paliers
+      const milestonesContainer = document.getElementById('milestonesList');
+      milestonesContainer.innerHTML = '';
+
+      if (milestones.length === 0) {
+        milestonesContainer.innerHTML = '<p style="font-size:12px; color:#94a3b8;">Saisissez des mensualités DCA supérieures à 0 pour projeter le franchissement des paliers.</p>';
+      } else {
+        milestones.forEach(m => {
+          const pctInterets = ((m.totalInterets / m.target) * 100).toFixed(0);
+          const div = document.createElement('div');
+          div.className = 'milestone-card';
+          div.innerHTML = `
+            <div class="milestone-title">🎯 Palier ${m.target.toLocaleString('fr-FR')} €</div>
+            <div class="milestone-details">
+              📅 Horizon : <b>${m.dateStr}</b> (dans ${m.duration} ans)<br>
+              💵 Total versé : ${m.totalApports.toLocaleString('fr-FR')} € | <span class="highlight-interest">✨ Intérêts : ${m.totalInterets.toLocaleString('fr-FR')} € (${pctInterets}%)</span>
+            </div>
+          `;
+          milestonesContainer.appendChild(div);
+        });
+      }
+
+      // Graphique de projection
+      const ctx = document.getElementById('projectionChart').getContext('2d');
+      if (projectionChartInstance) projectionChartInstance.destroy();
+
+      projectionChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labelsYear,
+          datasets: [
+            {
+              label: 'Patrimoine Total Projeté (€)',
+              data: dataTotalSeries,
+              borderColor: '#38bdf8',
+              backgroundColor: 'rgba(56, 189, 248, 0.2)',
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Total Apports Cumulés (€)',
+              data: dataApportsSeries,
+              borderColor: '#94a3b8',
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true, position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+          }
+        }
+      });
+    }
+
     function exportData() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records));
       const downloadAnchor = document.createElement('a');
@@ -412,10 +635,9 @@
       });
     }
 
-    // Chargement initial
     populateCategoriesSelect();
     renderDashboard();
   </script>
 </body>
 </html>
-"Version cinq de l'app de patrimoine"
+"Version six de l'app de patrimoine"
