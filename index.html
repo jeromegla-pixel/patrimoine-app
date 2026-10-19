@@ -60,6 +60,8 @@
     button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; }
     button.sec-btn { width: 48%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #94a3b8; font-size: 12px; cursor: pointer; }
 
+    .success-feedback { display: none; color: #34d399; font-size: 12px; font-weight: bold; margin-top: 6px; text-align: center; }
+
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { text-align: left; padding: 8px 4px; border-bottom: 1px solid #334155; }
     th { color: #64748b; font-weight: normal; }
@@ -73,7 +75,7 @@
 </head>
 <body>
 
-  <!-- ÉCRAN DE VÉROUILLAGE BIOMÉTRIQUE / PIN -->
+  <!-- ÉCRAN DE VÉROUILLAGE -->
   <div id="lockScreen">
     <div class="lock-box">
       <div style="font-size:36px; margin-bottom:12px;">🔒</div>
@@ -89,9 +91,9 @@
 
   <!-- HEADER -->
   <div class="header-bar">
-    <div class="brand-title">Patrimoine</div>
+    <div class="brand-title">Mon Patrimoine</div>
     <div class="header-actions">
-      <button class="action-btn" onclick="lockApp()">🔒 Appuyer pour verrouiller</button>
+      <button class="action-btn" onclick="lockApp()">🔒 Verrouiller</button>
       <button class="action-btn" onclick="togglePrivacyMode()">
         <span id="privacyIcon">👁️</span> <span id="privacyText">Masquer</span>
       </button>
@@ -104,26 +106,26 @@
 
   <!-- BARRE DE NAVIGATION EN BAS -->
   <div class="bottom-nav">
-    <button class="nav-item active" onclick="switchView('dashboard')">
-      <span class="icon">📊</span>
-      <span>Cockpit</span>
+    <button class="nav-item active" onclick="switchView('synth')">
+      <span class="icon">🎯</span>
+      <span>Synthèse</span>
     </button>
-    <button class="nav-item" onclick="switchView('portfolio')">
-      <span class="icon">💼</span>
-      <span>Patrimoine</span>
+    <button class="nav-item" onclick="switchView('carto')">
+      <span class="icon">🗺️</span>
+      <span>Cartographie</span>
     </button>
     <button class="nav-item" onclick="switchView('fire')">
       <span class="icon">🚀</span>
       <span>Objectif FIRE</span>
     </button>
-    <button class="nav-item" onclick="switchView('manage')">
-      <span class="icon">⚙️</span>
-      <span>Gestion</span>
+    <button class="nav-item" onclick="switchView('patrimoine')">
+      <span class="icon">💼</span>
+      <span>Patrimoine</span>
     </button>
   </div>
 
-  <!-- SECTION 1 : COCKPIT SYNTHÉTIQUE -->
-  <div id="view-dashboard" class="tab-view active">
+  <!-- SECTION 1 : SYNTHÈSE -->
+  <div id="view-synth" class="tab-view active">
     <div class="card">
       <div class="hero-label">Patrimoine Net Total</div>
       <div id="totalNetVal" class="hero-amount">0,00 €</div>
@@ -171,15 +173,15 @@
     </div>
   </div>
 
-  <!-- SECTION 2 : PATRIMOINE DÉTAILLÉ -->
-  <div id="view-portfolio" class="tab-view">
+  <!-- SECTION 2 : CARTOGRAPHIE DU PATRIMOINE -->
+  <div id="view-carto" class="tab-view">
     <div class="card">
       <h2>Répartition par Classe d'Actif</h2>
       <canvas id="allocationChart" height="200"></canvas>
     </div>
 
     <div class="card">
-      <h2>Détail de vos Placements</h2>
+      <h2>Cartographie des Placements</h2>
       <table>
         <thead>
           <tr>
@@ -208,7 +210,7 @@
     </div>
   </div>
 
-  <!-- SECTION 3 : STRATÉGIE FIRE & RENTE SUR-MESURE -->
+  <!-- SECTION 3 : STRATÉGIE FIRE & RENTE -->
   <div id="view-fire" class="tab-view">
     <div class="card">
       <h2>Paramètres de votre Objectif FIRE</h2>
@@ -271,8 +273,8 @@
     </div>
   </div>
 
-  <!-- SECTION 4 : GESTION, SAISIE UNIVERSELLE & SÉCURITÉ -->
-  <div id="view-manage" class="tab-view">
+  <!-- SECTION 4 : PATRIMOINE (SAISIE, HISTORIQUE & CONFIG) -->
+  <div id="view-patrimoine" class="tab-view">
     <div class="card">
       <h2>Saisir / Mettre à jour un Placement</h2>
       <form id="entryForm">
@@ -319,6 +321,7 @@
         <input type="number" id="assetValue" placeholder="ex: 15000" step="0.01" required>
 
         <button type="submit" class="submit-btn">Enregistrer le Placement</button>
+        <div id="entryFeedback" class="success-feedback">✓ Placement enregistré avec succès !</div>
       </form>
     </div>
 
@@ -336,6 +339,7 @@
           <div><label>Durée Restante (mois)</label><input type="number" id="loanMonths" required></div>
         </div>
         <button type="submit" class="submit-btn">Enregistrer le Crédit</button>
+        <div id="loanFeedback" class="success-feedback">✓ Prêt enregistré avec succès !</div>
       </form>
     </div>
 
@@ -345,7 +349,7 @@
     </div>
 
     <div class="card">
-      <h2>Historique des Relevés</h2>
+      <h2>Historique Complet des Relevés</h2>
       <table>
         <thead>
           <tr>
@@ -380,7 +384,7 @@
 
     let isPrivacyActive = false;
     let storedPin = localStorage.getItem(PIN_STORAGE_KEY);
-    let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let records = [];
     let loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
     let fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 600000 };
     let dcaSettings = JSON.parse(localStorage.getItem(DCA_STORAGE_KEY)) || {};
@@ -389,7 +393,41 @@
     let pieChartInstance = null;
     let projectionChartInstance = null;
 
-    // SÉCURITÉ BIOMÉTRIQUE ET CODE PIN
+    // MIGRATION AUTOMATIQUE DES HISTORIQUES V1, V2 ET V3
+    function migrateAndLoadData() {
+      let currentRecords = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      let oldV1 = JSON.parse(localStorage.getItem('patrimoine_records_v1')) || [];
+      let oldV2 = JSON.parse(localStorage.getItem('patrimoine_records_v2')) || [];
+
+      let combined = [...currentRecords];
+
+      // Conversion des anciens formats si non présents
+      [...oldV1, ...oldV2].forEach(oldR => {
+        if (!combined.some(c => c.id === oldR.id)) {
+          let env = oldR.envelope || 'Autre';
+          let typ = oldR.type || 'Actions';
+          if (oldR.category && oldR.category.includes('PEA')) env = 'PEA';
+          if (oldR.category && oldR.category.includes('PEG')) env = 'PEG / PEE';
+          if (oldR.category && oldR.category.includes('Spirit')) env = 'Assurance-Vie';
+          if (oldR.category && oldR.category.includes('Liquidités')) env = 'Liquidités';
+
+          combined.push({
+            id: oldR.id || Date.now() + Math.random(),
+            date: oldR.date,
+            envelope: env,
+            type: typ,
+            mode: oldR.mode || 'ACC',
+            yield: oldR.yield || 0,
+            category: `${env} (${typ})`,
+            value: oldR.value
+          });
+        }
+      });
+
+      records = combined;
+      saveData();
+    }
+
     function initSecurity() {
       if (!storedPin) {
         document.getElementById('lockSub').innerText = "Définissez un nouveau code PIN à 4 chiffres";
@@ -425,7 +463,7 @@
     function unlockApp() {
       document.getElementById('lockScreen').style.display = 'none';
       document.getElementById('pinInput').value = '';
-      renderDashboard();
+      renderSynth();
     }
 
     function lockApp() {
@@ -436,26 +474,22 @@
       if (confirm("Voulez-vous réinitialiser votre code PIN ?")) {
         localStorage.removeItem(PIN_STORAGE_KEY);
         storedPin = null;
-        alert("Code PIN réinitialisé. Définissez-en un nouveau.");
+        alert("Code PIN réinitialisé.");
         lockApp();
         initSecurity();
       }
     }
 
     async function authenticateBiometrics() {
-      try {
-        unlockApp();
-      } catch (err) {
-        alert("Authentification biométrique non disponible.");
-      }
+      unlockApp();
     }
 
     function togglePrivacyMode() {
       isPrivacyActive = !isPrivacyActive;
       document.getElementById('privacyIcon').innerText = isPrivacyActive ? '🔒' : '👁️';
       document.getElementById('privacyText').innerText = isPrivacyActive ? 'Afficher' : 'Masquer';
-      renderDashboard();
-      renderPortfolio();
+      renderSynth();
+      renderCarto();
       renderFireTab();
     }
 
@@ -471,10 +505,10 @@
       document.getElementById(`view-${viewName}`).classList.add('active');
       event.currentTarget.classList.add('active');
 
-      if (viewName === 'dashboard') renderDashboard();
-      if (viewName === 'portfolio') renderPortfolio();
+      if (viewName === 'synth') renderSynth();
+      if (viewName === 'carto') renderCarto();
       if (viewName === 'fire') renderFireTab();
-      if (viewName === 'manage') renderManageTab();
+      if (viewName === 'patrimoine') renderPatrimoineTab();
     }
 
     function updateFireSettings() {
@@ -484,6 +518,7 @@
       renderFireTab();
     }
 
+    // SAISIE SANS REDIRECTION
     document.getElementById('entryForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const date = document.getElementById('entryDate').value;
@@ -498,10 +533,13 @@
       records.push({ id: Date.now(), date, envelope, type, mode, yield: assetYield, category, value });
       saveData();
 
-      document.getElementById('entryForm').reset();
-      document.getElementById('entryDate').valueAsDate = new Date();
-      alert('Placement enregistré !');
-      switchView('dashboard');
+      document.getElementById('assetValue').value = '';
+      
+      const feedback = document.getElementById('entryFeedback');
+      feedback.style.display = 'block';
+      setTimeout(() => { feedback.style.display = 'none'; }, 3000);
+
+      renderPatrimoineTab();
     });
 
     document.getElementById('loanForm').addEventListener('submit', (e) => {
@@ -516,17 +554,19 @@
       localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
 
       document.getElementById('loanForm').reset();
-      renderManageTab();
-      renderDashboard();
-      alert('Crédit enregistré !');
+      
+      const feedback = document.getElementById('loanFeedback');
+      feedback.style.display = 'block';
+      setTimeout(() => { feedback.style.display = 'none'; }, 3000);
+
+      renderPatrimoineTab();
     });
 
     function deleteRecord(id) {
       if(confirm('Supprimer ce relevé ?')) {
         records = records.filter(r => r.id !== id);
         saveData();
-        renderManageTab();
-        renderDashboard();
+        renderPatrimoineTab();
       }
     }
 
@@ -534,8 +574,7 @@
       if(confirm('Supprimer ce crédit ?')) {
         loans = loans.filter(l => l.id !== id);
         localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-        renderPortfolio();
-        renderDashboard();
+        renderCarto();
       }
     }
 
@@ -550,7 +589,7 @@
       return latest;
     }
 
-    function renderDashboard() {
+    function renderSynth() {
       const latestMap = getLatestByCategory();
       const latestList = Object.values(latestMap);
       const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
@@ -609,7 +648,7 @@
       });
     }
 
-    function renderPortfolio() {
+    function renderCarto() {
       const latestMap = getLatestByCategory();
       const latestList = Object.values(latestMap);
       const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
@@ -783,7 +822,7 @@
       });
     }
 
-    function renderManageTab() {
+    function renderPatrimoineTab() {
       const table = document.getElementById('historyTable');
       table.innerHTML = '';
       [...records].reverse().forEach(r => {
@@ -819,12 +858,12 @@
             fireSettings = imported.fireSettings || fireSettings;
             dcaSettings = imported.dcaSettings || dcaSettings;
 
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            saveData();
             localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
             localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
             localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
 
-            renderDashboard();
+            renderSynth();
             alert("Restauration réussie !");
           }
         } catch(err) {
@@ -847,8 +886,9 @@
       });
     }
 
+    migrateAndLoadData();
     initSecurity();
   </script>
 </body>
 </html>
-"Version 9.3 de l'app de patrimoine"
+"Version 9.4 de l'app de patrimoine"
