@@ -1,3 +1,14 @@
+C'est une excellente remarque ! Pour que l'application soit réellement fluide et pratique au quotidien, chaque nouvelle catégorie/enveloppe saisie sur mesure (via "Autre / Personnalisé...") doit automatiquement enrichir le menu déroulant pour vos futures saisies.
+
+Ce que change cette mise à jour :
+Dynamisation du menu déroulant : Au chargement de la page et après chaque nouvelle saisie, le code parcourt vos enregistrements historiques, repère toutes les catégories personnalisées déjà créées (ex: Cryptos, Or, LMNP, SCPI Direct, etc.) et les ajoute automatiquement dans la liste déroulante.
+
+Mémoire des catégories : Même après rechargement ou mise à jour, vos catégories personnalisées restent disponibles dans le menu.
+
+Ergonomie optimisée : Plus besoin de ressaisir le nom de vos enveloppes personnalisées à chaque fois qu'il faut faire un nouveau relevé.
+
+Le code index.html mis à jour :
+HTML
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -139,18 +150,12 @@
 
         <label for="assetCategory">Enveloppe / Support</label>
         <select id="assetCategory" onchange="toggleCustomInput(this.value)" required>
-          <option value="Linxea Spirit 2">Linxea Spirit 2 (AV)</option>
-          <option value="Louve Infinity">Louve Infinity (AV)</option>
-          <option value="Louve Invest Direct">Louve Invest (SCPI Direct)</option>
-          <option value="PEA">PEA</option>
-          <option value="PEG / PERCO">PEG / PERCO</option>
-          <option value="Comptes / Liquidités">Comptes / Liquidités</option>
-          <option value="CUSTOM">Autre / Personnalisé...</option>
+          <!-- Les options de base et personnalisées sont chargées dynamiquement -->
         </select>
 
         <div id="customGroup" class="custom-input-group">
           <label for="customCategory">Nom de l'enveloppe personnalisée</label>
-          <input type="text" id="customCategory" placeholder="ex: Cryptos, Or physique...">
+          <input type="text" id="customCategory" placeholder="ex: Cryptos, Or physique, SCPI...">
         </div>
 
         <label for="assetValue">Valeur totale (€)</label>
@@ -175,11 +180,51 @@
   <script>
     document.getElementById('entryDate').valueAsDate = new Date();
 
-    // Clé de stockage persistante
     const STORAGE_KEY = 'patrimoine_records_v1';
     let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    
+    // Catégories par défaut
+    const DEFAULT_CATEGORIES = [
+      "Linxea Spirit 2",
+      "Louve Infinity",
+      "Louve Invest Direct",
+      "PEA",
+      "PEG / PERCO",
+      "Comptes / Liquidités"
+    ];
+
     let lineChartInstance = null;
     let pieChartInstance = null;
+
+    function populateCategoriesSelect() {
+      const select = document.getElementById('assetCategory');
+      const currentValue = select.value;
+      select.innerHTML = '';
+
+      // Collecter toutes les catégories uniques (défaut + enregistrées)
+      let customCategories = new Set(DEFAULT_CATEGORIES);
+      records.forEach(r => {
+        if (r.category) customCategories.add(r.category);
+      });
+
+      // Ajouter les options dans le select
+      customCategories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        select.appendChild(option);
+      });
+
+      // Option pour créer une nouvelle catégorie
+      const customOption = document.createElement('option');
+      customOption.value = 'CUSTOM';
+      customOption.textContent = '➕ Autre / Personnalisé...';
+      select.appendChild(customOption);
+
+      if (currentValue && customCategories.has(currentValue)) {
+        select.value = currentValue;
+      }
+    }
 
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -190,6 +235,7 @@
 
       if (tabName === 'dashboard') renderDashboard();
       if (tabName === 'allocation') renderAllocation();
+      if (tabName === 'entry') populateCategoriesSelect();
     }
 
     function toggleCustomInput(val) {
@@ -212,6 +258,7 @@
       document.getElementById('entryDate').valueAsDate = new Date();
       document.getElementById('customGroup').style.display = 'none';
       
+      populateCategoriesSelect();
       alert('Relevé enregistré !');
       switchTab('dashboard');
     });
@@ -220,6 +267,7 @@
       if(confirm('Supprimer ce relevé ?')) {
         records = records.filter(r => r.id !== id);
         saveData();
+        populateCategoriesSelect();
         renderDashboard();
       }
     }
@@ -319,7 +367,7 @@
           labels: labels,
           datasets: [{
             data: values,
-            backgroundColor: ['#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#34d399', '#fbbf24', '#f87171']
+            backgroundColor: ['#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#34d399', '#fbbf24', '#f87171', '#a7f3d0', '#fde047']
           }]
         },
         options: {
@@ -331,7 +379,6 @@
       });
     }
 
-    // FONCTIONS EXPORT ET IMPORT JSON DE SÉCURITÉ
     function exportData() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records));
       const downloadAnchor = document.createElement('a');
@@ -350,6 +397,7 @@
           if (Array.isArray(imported)) {
             records = imported;
             saveData();
+            populateCategoriesSelect();
             renderDashboard();
             alert("Restauration réussie !");
           } else {
@@ -362,7 +410,6 @@
       reader.readAsText(event.target.files[0]);
     }
 
-    // DÉTECTION ET FORCE DES MISES À JOUR CODE SANS TOUCHER AUX DONNÉES
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {
         reg.onupdatefound = () => {
@@ -376,8 +423,10 @@
       });
     }
 
+    // Chargement initial
+    populateCategoriesSelect();
     renderDashboard();
   </script>
 </body>
 </html>
-"Version quatre de l'app de patrimoine"
+"Version cinq de l'app de patrimoine"
