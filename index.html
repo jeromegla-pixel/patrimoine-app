@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Mon Patrimoine PWA - Ultimate Masterpiece</title>
+  <title>Mon Patrimoine PWA - Ultimate Fixed</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -185,6 +185,11 @@
       <div class="progress-bg" style="height:8px; margin-top:8px;"><div id="fireProgressBar" class="progress-fill" style="width: 0%; background: #38bdf8;"></div></div>
     </div>
     <div class="card">
+      <h2>Enveloppes Fiscales (Plafond PEA)</h2>
+      <div class="fire-metric"><span class="fire-label">Plafond Versements PEA (150k€)</span><span id="peaPlafondVal" class="fire-val">0 / 150 000 €</span></div>
+      <div class="progress-bg" style="height:6px; margin-top:4px;"><div id="peaPlafondBar" class="progress-fill" style="width: 0%; background: #818cf8;"></div></div>
+    </div>
+    <div class="card">
       <h2>Simulateur Avancé : DCA & Rendement par Support</h2>
       <div id="advancedDcaContainer"></div>
       <button type="button" class="submit-btn" style="margin-top:12px;" onclick="calculateProjections()">Recalculer la Trajectoire</button>
@@ -239,5 +244,399 @@
         <label>Nom du Prêt</label><input type="text" id="loanName" placeholder="ex: Prêt Immo" required>
         <div class="grid-2">
           <div><label>Reste Dû (€)</label><input type="number" id="loanBalance" required></div>
-          <div><label
-version12.1
+          <div><label>Mensualité (€)</label><input type="number" id="loanPayment" required></div>
+        </div>
+        <div class="grid-2">
+          <div><label>Taux (%)</label><input type="number" id="loanRate" value="1.5" step="0.01" required></div>
+          <div><label>Durée (mois)</label><input type="number" id="loanMonths" required></div>
+        </div>
+        <button type="submit" class="submit-btn">Enregistrer le Crédit</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Historique & Saisies Enregistrées</h2>
+      <table><thead><tr><th>Date</th><th>Support</th><th>Valeur</th><th>Rend.</th><th></th></tr></thead><tbody id="historyTable"></tbody></table>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('entryDate').valueAsDate = new Date();
+
+    const STORAGE_KEY = 'patrimoine_records_v3';
+    const LOANS_STORAGE_KEY = 'patrimoine_loans_v3';
+    const FIRE_STORAGE_KEY = 'patrimoine_fire_v3';
+    const ADV_DCA_KEY = 'patrimoine_adv_dca_v2';
+    const PEA_DEPOSITS_KEY = 'patrimoine_pea_deposits_v1';
+    const PIN_CODE_KEY = 'patrimoine_pin_v1';
+
+    let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
+    let fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 750000 };
+    let advDcaSettings = JSON.parse(localStorage.getItem(ADV_DCA_KEY)) || {};
+    let peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
+
+    let privacyMode = false;
+    let viewsOrder = ['synth', 'carto', 'fire', 'patrimoine'];
+    let currentViewIndex = 0;
+    let lineChartInstance = null, pieChartInstance = null, projectionChartInstance = null, modalChartInstance = null;
+
+    if(document.getElementById('fireAgeTarget')) document.getElementById('fireAgeTarget').value = fireSettings.ageTarget;
+    if(document.getElementById('fireCapTarget')) document.getElementById('fireCapTarget').value = fireSettings.capTarget;
+    if(document.getElementById('targetAgeLbl')) document.getElementById('targetAgeLbl').innerText = fireSettings.ageTarget;
+
+    let touchStartX = 0, touchEndX = 0;
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+    document.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 50 && currentViewIndex < viewsOrder.length - 1) switchView(viewsOrder[currentViewIndex + 1]);
+      if (touchEndX > touchStartX + 50 && currentViewIndex > 0) switchView(viewsOrder[currentViewIndex - 1]);
+    }, false);
+
+    function togglePrivacyMode() {
+      privacyMode = !privacyMode;
+      document.getElementById('privacyIcon').innerText = privacyMode ? '🔒' : '👁️';
+      document.getElementById('privacyText').innerText = privacyMode ? 'Afficher' : 'Masquer';
+      renderSynth();
+      renderCarto();
+      renderFireTab();
+      renderPatrimoineTab();
+    }
+
+    function formatCurrency(amt) {
+      if (privacyMode) return '***,** €';
+      return amt.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+    }
+
+    function lockApp() {
+      document.getElementById('lockScreen').style.display = 'flex';
+    }
+    function validatePin() {
+      const pin = document.getElementById('pinInput').value;
+      if (pin === '1234' || pin === localStorage.getItem(PIN_CODE_KEY)) {
+        document.getElementById('lockScreen').style.display = 'none';
+        document.getElementById('pinInput').value = '';
+      } else {
+        alert('Code PIN incorrect (par défaut : 1234)');
+      }
+    }
+
+    function togglePeaDepositsField() {
+      const box = document.getElementById('peaDepositsBox');
+      if (box) box.style.display = document.getElementById('assetEnvelope').value === 'PEA' ? 'block' : 'none';
+    }
+    togglePeaDepositsField();
+
+    function switchView(viewName) {
+      currentViewIndex = viewsOrder.indexOf(viewName);
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById(`view-${viewName}`).classList.add('active');
+      document.getElementById(`btn-${viewName}`).classList.add('active');
+
+      if (viewName === 'synth') renderSynth();
+      if (viewName === 'carto') renderCarto();
+      if (viewName === 'fire') renderFireTab();
+      if (viewName === 'patrimoine') renderPatrimoineTab();
+    }
+
+    function openChartModal() {
+      document.getElementById('chartModal').style.display = 'flex';
+      renderModalChart();
+    }
+    function closeChartModal() {
+      document.getElementById('chartModal').style.display = 'none';
+    }
+
+    function saveFireSettings() {
+      fireSettings.ageTarget = parseInt(document.getElementById('fireAgeTarget').value) || 55;
+      fireSettings.capTarget = parseFloat(document.getElementById('fireCapTarget').value) || 750000;
+      localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
+      if(document.getElementById('targetAgeLbl')) document.getElementById('targetAgeLbl').innerText = fireSettings.ageTarget;
+      calculateProjections();
+    }
+
+    function renderSynth() {
+      const latestList = Object.values(getLatestByCategory());
+      const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
+      const totalPassifs = loans.reduce((sum, l) => sum + l.balance, 0);
+
+      document.getElementById('totalNetVal').innerText = formatCurrency(totalActifs - totalPassifs);
+      document.getElementById('subBrutVal').innerText = `Actifs : ${formatCurrency(totalActifs)} | Crédits : ${formatCurrency(totalPassifs)}`;
+
+      const debtRatio = totalActifs > 0 ? ((totalPassifs / totalActifs) * 100).toFixed(1) : 0;
+      document.getElementById('kpiDebtVal').innerText = `${debtRatio}%`;
+      document.getElementById('barDebt').style.width = `${Math.min(100, debtRatio)}%`;
+
+      const liquidities = latestList.filter(r => r.type === 'Monétaire' || r.envelope === 'Liquidités').reduce((sum, r) => sum + r.value, 0);
+      document.getElementById('kpiSafetyVal').innerText = formatCurrency(liquidities);
+      document.getElementById('barSafety').style.width = `${Math.min(100, (liquidities / 15000) * 100)}%`;
+
+      let totalMonthlyDca = 0;
+      Object.values(advDcaSettings).forEach(cfg => { totalMonthlyDca += (cfg.dca || 0); });
+      const monthlyLoanAmortization = loans.reduce((sum, l) => sum + (l.payment * 0.7), 0);
+      const totalEnrichissement = Math.round(totalMonthlyDca + monthlyLoanAmortization);
+
+      document.getElementById('kpiEnrichVal').innerText = `+${totalEnrichissement} €/m`;
+      document.getElementById('barEnrich').style.width = `${Math.min(100, (totalEnrichissement / 1500) * 100)}%`;
+
+      let datesMapBrut = {};
+      let stateMap = {};
+      records.forEach(r => { stateMap[r.category] = r.value; datesMapBrut[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0); });
+
+      let labels = Object.keys(datesMapBrut);
+      let dataBrut = Object.values(datesMapBrut);
+      if (labels.length === 0) { labels = ['Départ']; dataBrut = [0]; }
+      if (labels.length === 1) { labels = ['Départ', labels[0]]; dataBrut = [0, dataBrut[0]]; }
+
+      const ctx = document.getElementById('evolutionChart').getContext('2d');
+      if (lineChartInstance) lineChartInstance.destroy();
+      lineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: labels, datasets: [{ label: 'Brut (€)', data: dataBrut, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true, tension: 0.2 }] },
+        options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
+      });
+    }
+
+    function renderCarto() {
+      const latestList = Object.values(getLatestByCategory());
+      const table = document.getElementById('allocationTable');
+      table.innerHTML = '';
+      latestList.forEach(r => {
+        table.innerHTML += `<tr><td><b>${r.envelope}</b><br><span style="color:#64748b; font-size:10px;">${r.type} (Rend: ${r.yield}%)</span></td><td>${formatCurrency(r.value)}</td><td>${r.mode}</td></tr>`;
+      });
+
+      const loansTable = document.getElementById('loansTable');
+      loansTable.innerHTML = '';
+      loans.forEach(l => {
+        loansTable.innerHTML += `<tr><td><b>${l.name}</b></td><td>${formatCurrency(l.balance)}</td><td>${l.payment} €/m</td><td><button class="delete-btn" onclick="deleteLoan(${l.id})">✕</button></td></tr>`;
+      });
+
+      let typeMap = {};
+      latestList.forEach(r => { typeMap[r.type] = (typeMap[r.type] || 0) + r.value; });
+
+      const ctx = document.getElementById('allocationChart').getContext('2d');
+      if (pieChartInstance) pieChartInstance.destroy();
+      pieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: Object.keys(typeMap), datasets: [{ data: Object.values(typeMap), backgroundColor: ['#38bdf8', '#34d399', '#fbbf24', '#818cf8', '#f472b6', '#c084fc'] }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } }
+      });
+    }
+
+    function renderFireTab() {
+      const latestList = Object.values(getLatestByCategory());
+      const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
+      let renteDist = latestList.filter(r => r.mode === 'DIST').reduce((sum, r) => sum + (r.value * (r.yield / 100) / 12), 0);
+      
+      if(document.getElementById('renteDistDirect')) document.getElementById('renteDistDirect').innerText = formatCurrency(renteDist) + " / mois";
+      
+      const pctBrut = fireSettings.capTarget > 0 ? Math.min(100, (totalActifs / fireSettings.capTarget) * 100).toFixed(1) : 0;
+      if(document.getElementById('firePctVal')) document.getElementById('firePctVal').innerText = `${pctBrut} %`;
+      if(document.getElementById('fireProgressBar')) document.getElementById('fireProgressBar').style.width = `${pctBrut}%`;
+
+      const peaVerser = peaDeposits > 0 ? peaDeposits : latestList.filter(r => r.envelope === 'PEA').reduce((s, r) => s + r.value, 0);
+      if(document.getElementById('peaPlafondVal')) document.getElementById('peaPlafondVal').innerText = `${formatCurrency(peaVerser)} / 150 000 €`;
+      if(document.getElementById('peaPlafondBar')) document.getElementById('peaPlafondBar').style.width = `${Math.min(100, (peaVerser / 150000) * 100)}%`;
+
+      const container = document.getElementById('advancedDcaContainer');
+      if(container) {
+        container.innerHTML = '';
+        latestList.forEach(r => {
+          if (!advDcaSettings[r.category]) {
+            advDcaSettings[r.category] = { dca: 300, startMonth: 1, endMonth: 240, injectionAmt: 0, injectionMonth: 12 };
+          }
+          let cfg = advDcaSettings[r.category];
+          container.innerHTML += `
+            <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:10px;">
+              <div style="color:#38bdf8; font-weight:bold; font-size:12px; margin-bottom:6px;">${r.envelope} (${r.type}) — Rend: ${r.yield}%</div>
+              <div class="grid-3">
+                <div><label>DCA (€/m)</label><input type="number" class="adv-dca" data-cat="${r.category}" value="${cfg.dca}"></div>
+                <div><label>Début (m)</label><input type="number" class="adv-start" data-cat="${r.category}" value="${cfg.startMonth}"></div>
+                <div><label>Fin (m)</label><input type="number" class="adv-end" data-cat="${r.category}" value="${cfg.endMonth}"></div>
+              </div>
+              <div class="grid-2" style="margin-top:4px;">
+                <div><label>Apport Ponctuel (€)</label><input type="number" class="adv-inj-amt" data-cat="${r.category}" value="${cfg.injectionAmt}"></div>
+                <div><label>Au mois N°</label><input type="number" class="adv-inj-mo" data-cat="${r.category}" value="${cfg.injectionMonth}"></div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      calculateProjections();
+    }
+
+    let lastSeriesStd = [];
+    let lastSeriesBoost = [];
+
+    function calculateProjections() {
+      document.querySelectorAll('.adv-dca').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].dca = parseFloat(el.value) || 0; });
+      document.querySelectorAll('.adv-start').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].startMonth = parseInt(el.value) || 1; });
+      document.querySelectorAll('.adv-end').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].endMonth = parseInt(el.value) || 240; });
+      document.querySelectorAll('.adv-inj-amt').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].injectionAmt = parseFloat(el.value) || 0; });
+      document.querySelectorAll('.adv-inj-mo').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].injectionMonth = parseInt(el.value) || 12; });
+
+      localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
+
+      let latestList = Object.values(getLatestByCategory());
+      let balancesStd = {};
+      let balancesBoost = {};
+      latestList.forEach(r => { balancesStd[r.category] = r.value; balancesBoost[r.category] = r.value; });
+
+      lastSeriesStd = [Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0))];
+      lastSeriesBoost = [Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0))];
+
+      for (let m = 1; m <= 240; m++) {
+        Object.keys(balancesStd).forEach(cat => {
+          let rObj = latestList.find(x => x.category === cat);
+          let annualYield = rObj ? (rObj.yield / 100) : 0.05;
+          let monthlyRate = Math.pow(1 + annualYield, 1/12) - 1;
+          let cfg = advDcaSettings[cat] || { dca: 0 };
+          let activeDca = (m >= (cfg.startMonth || 1) && m <= (cfg.endMonth || 240)) ? cfg.dca : 0;
+          balancesStd[cat] += (balancesStd[cat] * monthlyRate) + activeDca;
+        });
+
+        Object.keys(balancesBoost).forEach(cat => {
+          let rObj = latestList.find(x => x.category === cat);
+          let annualYield = rObj ? (rObj.yield / 100) : 0.05;
+          let monthlyRate = Math.pow(1 + annualYield, 1/12) - 1;
+          let cfg = advDcaSettings[cat] || { dca: 0, injectionAmt: 0, injectionMonth: 12 };
+          let activeDca = (m >= (cfg.startMonth || 1) && m <= (cfg.endMonth || 240)) ? cfg.dca : 0;
+          let injection = (m === (cfg.injectionMonth || 12)) ? (cfg.injectionAmt || 0) : 0;
+          balancesBoost[cat] += (balancesBoost[cat] * monthlyRate) + activeDca + injection;
+        });
+
+        if (m % 12 === 0) {
+          lastSeriesStd.push(Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0)));
+          lastSeriesBoost.push(Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0)));
+        }
+      }
+
+      const finalCap = lastSeriesBoost[15] || lastSeriesBoost[lastSeriesBoost.length - 1];
+      const renteTarget = (finalCap * 0.04) / 12;
+      if(document.getElementById('fireRenteVal')) document.getElementById('fireRenteVal').innerText = formatCurrency(renteTarget) + " / mois";
+
+      const currentTotal = Object.values(balancesBoost).reduce((a,b)=>a+b,0);
+      const targetCap = fireSettings.capTarget;
+      const missingCap = Math.max(0, targetCap - currentTotal);
+      const monthlyDeltaNeeded = Math.round(missingCap / (15 * 12));
+      if(document.getElementById('fireEffortRequis')) document.getElementById('fireEffortRequis').innerText = `+${monthlyDeltaNeeded} € / mois`;
+
+      renderProjectionCharts();
+      renderSynth();
+    }
+
+    function renderProjectionCharts() {
+      const labelsYear = ["Aujourd'hui"];
+      for(let i = 1; i <= 20; i++) labelsYear.push(`An +${i}`);
+
+      const chartConfig = {
+        type: 'line',
+        data: {
+          labels: labelsYear,
+          datasets: [
+            { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false, tension: 0.2 },
+            { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)', tension: 0.2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }
+        }
+      };
+
+      const ctx = document.getElementById('projectionChart').getContext('2d');
+      if (projectionChartInstance) projectionChartInstance.destroy();
+      projectionChartInstance = new Chart(ctx, chartConfig);
+    }
+
+    function renderModalChart() {
+      const labelsYear = ["Aujourd'hui"];
+      for(let i = 1; i <= 20; i++) labelsYear.push(`An +${i}`);
+
+      const ctxModal = document.getElementById('modalProjectionChart').getContext('2d');
+      if (modalChartInstance) modalChartInstance.destroy();
+      modalChartInstance = new Chart(ctxModal, {
+        type: 'line',
+        data: {
+          labels: labelsYear,
+          datasets: [
+            { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false, tension: 0.2 },
+            { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)', tension: 0.2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }
+        }
+      });
+    }
+
+    function renderPatrimoineTab() {
+      const table = document.getElementById('historyTable');
+      table.innerHTML = '';
+      [...records].reverse().forEach(r => {
+        table.innerHTML += `<tr><td>${r.date}</td><td><b>${r.envelope}</b><br><span style="color:#64748b">${r.type}</span></td><td>${formatCurrency(r.value)}</td><td>${r.yield}%</td><td><button class="delete-btn" onclick="deleteRecord(${r.id})">✕</button></td></tr>`;
+      });
+    }
+
+    function getLatestByCategory() {
+      let latest = {};
+      records.forEach(r => { latest[r.category] = r; });
+      return latest;
+    }
+    function saveData() { records.sort((a, b) => new Date(a.date) - new Date(b.date)); localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+    function deleteRecord(id) { records = records.filter(r => r.id !== id); saveData(); renderPatrimoineTab(); renderSynth(); }
+    function deleteLoan(id) { loans = loans.filter(l => l.id !== id); localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans)); renderCarto(); renderSynth(); }
+
+    document.getElementById('entryForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const envelope = document.getElementById('assetEnvelope').value;
+      const type = document.getElementById('assetType').value;
+      const category = `${envelope} (${type})`;
+
+      if (envelope === 'PEA') {
+        peaDeposits = parseFloat(document.getElementById('peaDeposits').value) || peaDeposits;
+        localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits);
+      }
+
+      records.push({
+        id: Date.now(),
+        date: document.getElementById('entryDate').value,
+        envelope,
+        type,
+        mode: document.getElementById('assetMode').value,
+        yield: parseFloat(document.getElementById('assetYield').value) || 0,
+        category,
+        value: parseFloat(document.getElementById('assetValue').value)
+      });
+
+      saveData();
+      document.getElementById('assetValue').value = '';
+      renderPatrimoineTab();
+      renderSynth();
+    });
+
+    document.getElementById('loanForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      loans.push({
+        id: Date.now(),
+        name: document.getElementById('loanName').value,
+        balance: parseFloat(document.getElementById('loanBalance').value),
+        payment: parseFloat(document.getElementById('loanPayment').value),
+        rate: parseFloat(document.getElementById('loanRate').value),
+        months: parseInt(document.getElementById('loanMonths').value)
+      });
+      localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+      document.getElementById('loanForm').reset();
+      renderCarto();
+      renderSynth();
+    });
+
+    renderSynth();
+  </script>
+</body>
+</html>
+version 12.2
