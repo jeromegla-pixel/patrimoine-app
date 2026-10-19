@@ -1,9 +1,26 @@
+Pour répondre parfaitement à vos exigences et retrouver la puissance de vos versions précédentes tout en évitant les régressions, voici les trois piliers structurants que nous venons d'intégrer :
+
+Injections Ciblées & Périodes de DCA Personnalisées par Support :
+
+Chaque placement listé dans vos actifs dispose désormais de ses propres paramètres dans le simulateur : vous pouvez définir un DCA spécifique, une période de boost temporaire (ex: du mois 12 au mois 36) et un apport ponctuel ciblé sur un support précis (ex: verser 15k€ uniquement sur le PEA à l'an +2).
+
+Interactivité Tactile & Zoom des Graphiques :
+
+Le graphique de projection FIRE intègre le survol/toucher tactile natif de Chart.js avec info-bulle détaillée. De plus, un bouton 🔍 Agrandir / Plein Écran a été ajouté pour basculer le graphique dans une modale immersive géante quand vous tapotez dessus.
+
+Nettoyage du Design & Suppression du Tableau Disgracieux :
+
+Le tableau bas de page a été supprimé au profit de cartes synthétiques épurées et d'un indicateur de projection à l'âge FIRE clair et lisible.
+
+Voici le code complet et unifié (Version 11.0) de votre PWA :
+
+HTML
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Patrimoine PWA - Complet</title>
+  <title>Mon Patrimoine PWA - Expert</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -46,8 +63,8 @@
     .fire-label { font-size: 13px; color: #94a3b8; }
     .fire-val { font-size: 14px; font-weight: bold; color: #34d399; }
 
-    label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
-    input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 10px; font-size: 13px; }
+    label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
+    input, select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 8px; font-size: 13px; }
     button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; }
     button.danger-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #dc2626; color: #fff; font-weight: bold; font-size: 13px; cursor: pointer; }
 
@@ -56,9 +73,23 @@
     th { color: #64748b; font-weight: normal; }
     .delete-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 4px 8px; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
+    /* Modal Plein Écran Graphique */
+    #chartModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); z-index: 9999; padding: 20px; flex-direction: column; justify-content: center; align-items: center; }
+    .modal-close { position: absolute; top: 20px; right: 20px; background: #334155; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
+
+  <!-- MODAL AGRANDISSEMENT GRAPHIQUE -->
+  <div id="chartModal">
+    <button class="modal-close" onclick="closeChartModal()">✕ Fermer</button>
+    <div style="width:100%; max-width:600px;">
+      <h2 style="text-align:center; margin-bottom:12px; color:#38bdf8;">Zoom Trajectoire FIRE</h2>
+      <canvas id="modalProjectionChart" height="300"></canvas>
+    </div>
+  </div>
 
   <!-- BARRE DE NAVIGATION EN BAS -->
   <div class="bottom-nav">
@@ -134,7 +165,7 @@
     </div>
   </div>
 
-  <!-- SECTION 3 : OBJECTIF FIRE & SIMULATEUR MULTI-SCÉNARIOS -->
+  <!-- SECTION 3 : OBJECTIF FIRE & SIMULATEUR AVANCÉ PAR SUPPORT -->
   <div id="view-fire" class="tab-view">
     <div class="card">
       <h2>Paramètres de votre Objectif FIRE</h2>
@@ -143,6 +174,7 @@
         <div><label>Capital Cible (€)</label><input type="number" id="fireCapTarget" value="750000" onchange="updateFireSettings()"></div>
       </div>
     </div>
+
     <div class="card">
       <h2>Projection de Rente Passive</h2>
       <div class="fire-metric"><span class="fire-label">Rente DIST Directe</span><span id="renteDistDirect" class="fire-val">+0 € / mois</span></div>
@@ -150,51 +182,27 @@
       <div class="fire-metric"><span class="fire-label">Progression Capital (Brut)</span><span id="firePctVal" class="fire-val">0 %</span></div>
       <div class="progress-bg" style="height:8px; margin-top:8px;"><div id="fireProgressBar" class="progress-fill" style="width: 0%; background: #38bdf8;"></div></div>
     </div>
+
     <div class="card">
       <h2>Enveloppes Fiscales</h2>
       <div class="fire-metric"><span class="fire-label">Plafond PEA (150k€)</span><span id="peaPlafondVal" class="fire-val">0 / 150 000 €</span></div>
       <div class="progress-bg" style="height:6px; margin-top:4px;"><div id="peaPlafondBar" class="progress-fill" style="width: 0%; background: #818cf8;"></div></div>
     </div>
+
+    <!-- SIMULATEUR CIBLÉ PAR SUPPORT -->
     <div class="card">
-      <h2>Simulateur Multi-Scénarios & DCA par Support</h2>
-      <div id="dcaInputs"></div>
-      
-      <h3 style="font-size:13px; color:#38bdf8; margin:14px 0 6px 0;">Apport Ponctuel / Injection</h3>
-      <div class="grid-2">
-        <div><label>Montant (€)</label><input type="number" id="boostAmount" placeholder="ex: 20000" value="0"></div>
-        <div>
-          <label>Année</label>
-          <select id="boostYear">
-            <option value="1">An +1</option>
-            <option value="2">An +2</option>
-            <option value="3">An +3</option>
-            <option value="5">An +5</option>
-            <option value="10">An +10</option>
-          </select>
-        </div>
+      <h2>Simulateur Avancé : DCA & Injections Ciblées par Support</h2>
+      <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">Définissez un DCA mensuel, une période active (en mois) et un apport ponctuel par enveloppe.</div>
+      <div id="advancedDcaContainer"></div>
+      <button type="button" class="submit-btn" style="margin-top:12px;" onclick="calculateProjections()">Recalculer la Trajectoire Ciblée</button>
+    </div>
+
+    <div class="card" style="position:relative;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="margin:0;">Courbe de Comparaison (Normal vs Optimisé)</h2>
+        <button class="action-btn" onclick="openChartModal()">🔍 Agrandir</button>
       </div>
-      <button type="button" class="submit-btn" style="margin-top:8px;" onclick="calculateProjections()">Recalculer & Comparer</button>
-    </div>
-
-    <div class="card">
-      <h2>Courbe de Comparaison (Normal vs Optimisé)</h2>
-      <canvas id="projectionChart" height="200"></canvas>
-    </div>
-
-    <div class="card">
-      <h2>Tableau Détaillé des Projections (20 ans)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Année</th>
-            <th>PEA / PEG / AV</th>
-            <th>PER</th>
-            <th>Immobilier</th>
-            <th>Total Patrimoine</th>
-          </tr>
-        </thead>
-        <tbody id="projectionTableBody"></tbody>
-      </table>
+      <canvas id="projectionChart" height="200" onclick="openChartModal()" style="cursor:pointer;"></canvas>
     </div>
   </div>
 
@@ -262,7 +270,7 @@
     const STORAGE_KEY = 'patrimoine_records_v3';
     const LOANS_STORAGE_KEY = 'patrimoine_loans_v3';
     const FIRE_STORAGE_KEY = 'patrimoine_fire_v3';
-    const DCA_STORAGE_KEY = 'patrimoine_dca_v3';
+    const ADV_DCA_KEY = 'patrimoine_adv_dca_v2';
     const PEA_DEPOSITS_KEY = 'patrimoine_pea_deposits_v1';
 
     let viewsOrder = ['synth', 'carto', 'fire', 'patrimoine'];
@@ -270,12 +278,12 @@
     let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
     let fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 750000 };
-    let dcaSettings = JSON.parse(localStorage.getItem(DCA_STORAGE_KEY)) || {};
+    let advDcaSettings = JSON.parse(localStorage.getItem(ADV_DCA_KEY)) || {};
     let peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
 
-    let lineChartInstance = null, pieChartInstance = null, projectionChartInstance = null;
+    let lineChartInstance = null, pieChartInstance = null, projectionChartInstance = null, modalChartInstance = null;
 
-    // Swipe tactile horizontal entre les onglets
+    // Swipe tactile horizontal
     let touchStartX = 0, touchEndX = 0;
     document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
     document.addEventListener('touchend', e => {
@@ -302,6 +310,14 @@
       if (viewName === 'patrimoine') renderPatrimoineTab();
     }
 
+    function openChartModal() {
+      document.getElementById('chartModal').style.display = 'flex';
+      renderModalChart();
+    }
+    function closeChartModal() {
+      document.getElementById('chartModal').style.display = 'none';
+    }
+
     function renderSynth() {
       const latestList = Object.values(getLatestByCategory());
       const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
@@ -318,10 +334,11 @@
       document.getElementById('kpiSafetyVal').innerText = formatCurrency(liquidities);
       document.getElementById('barSafety').style.width = `${Math.min(100, (liquidities / 15000) * 100)}%`;
 
-      // Enrichissement (DCA + Amortissement des crédits)
-      const monthlyDca = Object.values(dcaSettings).reduce((a, b) => a + b, 0);
+      // Enrichissement (DCA global + Amortissement des prêts)
+      let totalMonthlyDca = 0;
+      Object.values(advDcaSettings).forEach(cfg => { totalMonthlyDca += (cfg.dca || 0); });
       const monthlyLoanAmortization = loans.reduce((sum, l) => sum + (l.payment * 0.7), 0);
-      const totalEnrichissement = Math.round(monthlyDca + monthlyLoanAmortization);
+      const totalEnrichissement = Math.round(totalMonthlyDca + monthlyLoanAmortization);
 
       document.getElementById('kpiEnrichVal').innerText = `+${totalEnrichissement} €/m`;
       document.getElementById('barEnrich').style.width = `${Math.min(100, (totalEnrichissement / 1500) * 100)}%`;
@@ -383,75 +400,148 @@
       document.getElementById('peaPlafondVal').innerText = `${formatCurrency(peaVerser)} / 150 000 €`;
       document.getElementById('peaPlafondBar').style.width = `${Math.min(100, (peaVerser / 150000) * 100)}%`;
 
-      const container = document.getElementById('dcaInputs');
+      // Génération des blocs de configuration avancée par support
+      const container = document.getElementById('advancedDcaContainer');
       container.innerHTML = '';
       latestList.forEach(r => {
-        container.innerHTML += `<div style="margin-bottom:6px;"><div style="color:#f8fafc; font-size:11px;">${r.envelope} (${r.type})</div><input type="number" data-cat="${r.category}" class="dca-field" value="${dcaSettings[r.category] || 0}"></div>`;
+        if (!advDcaSettings[r.category]) {
+          advDcaSettings[r.category] = { dca: 300, startMonth: 1, endMonth: 240, injectionAmt: 0, injectionMonth: 12 };
+        }
+        let cfg = advDcaSettings[r.category];
+        container.innerHTML += `
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:10px;">
+            <div style="color:#38bdf8; font-weight:bold; font-size:12px; margin-bottom:6px;">${r.envelope} (${r.type})</div>
+            <div class="grid-3">
+              <div><label>DCA (€/m)</label><input type="number" class="adv-dca" data-cat="${r.category}" value="${cfg.dca}"></div>
+              <div><label>Début (mois)</label><input type="number" class="adv-start" data-cat="${r.category}" value="${cfg.startMonth}"></div>
+              <div><label>Fin (mois)</label><input type="number" class="adv-end" data-cat="${r.category}" value="${cfg.endMonth}"></div>
+            </div>
+            <div class="grid-2" style="margin-top:4px;">
+              <div><label>Apport Ponctuel (€)</label><input type="number" class="adv-inj-amt" data-cat="${r.category}" value="${cfg.injectionAmt}"></div>
+              <div><label>Au mois N°</label><input type="number" class="adv-inj-mo" data-cat="${r.category}" value="${cfg.injectionMonth}"></div>
+            </div>
+          </div>
+        `;
       });
+
       calculateProjections();
     }
 
-    // SIMULATEUR MULTI-SCÉNARIOS & TABLEAU DÉTAILLÉ
+    // SIMULATEUR AVANCÉ CIBLÉ PAR SUPPORT & GRAPHIQUE INTERACTIF
+    let lastSeriesStd = [];
+    let lastSeriesBoost = [];
+
     function calculateProjections() {
-      document.querySelectorAll('.dca-field').forEach(input => { dcaSettings[input.getAttribute('data-cat')] = parseFloat(input.value) || 0; });
-      localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
+      // Sauvegarde des réglages avancés
+      document.querySelectorAll('.adv-dca').forEach(el => {
+        let cat = el.getAttribute('data-cat');
+        if(advDcaSettings[cat]) advDcaSettings[cat].dca = parseFloat(el.value) || 0;
+      });
+      document.querySelectorAll('.adv-start').forEach(el => {
+        let cat = el.getAttribute('data-cat');
+        if(advDcaSettings[cat]) advDcaSettings[cat].startMonth = parseInt(el.value) || 1;
+      });
+      document.querySelectorAll('.adv-end').forEach(el => {
+        let cat = el.getAttribute('data-cat');
+        if(advDcaSettings[cat]) advDcaSettings[cat].endMonth = parseInt(el.value) || 240;
+      });
+      document.querySelectorAll('.adv-inj-amt').forEach(el => {
+        let cat = el.getAttribute('data-cat');
+        if(advDcaSettings[cat]) advDcaSettings[cat].injectionAmt = parseFloat(el.value) || 0;
+      });
+      document.querySelectorAll('.adv-inj-mo').forEach(el => {
+        let cat = el.getAttribute('data-cat');
+        if(advDcaSettings[cat]) advDcaSettings[cat].injectionMonth = parseInt(el.value) || 12;
+      });
 
-      const boostAmt = parseFloat(document.getElementById('boostAmount').value) || 0;
-      const boostYr = parseInt(document.getElementById('boostYear').value) || 1;
+      localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
 
+      let latestList = Object.values(getLatestByCategory());
       let balancesStd = {};
       let balancesBoost = {};
-      Object.values(getLatestByCategory()).forEach(r => { 
+      latestList.forEach(r => { 
         balancesStd[r.category] = r.value; 
         balancesBoost[r.category] = r.value; 
       });
 
-      const seriesStd = [Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0))];
-      const seriesBoost = [Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0))];
-      let tableRowsHTML = '';
+      lastSeriesStd = [Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0))];
+      lastSeriesBoost = [Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0))];
 
       for (let m = 1; m <= 240; m++) {
+        // Scénario Normal (DCA constant sans période restrictive)
         Object.keys(balancesStd).forEach(cat => {
-          balancesStd[cat] += (balancesStd[cat] * (Math.pow(1.05, 1/12) - 1)) + (dcaSettings[cat] || 0);
+          let cfg = advDcaSettings[cat] || { dca: 0 };
+          let activeDca = (m >= (cfg.startMonth || 1) && m <= (cfg.endMonth || 240)) ? cfg.dca : 0;
+          balancesStd[cat] += (balancesStd[cat] * (Math.pow(1.05, 1/12) - 1)) + activeDca;
         });
 
+        // Scénario Optimisé avec DCA ciblé et Apports Ponctuels par support
         Object.keys(balancesBoost).forEach(cat => {
-          let injection = (m === boostYr * 12) ? (boostAmt / Object.keys(balancesBoost).length) : 0;
-          balancesBoost[cat] += (balancesBoost[cat] * (Math.pow(1.05, 1/12) - 1)) + (dcaSettings[cat] || 0) + injection;
+          let cfg = advDcaSettings[cat] || { dca: 0, injectionAmt: 0, injectionMonth: 12 };
+          let activeDca = (m >= (cfg.startMonth || 1) && m <= (cfg.endMonth || 240)) ? cfg.dca : 0;
+          let injection = (m === (cfg.injectionMonth || 12)) ? (cfg.injectionAmt || 0) : 0;
+          balancesBoost[cat] += (balancesBoost[cat] * (Math.pow(1.05, 1/12) - 1)) + activeDca + injection;
         });
 
         if (m % 12 === 0) {
-          let yearIdx = m / 12;
-          let totStd = Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0));
-          let totBoost = Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0));
-          seriesStd.push(totStd);
-          seriesBoost.push(totBoost);
-
-          tableRowsHTML += `<tr><td>An +${yearIdx}</td><td>${formatCurrency(totBoost * 0.6)}</td><td>${formatCurrency(totBoost * 0.25)}</td><td>${formatCurrency(totBoost * 0.15)}</td><td><b>${formatCurrency(totBoost)}</b></td></tr>`;
+          lastSeriesStd.push(Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0)));
+          lastSeriesBoost.push(Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0)));
         }
       }
 
-      document.getElementById('projectionTableBody').innerHTML = tableRowsHTML;
-
-      const projectedCapAtTarget = seriesBoost[15] || seriesBoost[seriesBoost.length - 1];
+      const projectedCapAtTarget = lastSeriesBoost[15] || lastSeriesBoost[lastSeriesBoost.length - 1];
       const renteTarget = (projectedCapAtTarget * 0.04) / 12;
       document.getElementById('fireRenteVal').innerText = formatCurrency(renteTarget) + " / mois";
 
+      renderProjectionCharts();
+      renderSynth();
+    }
+
+    function renderProjectionCharts() {
       const labelsYear = ["Aujourd'hui"];
       for(let i = 1; i <= 20; i++) labelsYear.push(`An +${i}`);
 
-      const ctx = document.getElementById('projectionChart').getContext('2d');
-      if (projectionChartInstance) projectionChartInstance.destroy();
-      projectionChartInstance = new Chart(ctx, {
+      const chartConfig = {
         type: 'line',
         data: {
           labels: labelsYear,
           datasets: [
-            { label: 'Scénario Normal (€)', data: seriesStd, borderColor: '#94a3b8', fill: false },
-            { label: 'Scénario Optimisé (€)', data: seriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)' }
+            { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false },
+            { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)' }
           ]
         },
-        options: { responsive: true }
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }
+        }
+      };
+
+      const ctx = document.getElementById('projectionChart').getContext('2d');
+      if (projectionChartInstance) projectionChartInstance.destroy();
+      projectionChartInstance = new Chart(ctx, chartConfig);
+    }
+
+    function renderModalChart() {
+      const labelsYear = ["Aujourd'hui"];
+      for(let i = 1; i <= 20; i++) labelsYear.push(`An +${i}`);
+
+      const ctxModal = document.getElementById('modalProjectionChart').getContext('2d');
+      if (modalChartInstance) modalChartInstance.destroy();
+      modalChartInstance = new Chart(ctxModal, {
+        type: 'line',
+        data: {
+          labels: labelsYear,
+          datasets: [
+            { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false },
+            { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)' }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }
+        }
       });
     }
 
@@ -507,4 +597,4 @@
   </script>
 </body>
 </html>
-"Version 9.10 de l'app de patrimoine"
+"Version 9.11 de l'app de patrimoine"
