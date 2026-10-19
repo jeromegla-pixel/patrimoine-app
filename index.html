@@ -18,14 +18,14 @@
 
     #updateBanner { display: none; background-color: #2563eb; color: #fff; padding: 10px; border-radius: 10px; margin-bottom: 14px; text-align: center; font-size: 12px; font-weight: bold; cursor: pointer; }
 
-    /* Modal de Vérouillage */
+    /* Modal de Verrouillage */
     #lockScreen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; }
     .lock-box { background: #1e293b; border: 1px solid #334155; padding: 24px; border-radius: 20px; width: 100%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     .lock-title { font-size: 18px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; }
     .lock-sub { font-size: 12px; color: #94a3b8; margin-bottom: 20px; }
     .pin-input { font-size: 24px; letter-spacing: 12px; text-align: center; width: 160px; padding: 8px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #fff; margin-bottom: 16px; }
 
-    /* Modale d'Édition Rapide (Bottom Sheet) */
+    /* Modale d'Édition Rapide */
     #editModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); z-index: 5000; justify-content: center; align-items: flex-end; }
     .modal-content { background: #1e293b; border-top: 1px solid #334155; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-width: 500px; animation: slideUp 0.2s ease-out; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -63,6 +63,7 @@
     label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
     input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 10px; font-size: 13px; }
     button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; }
+    button.danger-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #dc2626; color: #fff; font-weight: bold; font-size: 13px; cursor: pointer; }
     button.sec-btn { width: 48%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #94a3b8; font-size: 12px; cursor: pointer; }
 
     .success-feedback { display: none; color: #34d399; font-size: 12px; font-weight: bold; margin-top: 6px; text-align: center; }
@@ -72,7 +73,7 @@
     th { color: #64748b; font-weight: normal; }
     tr.clickable-row { cursor: pointer; transition: background 0.15s; }
     tr.clickable-row:active { background: rgba(56, 189, 248, 0.1); }
-    .delete-btn { background: none; border: none; color: #ef4444; font-size: 14px; cursor: pointer; }
+    .delete-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 4px 8px; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .btn-row { display: flex; justify-content: space-between; margin-top: 10px; }
     
@@ -82,7 +83,7 @@
 </head>
 <body>
 
-  <!-- ÉCRAN DE VÉROUILLAGE -->
+  <!-- ÉCRAN DE VERROUILLAGE -->
   <div id="lockScreen">
     <div class="lock-box">
       <div style="font-size:36px; margin-bottom:12px;">🔒</div>
@@ -373,6 +374,12 @@
     </div>
 
     <div class="card">
+      <h2>Remise à Zéro Totale</h2>
+      <p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Attention : cette action efface définitivement tous les relevés, crédits et historiques enregistrés sur votre appareil.</p>
+      <button class="danger-btn" onclick="clearAllData()">🗑️ Réinitialiser TOUT à zéro</button>
+    </div>
+
+    <div class="card">
       <h2>Sécurité & Code PIN</h2>
       <button class="submit-btn" style="background-color:#334155;" onclick="resetPinCode()">Réinitialiser le Code PIN</button>
     </div>
@@ -410,10 +417,11 @@
     const FIRE_STORAGE_KEY = 'patrimoine_fire_v3';
     const DCA_STORAGE_KEY = 'patrimoine_dca_v3';
     const PIN_STORAGE_KEY = 'patrimoine_pin_code_v1';
+    const MIGRATION_DONE_KEY = 'patrimoine_migrated_flag_v1';
 
     let isPrivacyActive = false;
     let storedPin = localStorage.getItem(PIN_STORAGE_KEY);
-    let records = [];
+    let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
     let fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 600000 };
     let dcaSettings = JSON.parse(localStorage.getItem(DCA_STORAGE_KEY)) || {};
@@ -424,36 +432,58 @@
     let currentEditRecord = null;
 
     function migrateAndLoadData() {
-      let currentRecords = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-      let oldV1 = JSON.parse(localStorage.getItem('patrimoine_records_v1')) || [];
-      let oldV2 = JSON.parse(localStorage.getItem('patrimoine_records_v2')) || [];
+      const isMigrated = localStorage.getItem(MIGRATION_DONE_KEY);
+      if (!isMigrated) {
+        let oldV1 = JSON.parse(localStorage.getItem('patrimoine_records_v1')) || [];
+        let oldV2 = JSON.parse(localStorage.getItem('patrimoine_records_v2')) || [];
+        let combined = [...records];
 
-      let combined = [...currentRecords];
+        [...oldV1, ...oldV2].forEach(oldR => {
+          if (!combined.some(c => c.id === oldR.id)) {
+            let env = oldR.envelope || 'Autre';
+            let typ = oldR.type || 'Actions';
+            if (oldR.category && oldR.category.includes('PEA')) env = 'PEA';
+            if (oldR.category && oldR.category.includes('PEG')) env = 'PEG / PEE';
+            if (oldR.category && oldR.category.includes('Spirit')) env = 'Assurance-Vie';
+            if (oldR.category && oldR.category.includes('Liquidités')) env = 'Liquidités';
 
-      [...oldV1, ...oldV2].forEach(oldR => {
-        if (!combined.some(c => c.id === oldR.id)) {
-          let env = oldR.envelope || 'Autre';
-          let typ = oldR.type || 'Actions';
-          if (oldR.category && oldR.category.includes('PEA')) env = 'PEA';
-          if (oldR.category && oldR.category.includes('PEG')) env = 'PEG / PEE';
-          if (oldR.category && oldR.category.includes('Spirit')) env = 'Assurance-Vie';
-          if (oldR.category && oldR.category.includes('Liquidités')) env = 'Liquidités';
+            combined.push({
+              id: oldR.id || Date.now() + Math.random(),
+              date: oldR.date,
+              envelope: env,
+              type: typ,
+              mode: oldR.mode || 'ACC',
+              yield: oldR.yield || 0,
+              category: `${env} (${typ})`,
+              value: oldR.value
+            });
+          }
+        });
 
-          combined.push({
-            id: oldR.id || Date.now() + Math.random(),
-            date: oldR.date,
-            envelope: env,
-            type: typ,
-            mode: oldR.mode || 'ACC',
-            yield: oldR.yield || 0,
-            category: `${env} (${typ})`,
-            value: oldR.value
-          });
+        records = combined;
+        saveData();
+        localStorage.setItem(MIGRATION_DONE_KEY, 'true');
+      }
+    }
+
+    function clearAllData() {
+      const firstConfirm = confirm("⚠️ ATTENTION : Êtes-vous sûr de vouloir tout supprimer ?\n\nCette action effacera définitivement l'ensemble de votre historique de patrimoine, prêts, simulations et réglages.");
+      
+      if (firstConfirm) {
+        const secondConfirm = confirm("🚨 CONFIRMATION FINALE : Voulez-vous vraiment remettre l'application à zéro ?\n\nCliquez sur OK pour valider la suppression définitive.");
+        
+        if (secondConfirm) {
+          localStorage.clear();
+          records = [];
+          loans = [];
+          fireSettings = { ageTarget: 55, capTarget: 600000 };
+          dcaSettings = {};
+          storedPin = null;
+          
+          alert("✓ Vos données ont été entièrement effacées. L'application va redémarrer.");
+          location.reload();
         }
-      });
-
-      records = combined;
-      saveData();
+      }
     }
 
     function initSecurity() {
@@ -639,6 +669,8 @@
         records = records.filter(r => r.id !== id);
         saveData();
         renderPatrimoineTab();
+        renderSynth();
+        renderCarto();
       }
     }
 
@@ -647,6 +679,7 @@
         loans = loans.filter(l => l.id !== id);
         localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
         renderCarto();
+        renderSynth();
       }
     }
 
@@ -965,4 +998,4 @@
   </script>
 </body>
 </html>
-"Version 9.5 de l'app de patrimoine"
+"Version 9.6 de l'app de patrimoine"
