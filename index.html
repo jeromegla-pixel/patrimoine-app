@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Mon Patrimoine PWA - Safe Edition</title>
+  <title>Mon Patrimoine PWA - Diamond Edition</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -72,6 +72,7 @@
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 
     .info-banner { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px; font-size: 11px; color: #38bdf8; margin-bottom: 12px; }
+    .mbti-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #38bdf8; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
 
     #chartModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.96); z-index: 9999; padding: 20px; flex-direction: column; justify-content: center; align-items: center; }
     .modal-close { position: absolute; top: 20px; right: 20px; background: #334155; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
@@ -173,10 +174,17 @@
     </div>
   </div>
 
-  <!-- 2. CARTOGRAPHIE -->
+  <!-- 2. CARTOGRAPHIE & PROFIL MBTI -->
   <div id="view-carto" class="tab-view">
     <div class="info-banner">
       💡 <b>Gestion directe :</b> Ajustez les soldes et rendements ici. Pour ajouter un nouveau compte/enveloppe, allez dans l'onglet <b>Patrimoine</b>.
+    </div>
+
+    <!-- ENCART PROFIL INVESTISSEUR MBTI -->
+    <div class="mbti-card">
+      <div style="font-size:11px; text-transform:uppercase; color:#94a3b8; letter-spacing:0.5px;">Diagnostic de l'Investisseur</div>
+      <div id="mbtiTitle" style="font-size:18px; font-weight:800; color:#38bdf8; margin:4px 0;">Calcul en cours...</div>
+      <div id="mbtiDesc" style="font-size:12px; color:#cbd5e1; line-height:1.4;">Analyse de vos classes d'actifs, de votre exposition actions et de votre effet de levier...</div>
     </div>
 
     <div class="card">
@@ -215,17 +223,23 @@
           <input type="number" id="fireCapTarget" value="750000">
         </div>
       </div>
-      <div style="margin-top:4px;">
-        <label style="color:#38bdf8;">Versements Nets PEA réels hors intérêts (€)</label>
-        <input type="number" id="firePeaDeposits" value="0">
+      <div class="grid-2" style="margin-top:4px;">
+        <div>
+          <label style="color:#38bdf8;">Rente Cible Manuelle (€/m)</label>
+          <input type="number" id="fireManualRente" value="2500">
+        </div>
+        <div>
+          <label style="color:#38bdf8;">Versements Nets PEA (€)</label>
+          <input type="number" id="firePeaDeposits" value="0">
+        </div>
       </div>
     </div>
 
     <div class="card">
       <h2>Projection & Effort d'Épargne Requis</h2>
       <div class="fire-metric"><span class="fire-label">Rente DIST Actuelle (Reçue)</span><span id="renteDistDirect" class="fire-val">+0 € / mois</span></div>
-      <div class="fire-metric"><span class="fire-label">Rente Projetée Cible (à <span id="targetAgeLbl">55</span> ans)</span><span id="fireRenteVal" class="fire-val">+0 € / mois</span></div>
-      <div class="fire-metric"><span class="fire-label">Effort Mensuel Requis (Delta)</span><span id="fireEffortRequis" class="fire-val">+0 € / mois</span></div>
+      <div class="fire-metric"><span class="fire-label">Rente Théorique (4% Capital Cible)</span><span id="renteTheoriqueVal" class="fire-val">+0 € / mois</span></div>
+      <div class="fire-metric"><span class="fire-label">Effort Mensuel Requis (Basé sur Cible)</span><span id="fireEffortRequis" class="fire-val">+0 € / mois</span></div>
       <div class="fire-metric"><span class="fire-label">Progression vs Capital Cible</span><span id="firePctVal" class="fire-val">0 %</span></div>
       <div class="progress-bg" style="height:8px; margin-top:8px;"><div id="fireProgressBar" class="progress-fill" style="width: 0%; background: #38bdf8;"></div></div>
     </div>
@@ -317,7 +331,6 @@
   </div>
 
   <script>
-    // Capturer les erreurs d'exécution JavaScript et les afficher dans le DOM
     window.addEventListener('error', function(e) {
       var consoleEl = document.getElementById('errorConsole');
       if (consoleEl) {
@@ -340,7 +353,7 @@
 
       var records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       var loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
-      var fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 750000 };
+      var fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 750000, manualRente: 2500 };
       var advDcaSettings = JSON.parse(localStorage.getItem(ADV_DCA_KEY)) || {};
       var peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
 
@@ -355,6 +368,7 @@
       // Init UI Inputs
       if (document.getElementById('fireAgeTarget')) document.getElementById('fireAgeTarget').value = fireSettings.ageTarget;
       if (document.getElementById('fireCapTarget')) document.getElementById('fireCapTarget').value = fireSettings.capTarget;
+      if (document.getElementById('fireManualRente')) document.getElementById('fireManualRente').value = fireSettings.manualRente || 2500;
       if (document.getElementById('targetAgeLbl')) document.getElementById('targetAgeLbl').innerText = fireSettings.ageTarget;
       if (document.getElementById('firePeaDeposits')) document.getElementById('firePeaDeposits').value = peaDeposits;
 
@@ -372,6 +386,11 @@
       
       document.getElementById('fireAgeTarget').addEventListener('input', onFireAgeChange);
       document.getElementById('fireCapTarget').addEventListener('input', onFireCapChange);
+      document.getElementById('fireManualRente').addEventListener('input', function() {
+        fireSettings.manualRente = parseFloat(this.value) || 0;
+        localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
+        calculateProjections();
+      });
       document.getElementById('firePeaDeposits').addEventListener('change', onPeaDepositsChange);
       document.getElementById('recalcBtn').addEventListener('click', calculateProjections);
       document.getElementById('assetEnvelope').addEventListener('change', togglePeaDepositsField);
@@ -522,6 +541,40 @@
 
       function renderCarto() {
         var latestList = Object.values(getLatestByCategory());
+        
+        // Calcul du profil MBTI de l'investisseur
+        var totalActifs = latestList.reduce(function(s, r) { return s + r.value; }, 0) || 1;
+        var actionsVal = latestList.filter(function(r) { return r.type === 'Actions'; }).reduce(function(s, r) { return s + r.value; }, 0);
+        var immoVal = latestList.filter(function(r) { return r.type === 'SCPI' || r.envelope === 'Immobilier Physique'; }).reduce(function(s, r) { return s + r.value; }, 0);
+        var cashVal = latestList.filter(function(r) { return r.type === 'Monétaire' || r.envelope === 'Liquidités'; }).reduce(function(s, r) { return s + r.value; }, 0);
+        var cryptoVal = latestList.filter(function(r) { return r.type === 'Crypto'; }).reduce(function(s, r) { return s + r.value; }, 0);
+        
+        var actionsPct = (actionsVal / totalActifs) * 100;
+        var immoPct = (immoVal / totalActifs) * 100;
+        var cashPct = (cashVal / totalActifs) * 100;
+        var cryptoPct = (cryptoVal / totalActifs) * 100;
+
+        var mbtiCode = "";
+        var mbtiName = "";
+        var mbtiDesc = "";
+
+        if (actionsPct >= 60) {
+          mbtiCode = "INTJ"; mbtiName = "L'Architecte Souverain (Offensif & Visionnaire)";
+          mbtiDesc = "Forte exposition actions. Vous visez la croissance à long terme et le compounding boursier sans céder à la volatilité court terme.";
+        } else if (immoPct >= 50) {
+          mbtiCode = "ESTJ"; mbtiName = "Le Bâtisseur Immobilier (Tangible & Sécurisant)";
+          mbtiDesc = "Dominante pierre / SCPI. Vous privilégiez les actifs tangibles générateurs de cash-flow récurrent et la protection contre l'inflation.";
+        } else if (cashPct >= 30 || cryptoPct >= 20) {
+          mbtiCode = "ENTP"; mbtiName = "L'Innovateur Tactique (Opportuniste & Agile)";
+          mbtiDesc = "Allocation diversifiée ou forte appétence aux actifs alternatifs/liquidités. Vous aimez saisir les opportunités de marché.";
+        } else {
+          mbtiCode = "ISTP"; mbtiName = "Le Stratège Pragmatique (Équilibré & Résilient)";
+          mbtiDesc = "Portefeuille core-satellite parfaitement balancé entre actions, sécurité et rendement passif.";
+        }
+
+        if(document.getElementById('mbtiTitle')) document.getElementById('mbtiTitle').innerText = mbtiCode + " — " + mbtiName;
+        if(document.getElementById('mbtiDesc')) document.getElementById('mbtiDesc').innerText = mbtiDesc;
+
         var table = document.getElementById('allocationTable');
         table.innerHTML = '';
         
@@ -706,14 +759,18 @@
 
         var durationYears = Math.max(1, (fireSettings.ageTarget || 55) - 40);
         var projectedCapAtTarget = lastSeriesBoost[durationYears] || lastSeriesBoost[lastSeriesBoost.length - 1];
-        var renteTarget = (projectedCapAtTarget * 0.04) / 12;
         
-        if (document.getElementById('fireRenteVal')) document.getElementById('fireRenteVal').innerText = formatCurrency(renteTarget) + ' / mois';
+        // Rente théorique basée sur le capital cible (4%)
+        var renteTheorique = (fireSettings.capTarget * 0.04) / 12;
+        if (document.getElementById('renteTheoriqueVal')) document.getElementById('renteTheoriqueVal').innerText = formatCurrency(renteTheorique) + ' / mois';
 
+        // Calcul de l'effort d'épargne basé sur la Rente Cible Manuelle convertie en Capital Requis (Rente Cible * 12 / 0.04)
+        var manualRente = fireSettings.manualRente || 2500;
+        var impliedTargetCap = (manualRente * 12) / 0.04;
         var currentTotal = Object.values(balancesBoost).reduce(function(a,b){return a+b;},0);
-        var targetCap = fireSettings.capTarget;
-        var missingCap = Math.max(0, targetCap - currentTotal);
+        var missingCap = Math.max(0, impliedTargetCap - currentTotal);
         var monthlyDeltaNeeded = Math.round(missingCap / (durationYears * 12));
+        
         if (document.getElementById('fireEffortRequis')) document.getElementById('fireEffortRequis').innerText = '+' + monthlyDeltaNeeded + ' € / mois';
 
         renderProjectionCharts();
@@ -849,4 +906,3 @@
   </script>
 </body>
 </html>
-version15
