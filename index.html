@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Mon Patrimoine PWA - Diamond Edition</title>
+  <title>MBTI Patrimoine - Master Edition</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,10 +23,10 @@
     .lock-box { background: #1e293b; border: 1px solid #334155; padding: 24px; border-radius: 20px; width: 100%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     .pin-input { font-size: 24px; letter-spacing: 12px; text-align: center; width: 160px; padding: 8px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #fff; margin-bottom: 16px; }
 
-    /* Bottom Navigation Bar */
+    /* Bottom Navigation Bar (5 onglets adaptés) */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #334155; display: flex; justify-content: space-around; padding: 8px 0; z-index: 1000; }
-    .nav-item { background: none; border: none; color: #64748b; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; width: 25%; }
-    .nav-item .icon { font-size: 18px; }
+    .nav-item { background: none; border: none; color: #64748b; font-size: 9px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; width: 20%; }
+    .nav-item .icon { font-size: 16px; }
     .nav-item.active { color: #38bdf8; font-weight: 600; }
 
     .tab-view { display: none; }
@@ -73,6 +73,7 @@
 
     .info-banner { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px; font-size: 11px; color: #38bdf8; margin-bottom: 12px; }
     .mbti-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #38bdf8; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+    .trait-badge { background: #0f172a; border: 1px solid #334155; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; }
 
     #chartModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.96); z-index: 9999; padding: 20px; flex-direction: column; justify-content: center; align-items: center; }
     .modal-close { position: absolute; top: 20px; right: 20px; background: #334155; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
@@ -104,7 +105,7 @@
 
   <!-- HEADER -->
   <div class="header-bar">
-    <div class="brand-title">Mon Patrimoine</div>
+    <div class="brand-title">MBTI Patrimoine</div>
     <div class="header-actions">
       <button class="action-btn" id="lockAppBtn">🔒 Verrouiller</button>
       <button class="action-btn" id="togglePrivacyBtn">
@@ -113,16 +114,19 @@
     </div>
   </div>
 
-  <!-- NAVIGATION INFÉRIEURE -->
+  <!-- NAVIGATION INFÉRIEURE (5 ONGLETS) -->
   <div class="bottom-nav">
     <button class="nav-item active" id="btn-synth">
       <span class="icon">🎯</span><span>Synthèse</span>
     </button>
     <button class="nav-item" id="btn-carto">
-      <span class="icon">🗺️</span><span>Cartographie</span>
+      <span class="icon">🗺️</span><span>Carto</span>
+    </button>
+    <button class="nav-item" id="btn-mbti">
+      <span class="icon">🧠</span><span>Profil MBTI</span>
     </button>
     <button class="nav-item" id="btn-fire">
-      <span class="icon">🚀</span><span>Objectif FIRE</span>
+      <span class="icon">🚀</span><span>FIRE</span>
     </button>
     <button class="nav-item" id="btn-patrimoine">
       <span class="icon">💼</span><span>Patrimoine</span>
@@ -174,17 +178,10 @@
     </div>
   </div>
 
-  <!-- 2. CARTOGRAPHIE & PROFIL MBTI -->
+  <!-- 2. CARTOGRAPHIE -->
   <div id="view-carto" class="tab-view">
     <div class="info-banner">
       💡 <b>Gestion directe :</b> Ajustez les soldes et rendements ici. Pour ajouter un nouveau compte/enveloppe, allez dans l'onglet <b>Patrimoine</b>.
-    </div>
-
-    <!-- ENCART PROFIL INVESTISSEUR MBTI -->
-    <div class="mbti-card">
-      <div style="font-size:11px; text-transform:uppercase; color:#94a3b8; letter-spacing:0.5px;">Diagnostic de l'Investisseur</div>
-      <div id="mbtiTitle" style="font-size:18px; font-weight:800; color:#38bdf8; margin:4px 0;">Calcul en cours...</div>
-      <div id="mbtiDesc" style="font-size:12px; color:#cbd5e1; line-height:1.4;">Analyse de vos classes d'actifs, de votre exposition actions et de votre effet de levier...</div>
     </div>
 
     <div class="card">
@@ -209,7 +206,43 @@
     </div>
   </div>
 
-  <!-- 3. OBJECTIF FIRE -->
+  <!-- 3. ONGLET DÉDIÉ : PROFIL MBTI DE L'INVESTISSEUR -->
+  <div id="view-mbti" class="tab-view">
+    <div class="card">
+      <h2>🧠 Votre Carte d'Identité Psychologique</h2>
+      <div id="mbtiDynamicCard">
+        <div style="font-size:20px; font-weight:800; color:#38bdf8; margin-bottom:4px;" id="mbtiFullTitle">Analyse en cours...</div>
+        <div style="font-size:13px; color:#cbd5e1; line-height:1.4; margin-bottom:14px;" id="mbtiFullSummary"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💪 Vos Points Forts Stratégiques</h2>
+      <div id="mbtiStrengths"></div>
+    </div>
+
+    <div class="card">
+      <h2>⚠️ Axes de Faiblesse & Pièges Cognitifs</h2>
+      <div id="mbtiWeaknesses"></div>
+    </div>
+
+    <div class="card">
+      <h2>🔍 Points d'Attention & Recommandations</h2>
+      <div id="mbtiAttentions"></div>
+    </div>
+
+    <div class="card">
+      <h2>📚 La Matrice MBTI des Profils Investisseurs</h2>
+      <div style="font-size:12px; color:#94a3b8; line-height:1.5;">
+        <p style="margin-bottom:8px;"><b style="color:#38bdf8;">INTJ (L'Architecte Souverain) :</b> Dominante Actions / DCA rigoureux. Visionnaire, peu sensible aux krachs boursiers, vise le long terme.</p>
+        <p style="margin-bottom:8px;"><b style="color:#38bdf8;">ESTJ (Le Bâtisseur Immobilier) :</b> Dominante Pierre / SCPI / Effet de levier. Pragmatiste, cherche des flux de trésorerie tangibles et sécurisés.</p>
+        <p style="margin-bottom:8px;"><b style="color:#38bdf8;">ENTP (L'Innovateur Tactique) :</b> Allocation hybride / Crypto / Actifs alternatifs. Agile, aime l'optimisation fiscale et saisir les opportunités de marché.</p>
+        <p style="margin-bottom:0;"><b style="color:#38bdf8;">ISTP (Le Stratège Pragmatique) :</b> Portefeuille Core-Satellite équilibré. Résilient, rationnel, ajuste ses curseurs selon la macroéconomie.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. OBJECTIF FIRE -->
   <div id="view-fire" class="tab-view">
     <div class="card">
       <h2>Paramètres Corrélés FIRE</h2>
@@ -265,7 +298,7 @@
     </div>
   </div>
 
-  <!-- 4. PATRIMOINE -->
+  <!-- 5. PATRIMOINE -->
   <div id="view-patrimoine" class="tab-view">
     <div class="info-banner">
       📝 <b>Saisie Initiale :</b> Créez une nouvelle enveloppe ou un prêt ici. Pour les ajustements de soldes au quotidien, utilisez la <b>Cartographie</b>.
@@ -358,7 +391,7 @@
       var peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
 
       var privacyMode = false;
-      var viewsOrder = ['synth', 'carto', 'fire', 'patrimoine'];
+      var viewsOrder = ['synth', 'carto', 'mbti', 'fire', 'patrimoine'];
       var currentViewIndex = 0;
       var lineChartInstance = null, pieChartInstance = null, projectionChartInstance = null, modalChartInstance = null;
 
@@ -375,6 +408,7 @@
       // Listeners
       document.getElementById('btn-synth').addEventListener('click', function() { switchView('synth'); });
       document.getElementById('btn-carto').addEventListener('click', function() { switchView('carto'); });
+      document.getElementById('btn-mbti').addEventListener('click', function() { switchView('mbti'); });
       document.getElementById('btn-fire').addEventListener('click', function() { switchView('fire'); });
       document.getElementById('btn-patrimoine').addEventListener('click', function() { switchView('patrimoine'); });
 
@@ -410,6 +444,7 @@
         document.getElementById('privacyText').innerText = privacyMode ? 'Afficher' : 'Masquer';
         renderSynth();
         renderCarto();
+        renderMbtiTab();
         renderFireTab();
         renderPatrimoineTab();
       }
@@ -448,6 +483,7 @@
 
         if (viewName === 'synth') renderSynth();
         if (viewName === 'carto') renderCarto();
+        if (viewName === 'mbti') renderMbtiTab();
         if (viewName === 'fire') renderFireTab();
         if (viewName === 'patrimoine') renderPatrimoineTab();
       }
@@ -539,10 +575,8 @@
         }
       }
 
-      function renderCarto() {
+      function getMbtiAnalysis() {
         var latestList = Object.values(getLatestByCategory());
-        
-        // Calcul du profil MBTI de l'investisseur
         var totalActifs = latestList.reduce(function(s, r) { return s + r.value; }, 0) || 1;
         var actionsVal = latestList.filter(function(r) { return r.type === 'Actions'; }).reduce(function(s, r) { return s + r.value; }, 0);
         var immoVal = latestList.filter(function(r) { return r.type === 'SCPI' || r.envelope === 'Immobilier Physique'; }).reduce(function(s, r) { return s + r.value; }, 0);
@@ -554,26 +588,116 @@
         var cashPct = (cashVal / totalActifs) * 100;
         var cryptoPct = (cryptoVal / totalActifs) * 100;
 
-        var mbtiCode = "";
-        var mbtiName = "";
-        var mbtiDesc = "";
-
         if (actionsPct >= 60) {
-          mbtiCode = "INTJ"; mbtiName = "L'Architecte Souverain (Offensif & Visionnaire)";
-          mbtiDesc = "Forte exposition actions. Vous visez la croissance à long terme et le compounding boursier sans céder à la volatilité court terme.";
+          return {
+            code: "INTJ",
+            name: "L'Architecte Souverain (Offensif & Visionnaire)",
+            summary: "Forte exposition aux actions et ETF de capitalisation. Vous privilégiez la mécanique des intérêts composés et le long terme.",
+            strengths: [
+              "Discipline de fer et automatisation du DCA sans céder aux émotions.",
+              "Compréhension aiguë des frais de courtage et optimisation fiscale (PEA).",
+              "Vision à 15-20 ans alignée sur les objectifs FIRE."
+            ],
+            weaknesses: [
+              "Impatience face à la lenteur des phases de stagnation boursière.",
+              "Risque de sur-concentration sur les marchés actions en cas de krach majeur."
+            ],
+            attentions: [
+              "Maintenir une poche de sécurité monétaire pour amortir les chocs psychologiques.",
+              "Ne pas chercher à optimiser à l'excès les lignes satellites au détriment du core MSCI World."
+            ]
+          };
         } else if (immoPct >= 50) {
-          mbtiCode = "ESTJ"; mbtiName = "Le Bâtisseur Immobilier (Tangible & Sécurisant)";
-          mbtiDesc = "Dominante pierre / SCPI. Vous privilégiez les actifs tangibles générateurs de cash-flow récurrent et la protection contre l'inflation.";
+          return {
+            code: "ESTJ",
+            name: "Le Bâtisseur Immobilier (Tangible & Sécurisant)",
+            summary: "Dominante immobilière et SCPI. Vous cherchez des flux de trésorerie prévisibles et une protection physique contre l'inflation.",
+            strengths: [
+              "Maîtrise de l'effet de levier du crédit bancaire et de l'endettement sain.",
+              "Revenus passifs tangibles et réguliers (SCPI / loyers).",
+              "Résilience face aux turbulences boursières spéculatives."
+            ],
+            weaknesses: [
+              "Faible liquidité des actifs en cas de besoin urgent de cash.",
+              "Lourdeur administrative et fiscale des structures de détention."
+            ],
+            attentions: [
+              "Surveiller le taux d'endettement global et la vacance locative.",
+              "Diversifier une partie du cash vers des enveloppes mobilières pour garder de l'agilité."
+            ]
+          };
         } else if (cashPct >= 30 || cryptoPct >= 20) {
-          mbtiCode = "ENTP"; mbtiName = "L'Innovateur Tactique (Opportuniste & Agile)";
-          mbtiDesc = "Allocation diversifiée ou forte appétence aux actifs alternatifs/liquidités. Vous aimez saisir les opportunités de marché.";
+          return {
+            code: "ENTP",
+            name: "L'Innovateur Tactique (Opportuniste & Agile)",
+            summary: "Allocation alternative et flexible. Vous aimez saisir les opportunités de marché, la crypto et garder des liquidités prêtes à déployer.",
+            strengths: [
+              "Réactivité exceptionnelle face aux opportunités de correction du marché.",
+              "Curiosité intellectuelle et diversification hors des sentiers battus.",
+              "Excellente gestion des liquidités tactiques."
+            ],
+            weaknesses: [
+              "Risque de dispersion et de manque de constance sur une stratégie long terme.",
+              "Exposition émotionnelle plus forte aux variations court terme (crypto/alt)."
+            ],
+            attentions: [
+              "Formaliser une feuille de route rigide pour éviter les arbitrages impulsifs.",
+              "Sanctuariser le cœur de portefeuille (Core-Satellite)."
+            ]
+          };
         } else {
-          mbtiCode = "ISTP"; mbtiName = "Le Stratège Pragmatique (Équilibré & Résilient)";
-          mbtiDesc = "Portefeuille core-satellite parfaitement balancé entre actions, sécurité et rendement passif.";
+          return {
+            code: "ISTP",
+            name: "Le Stratège Pragmatique (Équilibré & Résilient)",
+            summary: "Portefeuille core-satellite diversifié. Vous combinez actions, sécurité et rendement passif avec un pragmatisme froid.",
+            strengths: [
+              "Équilibre parfait entre risque, rendement et sécurité patrimoniale.",
+              "Capacité d'analyse objective des performances sans orgueil.",
+              "Grande stabilité psychologique en toute saison macroéconomique."
+            ],
+            weaknesses: [
+              "Tendance à l'immobilisme ou à la sur-diversification si les critères ne sont pas clairs.",
+              "Rendement global parfois légèrement inférieur à un profil 100% offensif."
+            ],
+            attentions: [
+              "Auditer régulièrement la pertinence de chaque ligne pour éviter l'encrassement du portefeuille.",
+              "Maintenir l'effort d'épargne en période de forte inflation."
+            ]
+          };
         }
+      }
 
-        if(document.getElementById('mbtiTitle')) document.getElementById('mbtiTitle').innerText = mbtiCode + " — " + mbtiName;
-        if(document.getElementById('mbtiDesc')) document.getElementById('mbtiDesc').innerText = mbtiDesc;
+      function renderMbtiTab() {
+        var profile = getMbtiAnalysis();
+        document.getElementById('mbtiFullTitle').innerText = profile.code + ' — ' + profile.name;
+        document.getElementById('mbtiFullSummary').innerText = profile.summary;
+
+        var strContainer = document.getElementById('mbtiStrengths');
+        strContainer.innerHTML = '';
+        profile.strengths.forEach(function(s) {
+          strContainer.innerHTML += '<div class="trait-badge" style="border-left: 3px solid #34d399;">✅ ' + s + '</div>';
+        });
+
+        var weakContainer = document.getElementById('mbtiWeaknesses');
+        weakContainer.innerHTML = '';
+        profile.weaknesses.forEach(function(w) {
+          weakContainer.innerHTML += '<div class="trait-badge" style="border-left: 3px solid #ef4444;">⚠️ ' + w + '</div>';
+        });
+
+        var attContainer = document.getElementById('mbtiAttentions');
+        attContainer.innerHTML = '';
+        profile.attentions.forEach(function(a) {
+          attContainer.innerHTML += '<div class="trait-badge" style="border-left: 3px solid #38bdf8;">💡 ' + a + '</div>';
+        });
+      }
+
+      function renderCarto() {
+        var latestList = Object.values(getLatestByCategory());
+        var profile = getMbtiAnalysis();
+
+        // Encart rapide Carto
+        if(document.getElementById('mbtiTitle')) document.getElementById('mbtiTitle').innerText = profile.code + " — " + profile.name;
+        if(document.getElementById('mbtiDesc')) document.getElementById('mbtiDesc').innerText = profile.summary;
 
         var table = document.getElementById('allocationTable');
         table.innerHTML = '';
@@ -758,13 +882,9 @@
         }
 
         var durationYears = Math.max(1, (fireSettings.ageTarget || 55) - 40);
-        var projectedCapAtTarget = lastSeriesBoost[durationYears] || lastSeriesBoost[lastSeriesBoost.length - 1];
-        
-        // Rente théorique basée sur le capital cible (4%)
         var renteTheorique = (fireSettings.capTarget * 0.04) / 12;
         if (document.getElementById('renteTheoriqueVal')) document.getElementById('renteTheoriqueVal').innerText = formatCurrency(renteTheorique) + ' / mois';
 
-        // Calcul de l'effort d'épargne basé sur la Rente Cible Manuelle convertie en Capital Requis (Rente Cible * 12 / 0.04)
         var manualRente = fireSettings.manualRente || 2500;
         var impliedTargetCap = (manualRente * 12) / 0.04;
         var currentTotal = Object.values(balancesBoost).reduce(function(a,b){return a+b;},0);
@@ -906,4 +1026,5 @@
   </script>
 </body>
 </html>
-édition.diamond.1
+
+version.diamond.master
