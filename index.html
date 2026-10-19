@@ -1,22 +1,3 @@
-C'est un point fondamental ! Ce problème survient lorsque l'application réinitialise la mémoire locale (localStorage) lors d'une mise à jour de version ou lorsque le téléphone tente d'optimiser l'espace.
-
-Pour résoudre à la fois le problème des mises à jour qui bloquent et la préservation absolue de vos données, voici les 3 piliers à intégrer dans le code :
-
-1. La version du code séparée des données (localStorage)
-En JavaScript, les données saisies sont stockées sous une clé dédiée (ex: patrimoine_records_v1). La mise à jour du code HTML/CSS/JS modifie la couche d'affichage sans toucher à la mémoire de données. Vos relevés historiques restent ainsi intacts.
-
-2. Le mécanisme d'Auto-Update Intelligent
-On ajoute une version dans le code (APP_VERSION = "1.2.0"). À chaque ouverture, le script vérifie auprès de GitHub Pages si une nouvelle version existe. Si oui, il rafraîchit discrètement le cache en arrière-plan et affiche un petit bandeau "Nouvelle version disponible — Mettre à jour", qui applique les nouveautés sans réinitialiser l'historique.
-
-3. Les fonctions Export & Import de sécurité (Sauvegarde JSON)
-Pour une sécurité totale à 100 %, on ajoute deux boutons en bas de l'application :
-
-Exporter les données : Télécharge un fichier JSON de vos relevés sur votre téléphone (pour sauvegarde).
-
-Importer les données : Permet de restaurer vos données sur n'importe quel nouvel appareil en un clic.
-
-Le code index.html mis à jour et blindé :
-HTML
 <!DOCTYPE html>
 <html lang="fr">
 <head>
