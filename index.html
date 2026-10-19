@@ -25,11 +25,6 @@
     .lock-sub { font-size: 12px; color: #94a3b8; margin-bottom: 20px; }
     .pin-input { font-size: 24px; letter-spacing: 12px; text-align: center; width: 160px; padding: 8px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #fff; margin-bottom: 16px; }
 
-    /* Modale d'Édition Rapide */
-    #editModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); z-index: 5000; justify-content: center; align-items: flex-end; }
-    .modal-content { background: #1e293b; border-top: 1px solid #334155; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-width: 500px; animation: slideUp 0.2s ease-out; }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
     /* Bottom Navigation Bar */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #334155; display: flex; justify-content: space-around; padding: 8px 0; z-index: 1000; }
     .nav-item { background: none; border: none; color: #64748b; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; width: 25%; }
@@ -71,9 +66,6 @@
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { text-align: left; padding: 10px 4px; border-bottom: 1px solid #334155; }
     th { color: #64748b; font-weight: normal; }
-    tr.clickable-row { cursor: pointer; transition: background 0.15s; }
-    tr.clickable-row:active { background: rgba(56, 189, 248, 0.1); }
-    .delete-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 4px 8px; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .btn-row { display: flex; justify-content: space-between; margin-top: 10px; }
     
@@ -89,30 +81,9 @@
       <div style="font-size:36px; margin-bottom:12px;">🔒</div>
       <div class="lock-title">Accès Sécurisé</div>
       <div id="lockSub" class="lock-sub">Entrez votre code PIN à 4 chiffres</div>
-      
       <input type="password" id="pinInput" class="pin-input" maxlength="4" pattern="[0-9]*" inputmode="numeric">
-      
       <button class="submit-btn" style="margin-bottom:10px;" onclick="validatePin()">Déverrouiller</button>
       <button id="bioBtn" class="sec-btn" style="width:100%; display:none;" onclick="authenticateBiometrics()">👆 FaceID / Empreinte</button>
-    </div>
-  </div>
-
-  <!-- MODALE D'ÉDITION RAPIDE -->
-  <div id="editModal">
-    <div class="modal-content">
-      <h2 id="modalAssetTitle" style="color:#38bdf8; margin-bottom:4px;">Édition du placement</h2>
-      <p id="modalAssetSub" style="font-size:12px; color:#94a3b8; margin-bottom:14px;">Mise à jour rapide de la valeur</p>
-      
-      <label>Date du nouveau relevé</label>
-      <input type="date" id="modalDate">
-
-      <label>Nouveau Solde Total (€)</label>
-      <input type="number" id="modalValue" step="0.01" placeholder="Nouveau montant">
-
-      <button class="submit-btn" style="margin-top:6px;" onclick="saveQuickEdit()">Enregistrer la mise à jour</button>
-      <div class="btn-row" style="margin-top:8px;">
-        <button class="sec-btn" style="width:100%;" onclick="closeQuickEdit()">Annuler</button>
-      </div>
     </div>
   </div>
 
@@ -177,23 +148,6 @@
       </div>
     </div>
 
-    <div class="card" style="padding: 6px; margin-bottom: 14px;">
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-        {
-          "symbols": [
-            { "proName": "EURONEXT:CW8", "title": "MSCI World" },
-            { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
-            { "proName": "INDEX:VIX", "title": "VIX" },
-            { "proName": "TVC:GOLD", "title": "Or" }
-          ],
-          "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": true, "displayMode": "adaptive", "locale": "fr"
-        }
-        </script>
-      </div>
-    </div>
-
     <div class="card">
       <h2>Tendance Globale (Net vs Brut)</h2>
       <canvas id="evolutionChart" height="180"></canvas>
@@ -208,10 +162,7 @@
     </div>
 
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h2>Cartographie des Placements</h2>
-        <span style="font-size:10px; color:#38bdf8;">💡 Touchez pour modifier</span>
-      </div>
+      <h2>Cartographie des Placements</h2>
       <table>
         <thead>
           <tr>
@@ -251,7 +202,7 @@
         </div>
         <div>
           <label>Capital Cible (€)</label>
-          <input type="number" id="fireCapTarget" value="600000" step="10000" onchange="updateFireSettings()">
+          <input type="number" id="fireCapTarget" value="750000" step="10000" onchange="updateFireSettings()">
         </div>
       </div>
     </div>
@@ -259,15 +210,15 @@
     <div class="card">
       <h2>Projection de Rente Passive</h2>
       <div class="fire-metric">
-        <span class="fire-label">Rente DIST Directe (Dividendes/Loyers)</span>
+        <span class="fire-label">Rente DIST Directe (Actuelle)</span>
         <span id="renteDistDirect" class="fire-val" style="color:#34d399;">+0 € / mois</span>
       </div>
       <div class="fire-metric">
-        <span class="fire-label">Rente Totale Projetée à l'âge FIRE</span>
+        <span class="fire-label">Rente Projetée à l'âge FIRE (<span id="targetAgeLbl">55</span> ans)</span>
         <span id="fireRenteVal" class="fire-val" style="color:#38bdf8;">+0 € / mois</span>
       </div>
       <div class="fire-metric">
-        <span class="fire-label">Progression du Capital Cible</span>
+        <span class="fire-label">Progression Capital Cible (Brut)</span>
         <span id="firePctVal" class="fire-val">0 %</span>
       </div>
       <div class="progress-bg" style="height:8px; margin-top:8px;">
@@ -276,7 +227,7 @@
     </div>
 
     <div class="card">
-      <h2>Enveloppes Fiscales (Suivi des Plafonds)</h2>
+      <h2>Enveloppes Fiscales (Versements vs Plafond)</h2>
       <div class="fire-metric">
         <span class="fire-label">Plafond Versements PEA (150k€)</span>
         <span id="peaPlafondVal" class="fire-val">0 / 150 000 €</span>
@@ -287,8 +238,26 @@
     </div>
 
     <div class="card">
-      <h2>Simulateur de Trajectoire (20 ans)</h2>
+      <h2>Simulateur Multi-Scénarios & DCA</h2>
       <div id="dcaInputs"></div>
+      
+      <h3 style="font-size:13px; color:#38bdf8; margin:12px 0 6px 0;">Scénario Ponctuel / Injection Complémentaire</h3>
+      <div class="grid-2">
+        <div>
+          <label>Apport ponctuel (€)</label>
+          <input type="number" id="boostAmount" placeholder="ex: 20000" value="0">
+        </div>
+        <div>
+          <label>Année de l'injection</label>
+          <select id="boostYear">
+            <option value="1">An +1</option>
+            <option value="2">An +2</option>
+            <option value="3">An +3</option>
+            <option value="5">An +5</option>
+          </select>
+        </div>
+      </div>
+
       <button type="button" class="submit-btn" style="margin-top:8px;" onclick="calculateProjections()">Recalculer la Trajectoire</button>
     </div>
 
@@ -298,12 +267,12 @@
     </div>
 
     <div class="card">
-      <h2>Courbe de Projection</h2>
+      <h2>Courbe de Projection (Comparatif)</h2>
       <canvas id="projectionChart" height="200"></canvas>
     </div>
   </div>
 
-  <!-- SECTION 4 : PATRIMOINE (SAISIE, HISTORIQUE & CONFIG) -->
+  <!-- SECTION 4 : PATRIMOINE (SAISIE & PARAMS) -->
   <div id="view-patrimoine" class="tab-view">
     <div class="card">
       <h2>Saisir / Mettre à jour un Placement</h2>
@@ -312,7 +281,7 @@
         <input type="date" id="entryDate" required>
 
         <label>Enveloppe Fiscale</label>
-        <select id="assetEnvelope" required>
+        <select id="assetEnvelope" required onchange="togglePeaDepositsField()">
           <option value="PEA">PEA (Plan d'Épargne en Actions)</option>
           <option value="PEG / PEE">PEG / PEE (Épargne Salariale 5 ans)</option>
           <option value="PERCO / PERO">PERCO / PERO / PER (Retraite)</option>
@@ -322,6 +291,11 @@
           <option value="Immobilier Physique">Immobilier Physique (Résidence / Locatif)</option>
           <option value="Autre">Autre / Actif Physique</option>
         </select>
+
+        <div id="peaDepositsBox">
+          <label style="color:#38bdf8;">Total des Versements Nets Réalisés (€)</label>
+          <input type="number" id="peaDeposits" placeholder="ex: 35000 (hors plus-values)" step="0.01">
+        </div>
 
         <label>Classe d'Actif</label>
         <select id="assetType" required>
@@ -347,8 +321,8 @@
           </div>
         </div>
 
-        <label>Valeur Totale Actuelle (€)</label>
-        <input type="number" id="assetValue" placeholder="ex: 15000" step="0.01" required>
+        <label>Valeur Totale Actuelle avec Intérêts (€)</label>
+        <input type="number" id="assetValue" placeholder="ex: 41810" step="0.01" required>
 
         <button type="submit" class="submit-btn">Enregistrer le Placement</button>
         <div id="entryFeedback" class="success-feedback">✓ Placement enregistré avec succès !</div>
@@ -359,7 +333,7 @@
       <h2>Ajouter un Crédit / Prêt</h2>
       <form id="loanForm">
         <label>Nom du Prêt</label>
-        <input type="text" id="loanName" placeholder="ex: Prêt Résidence Principale" required>
+        <input type="text" id="loanName" placeholder="ex: Prêt Immobilier" required>
         <div class="grid-2">
           <div><label>Solde Restant Dû (€)</label><input type="number" id="loanBalance" required></div>
           <div><label>Mensualité (€)</label><input type="number" id="loanPayment" required></div>
@@ -375,13 +349,7 @@
 
     <div class="card">
       <h2>Remise à Zéro Totale</h2>
-      <p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Attention : cette action efface définitivement tous les relevés, crédits et historiques enregistrés sur votre appareil.</p>
       <button class="danger-btn" onclick="clearAllData()">🗑️ Réinitialiser TOUT à zéro</button>
-    </div>
-
-    <div class="card">
-      <h2>Sécurité & Code PIN</h2>
-      <button class="submit-btn" style="background-color:#334155;" onclick="resetPinCode()">Réinitialiser le Code PIN</button>
     </div>
 
     <div class="card">
@@ -398,15 +366,6 @@
         <tbody id="historyTable"></tbody>
       </table>
     </div>
-
-    <div class="card">
-      <h2>Sauvegarde & Restauration JSON</h2>
-      <div class="btn-row">
-        <button class="sec-btn" onclick="exportData()">💾 Exporter JSON</button>
-        <button class="sec-btn" onclick="document.getElementById('importFile').click()">📂 Importer JSON</button>
-      </div>
-      <input type="file" id="importFile" style="display:none;" onchange="importData(event)" accept=".json">
-    </div>
   </div>
 
   <script>
@@ -417,138 +376,55 @@
     const FIRE_STORAGE_KEY = 'patrimoine_fire_v3';
     const DCA_STORAGE_KEY = 'patrimoine_dca_v3';
     const PIN_STORAGE_KEY = 'patrimoine_pin_code_v1';
-    const MIGRATION_DONE_KEY = 'patrimoine_migrated_flag_v1';
+    const PEA_DEPOSITS_KEY = 'patrimoine_pea_deposits_v1';
 
     let isPrivacyActive = false;
     let storedPin = localStorage.getItem(PIN_STORAGE_KEY);
     let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
-    let fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 600000 };
+    let fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 750000 };
     let dcaSettings = JSON.parse(localStorage.getItem(DCA_STORAGE_KEY)) || {};
+    let peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
 
     let lineChartInstance = null;
     let pieChartInstance = null;
     let projectionChartInstance = null;
-    let currentEditRecord = null;
 
-    function migrateAndLoadData() {
-      const isMigrated = localStorage.getItem(MIGRATION_DONE_KEY);
-      if (!isMigrated) {
-        let oldV1 = JSON.parse(localStorage.getItem('patrimoine_records_v1')) || [];
-        let oldV2 = JSON.parse(localStorage.getItem('patrimoine_records_v2')) || [];
-        let combined = [...records];
-
-        [...oldV1, ...oldV2].forEach(oldR => {
-          if (!combined.some(c => c.id === oldR.id)) {
-            let env = oldR.envelope || 'Autre';
-            let typ = oldR.type || 'Actions';
-            if (oldR.category && oldR.category.includes('PEA')) env = 'PEA';
-            if (oldR.category && oldR.category.includes('PEG')) env = 'PEG / PEE';
-            if (oldR.category && oldR.category.includes('Spirit')) env = 'Assurance-Vie';
-            if (oldR.category && oldR.category.includes('Liquidités')) env = 'Liquidités';
-
-            combined.push({
-              id: oldR.id || Date.now() + Math.random(),
-              date: oldR.date,
-              envelope: env,
-              type: typ,
-              mode: oldR.mode || 'ACC',
-              yield: oldR.yield || 0,
-              category: `${env} (${typ})`,
-              value: oldR.value
-            });
-          }
-        });
-
-        records = combined;
-        saveData();
-        localStorage.setItem(MIGRATION_DONE_KEY, 'true');
-      }
+    function togglePeaDepositsField() {
+      const env = document.getElementById('assetEnvelope').value;
+      document.getElementById('peaDepositsBox').style.display = env === 'PEA' ? 'block' : 'none';
     }
+    togglePeaDepositsField();
 
     function clearAllData() {
-      const firstConfirm = confirm("⚠️ ATTENTION : Êtes-vous sûr de vouloir tout supprimer ?\n\nCette action effacera définitivement l'ensemble de votre historique de patrimoine, prêts, simulations et réglages.");
-      
-      if (firstConfirm) {
-        const secondConfirm = confirm("🚨 CONFIRMATION FINALE : Voulez-vous vraiment remettre l'application à zéro ?\n\nCliquez sur OK pour valider la suppression définitive.");
-        
-        if (secondConfirm) {
-          localStorage.clear();
-          records = [];
-          loans = [];
-          fireSettings = { ageTarget: 55, capTarget: 600000 };
-          dcaSettings = {};
-          storedPin = null;
-          
-          alert("✓ Vos données ont été entièrement effacées. L'application va redémarrer.");
-          location.reload();
-        }
+      if (confirm("⚠️ ATTENTION : Êtes-vous sûr de vouloir tout supprimer ?") && confirm("🚨 CONFIRMATION FINALE : Réinitialiser définitivement l'application ?")) {
+        localStorage.clear();
+        location.reload();
       }
     }
 
     function initSecurity() {
-      if (!storedPin) {
-        document.getElementById('lockSub').innerText = "Définissez un nouveau code PIN à 4 chiffres";
-      } else {
-        document.getElementById('lockSub').innerText = "Entrez votre code PIN à 4 chiffres";
-      }
-
-      if (window.PublicKeyCredential) {
-        document.getElementById('bioBtn').style.display = 'block';
-      }
+      if (storedPin) unlockApp();
+      else document.getElementById('lockScreen').style.display = 'none';
     }
 
     function validatePin() {
       const pinVal = document.getElementById('pinInput').value;
-      if (pinVal.length !== 4) {
-        alert("Le code PIN doit comporter 4 chiffres.");
-        return;
-      }
-
       if (!storedPin) {
         storedPin = pinVal;
         localStorage.setItem(PIN_STORAGE_KEY, storedPin);
-        alert("Code PIN enregistré !");
         unlockApp();
-      } else if (pinVal === storedPin) {
-        unlockApp();
-      } else {
-        alert("Code PIN incorrect.");
-        document.getElementById('pinInput').value = '';
-      }
+      } else if (pinVal === storedPin) unlockApp();
+      else alert("Code PIN incorrect.");
     }
 
-    function unlockApp() {
-      document.getElementById('lockScreen').style.display = 'none';
-      document.getElementById('pinInput').value = '';
-      renderSynth();
-    }
-
-    function lockApp() {
-      document.getElementById('lockScreen').style.display = 'flex';
-    }
-
-    function resetPinCode() {
-      if (confirm("Voulez-vous réinitialiser votre code PIN ?")) {
-        localStorage.removeItem(PIN_STORAGE_KEY);
-        storedPin = null;
-        alert("Code PIN réinitialisé.");
-        lockApp();
-        initSecurity();
-      }
-    }
-
-    async function authenticateBiometrics() {
-      unlockApp();
-    }
+    function unlockApp() { document.getElementById('lockScreen').style.display = 'none'; renderSynth(); }
+    function lockApp() { document.getElementById('lockScreen').style.display = 'flex'; }
 
     function togglePrivacyMode() {
       isPrivacyActive = !isPrivacyActive;
       document.getElementById('privacyIcon').innerText = isPrivacyActive ? '🔒' : '👁️';
-      document.getElementById('privacyText').innerText = isPrivacyActive ? 'Afficher' : 'Masquer';
-      renderSynth();
-      renderCarto();
-      renderFireTab();
+      renderSynth(); renderCarto(); renderFireTab();
     }
 
     function formatCurrency(amount) {
@@ -559,7 +435,6 @@
     function switchView(viewName) {
       document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      
       document.getElementById(`view-${viewName}`).classList.add('active');
       event.currentTarget.classList.add('active');
 
@@ -569,54 +444,9 @@
       if (viewName === 'patrimoine') renderPatrimoineTab();
     }
 
-    function openQuickEdit(category) {
-      const latestMap = getLatestByCategory();
-      const rec = latestMap[category];
-      if (!rec) return;
-
-      currentEditRecord = rec;
-      document.getElementById('modalAssetTitle').innerText = rec.envelope;
-      document.getElementById('modalAssetSub').innerText = `${rec.type} • Mode ${rec.mode}`;
-      document.getElementById('modalDate').valueAsDate = new Date();
-      document.getElementById('modalValue').value = rec.value;
-      document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function closeQuickEdit() {
-      document.getElementById('editModal').style.display = 'none';
-      currentEditRecord = null;
-    }
-
-    function saveQuickEdit() {
-      if (!currentEditRecord) return;
-      const date = document.getElementById('modalDate').value;
-      const value = parseFloat(document.getElementById('modalValue').value);
-
-      if (isNaN(value)) {
-        alert("Veuillez saisir un montant valide.");
-        return;
-      }
-
-      records.push({
-        id: Date.now(),
-        date: date,
-        envelope: currentEditRecord.envelope,
-        type: currentEditRecord.type,
-        mode: currentEditRecord.mode,
-        yield: currentEditRecord.yield,
-        category: currentEditRecord.category,
-        value: value
-      });
-
-      saveData();
-      closeQuickEdit();
-      renderSynth();
-      renderCarto();
-    }
-
     function updateFireSettings() {
       fireSettings.ageTarget = parseInt(document.getElementById('fireAgeTarget').value) || 55;
-      fireSettings.capTarget = parseFloat(document.getElementById('fireCapTarget').value) || 600000;
+      fireSettings.capTarget = parseFloat(document.getElementById('fireCapTarget').value) || 750000;
       localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
       renderFireTab();
     }
@@ -630,37 +460,32 @@
       const assetYield = parseFloat(document.getElementById('assetYield').value) || 0;
       const value = parseFloat(document.getElementById('assetValue').value);
 
-      const category = `${envelope} (${type})`;
+      if (envelope === 'PEA') {
+        const depVal = parseFloat(document.getElementById('peaDeposits').value);
+        if (!isNaN(depVal)) {
+          peaDeposits = depVal;
+          localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits);
+        }
+      }
 
-      records.push({ id: Date.now(), date, envelope, type, mode, yield: assetYield, category, value });
+      records.push({ id: Date.now(), date, envelope, type, mode, yield: assetYield, category: `${envelope} (${type})`, value });
       saveData();
-
       document.getElementById('assetValue').value = '';
-      
-      const feedback = document.getElementById('entryFeedback');
-      feedback.style.display = 'block';
-      setTimeout(() => { feedback.style.display = 'none'; }, 3000);
-
       renderPatrimoineTab();
     });
 
     document.getElementById('loanForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('loanName').value.trim();
-      const balance = parseFloat(document.getElementById('loanBalance').value);
-      const payment = parseFloat(document.getElementById('loanPayment').value);
-      const rate = parseFloat(document.getElementById('loanRate').value);
-      const months = parseInt(document.getElementById('loanMonths').value);
-
-      loans.push({ id: Date.now(), name, balance, payment, rate, months });
+      loans.push({
+        id: Date.now(),
+        name: document.getElementById('loanName').value,
+        balance: parseFloat(document.getElementById('loanBalance').value),
+        payment: parseFloat(document.getElementById('loanPayment').value),
+        rate: parseFloat(document.getElementById('loanRate').value),
+        months: parseInt(document.getElementById('loanMonths').value)
+      });
       localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-
       document.getElementById('loanForm').reset();
-      
-      const feedback = document.getElementById('loanFeedback');
-      feedback.style.display = 'block';
-      setTimeout(() => { feedback.style.display = 'none'; }, 3000);
-
       renderPatrimoineTab();
     });
 
@@ -668,18 +493,7 @@
       if(confirm('Supprimer ce relevé ?')) {
         records = records.filter(r => r.id !== id);
         saveData();
-        renderPatrimoineTab();
-        renderSynth();
-        renderCarto();
-      }
-    }
-
-    function deleteLoan(id) {
-      if(confirm('Supprimer ce crédit ?')) {
-        loans = loans.filter(l => l.id !== id);
-        localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-        renderCarto();
-        renderSynth();
+        renderPatrimoineTab(); renderSynth(); renderCarto();
       }
     }
 
@@ -695,158 +509,70 @@
     }
 
     function renderSynth() {
-      const latestMap = getLatestByCategory();
-      const latestList = Object.values(latestMap);
+      const latestList = Object.values(getLatestByCategory());
       const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
       const totalPassifs = loans.reduce((sum, l) => sum + l.balance, 0);
-      const totalNet = totalActifs - totalPassifs;
 
-      document.getElementById('totalNetVal').innerText = formatCurrency(totalNet);
+      document.getElementById('totalNetVal').innerText = formatCurrency(totalActifs - totalPassifs);
       document.getElementById('subBrutVal').innerText = `Actifs : ${formatCurrency(totalActifs)} | Crédits : ${formatCurrency(totalPassifs)}`;
-
-      const debtRatio = totalActifs > 0 ? ((totalPassifs / totalActifs) * 100).toFixed(1) : 0;
-      document.getElementById('kpiDebtVal').innerText = `${debtRatio}%`;
-      document.getElementById('barDebt').style.width = `${Math.min(100, debtRatio)}%`;
-
-      const liquidities = latestList.filter(r => r.type === 'Monétaire' || r.envelope === 'Liquidités').reduce((sum, r) => sum + r.value, 0);
-      document.getElementById('kpiSafetyVal').innerText = formatCurrency(liquidities);
-
-      const monthlyDca = Object.values(dcaSettings).reduce((a, b) => a + b, 0);
-      let monthlyAmortization = 0;
-      loans.forEach(l => {
-        const monthlyRate = (l.rate / 100) / 12;
-        monthlyAmortization += Math.max(0, l.payment - (l.balance * monthlyRate));
-      });
-
-      const totalMonthlyEnrichment = monthlyDca + monthlyAmortization;
-      document.getElementById('kpiEnrichVal').innerText = isPrivacyActive ? '+*** €/m' : `+${totalMonthlyEnrichment.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €/m`;
 
       const ctx = document.getElementById('evolutionChart').getContext('2d');
       let datesMapBrut = {};
       let stateMap = {};
-
       records.forEach(r => {
         stateMap[r.category] = r.value;
         datesMapBrut[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0);
       });
 
-      let datesMapNet = {};
-      Object.keys(datesMapBrut).forEach(date => {
-        datesMapNet[date] = datesMapBrut[date] - totalPassifs;
-      });
-
       if (lineChartInstance) lineChartInstance.destroy();
       lineChartInstance = new Chart(ctx, {
         type: 'line',
-        data: {
-          labels: Object.keys(datesMapBrut),
-          datasets: [
-            { label: 'Brut (€)', data: Object.values(datesMapBrut), borderColor: '#38bdf8', fill: false, tension: 0.3 },
-            { label: 'Net (€)', data: Object.values(datesMapNet), borderColor: '#34d399', fill: false, tension: 0.3 }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: true, position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } },
-          scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }
-        }
+        data: { labels: Object.keys(datesMapBrut), datasets: [{ label: 'Brut (€)', data: Object.values(datesMapBrut), borderColor: '#38bdf8', fill: false }] },
+        options: { responsive: true }
       });
     }
 
     function renderCarto() {
-      const latestMap = getLatestByCategory();
-      const latestList = Object.values(latestMap);
-      const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
-
-      let typeMap = {};
-      latestList.forEach(r => {
-        typeMap[r.type] = (typeMap[r.type] || 0) + r.value;
-      });
-
+      const latestList = Object.values(getLatestByCategory());
       const table = document.getElementById('allocationTable');
       table.innerHTML = '';
-
       latestList.forEach(r => {
-        const pct = totalActifs > 0 ? ((r.value / totalActifs) * 100).toFixed(1) : 0;
-        const badge = r.mode === 'DIST' ? `<span class="badge-dist">DIST (${r.yield}%)</span>` : `<span class="badge-acc">ACC</span>`;
         const tr = document.createElement('tr');
-        tr.className = "clickable-row";
-        tr.onclick = () => openQuickEdit(r.category);
-        tr.innerHTML = `
-          <td><b>${r.envelope}</b> ✏️<br><span style="color:#64748b; font-size:10px;">${r.type}</span></td>
-          <td>${formatCurrency(r.value)} <br><span style="color:#94a3b8; font-size:10px;">${pct}%</span></td>
-          <td>${badge}</td>
-        `;
+        tr.innerHTML = `<td><b>${r.envelope}</b><br><span style="color:#64748b; font-size:10px;">${r.type}</span></td><td>${formatCurrency(r.value)}</td><td>${r.mode}</td>`;
         table.appendChild(tr);
-      });
-
-      const loansTable = document.getElementById('loansTable');
-      loansTable.innerHTML = '';
-      loans.forEach(l => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><b>${l.name}</b></td>
-          <td>${formatCurrency(l.balance)}</td>
-          <td>${isPrivacyActive ? '*** €' : l.payment.toLocaleString('fr-FR') + ' €/m'}</td>
-          <td><button class="delete-btn" onclick="deleteLoan(${l.id})">✕</button></td>
-        `;
-        loansTable.appendChild(tr);
-      });
-
-      const ctx = document.getElementById('allocationChart').getContext('2d');
-      if (pieChartInstance) pieChartInstance.destroy();
-      pieChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(typeMap),
-          datasets: [{ data: Object.values(typeMap), backgroundColor: ['#38bdf8', '#34d399', '#fbbf24', '#818cf8', '#f472b6', '#c084fc'] }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } }
       });
     }
 
     function renderFireTab() {
       document.getElementById('fireAgeTarget').value = fireSettings.ageTarget;
       document.getElementById('fireCapTarget').value = fireSettings.capTarget;
+      document.getElementById('targetAgeLbl').innerText = fireSettings.ageTarget;
 
-      const latestMap = getLatestByCategory();
-      const latestList = Object.values(latestMap);
+      const latestList = Object.values(getLatestByCategory());
       const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
-      const totalPassifs = loans.reduce((sum, l) => sum + l.balance, 0);
-      const totalNet = totalActifs - totalPassifs;
 
-      let renteDistAnnuelle = 0;
-      latestList.forEach(r => {
-        if (r.mode === 'DIST' && r.yield > 0) {
-          renteDistAnnuelle += r.value * (r.yield / 100);
-        }
-      });
-      const renteDistMensuelle = renteDistAnnuelle / 12;
-      document.getElementById('renteDistDirect').innerText = isPrivacyActive ? '+*** € / mois' : `+${renteDistMensuelle.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} € / mois`;
+      // Rente DIST directe
+      let renteDist = latestList.filter(r => r.mode === 'DIST').reduce((sum, r) => sum + (r.value * (r.yield / 100) / 12), 0);
+      document.getElementById('renteDistDirect').innerText = formatCurrency(renteDist) + " / mois";
 
-      const rente4PctMensuelle = (totalNet * 0.04) / 12;
-      document.getElementById('fireRenteVal').innerText = isPrivacyActive ? '+*** € / mois' : `+${rente4PctMensuelle.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} € / mois`;
+      // Progression Capital Cible sur le BRUT (Actifs)
+      const pctBrut = fireSettings.capTarget > 0 ? Math.min(100, (totalActifs / fireSettings.capTarget) * 100).toFixed(1) : 0;
+      document.getElementById('firePctVal').innerText = `${pctBrut} %`;
+      document.getElementById('fireProgressBar').style.width = `${pctBrut}%`;
 
-      const pctProgress = fireSettings.capTarget > 0 ? Math.min(100, ((totalNet / fireSettings.capTarget) * 100)).toFixed(1) : 0;
-      document.getElementById('firePctVal').innerText = `${pctProgress} %`;
-      document.getElementById('fireProgressBar').style.width = `${pctProgress}%`;
-
-      const peaSolde = latestList.filter(r => r.envelope === 'PEA').reduce((sum, r) => sum + r.value, 0);
-      const peaPct = Math.min(100, ((peaSolde / 150000) * 100)).toFixed(1);
-      document.getElementById('peaPlafondVal').innerText = `${formatCurrency(peaSolde)} / 150 000 €`;
+      // Suivi Plafond PEA sur VERSEMENTS RÉELS
+      const peaVerser = peaDeposits > 0 ? peaDeposits : latestList.filter(r => r.envelope === 'PEA').reduce((s, r) => s + r.value, 0);
+      const peaPct = Math.min(100, (peaVerser / 150000) * 100).toFixed(1);
+      document.getElementById('peaPlafondVal').innerText = `${formatCurrency(peaVerser)} / 150 000 €`;
       document.getElementById('peaPlafondBar').style.width = `${peaPct}%`;
 
       const container = document.getElementById('dcaInputs');
       container.innerHTML = '';
-
       latestList.forEach(r => {
         const dcaVal = dcaSettings[r.category] || 0;
         const div = document.createElement('div');
         div.style.marginBottom = "6px";
-        div.innerHTML = `
-          <div style="color:#f8fafc; font-size:11px;">${r.envelope} (${r.type})</div>
-          <input type="number" data-cat="${r.category}" class="dca-field" value="${dcaVal}" placeholder="DCA €/mois" min="0">
-        `;
+        div.innerHTML = `<div style="color:#f8fafc; font-size:11px;">${r.envelope} (${r.type})</div><input type="number" data-cat="${r.category}" class="dca-field" value="${dcaVal}">`;
         container.appendChild(div);
       });
 
@@ -859,63 +585,39 @@
       });
       localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
 
-      const latestMap = getLatestByCategory();
-      const latestList = Object.values(latestMap);
+      const boostAmt = parseFloat(document.getElementById('boostAmount').value) || 0;
+      const boostYr = parseInt(document.getElementById('boostYear').value) || 1;
 
-      let currentBalances = {};
-      latestList.forEach(r => { currentBalances[r.category] = r.value; });
+      const latestList = Object.values(getLatestByCategory());
+      let balancesStd = {};
+      let balancesBoost = {};
+      latestList.forEach(r => { balancesStd[r.category] = r.value; balancesBoost[r.category] = r.value; });
 
-      let currentLoans = loans.map(l => ({ ...l }));
-      let initialActifs = Object.values(currentBalances).reduce((a, b) => a + b, 0);
-      let initialPassifs = currentLoans.reduce((sum, l) => sum + l.balance, 0);
-      let initialNet = initialActifs - initialPassifs;
+      const seriesStd = [Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0))];
+      const seriesBoost = [Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0))];
 
-      const milestones = [];
-      let nextMilestone = Math.floor(initialNet / 100000) * 100000 + 100000;
-      const maxMilestoneTarget = initialNet + 500000;
-
-      const currentDate = new Date();
-      const seriesData = [Math.round(initialNet)];
-      let monthsCounter = 0;
-
-      while (monthsCounter < 240) {
-        monthsCounter++;
-
-        Object.keys(currentBalances).forEach(cat => {
-          const dca = dcaSettings[cat] || 0;
-          const monthlyRate = Math.pow(1 + 0.05, 1/12) - 1;
-          currentBalances[cat] += (currentBalances[cat] * monthlyRate) + dca;
+      for (let m = 1; m <= 240; m++) {
+        // Scénario standard
+        Object.keys(balancesStd).forEach(cat => {
+          balancesStd[cat] += (balancesStd[cat] * (Math.pow(1.05, 1/12) - 1)) + (dcaSettings[cat] || 0);
         });
 
-        currentLoans.forEach(l => {
-          if (l.balance > 0 && l.months > 0) {
-            const monthlyRate = (l.rate / 100) / 12;
-            const interestPart = l.balance * monthlyRate;
-            const capitalPart = Math.min(l.balance, Math.max(0, l.payment - interestPart));
-            l.balance = Math.max(0, l.balance - capitalPart);
-            l.months--;
-          }
+        // Scénario boosté avec apport ponctuel
+        Object.keys(balancesBoost).forEach(cat => {
+          let injection = (m === boostYr * 12) ? boostAmt : 0;
+          balancesBoost[cat] += (balancesBoost[cat] * (Math.pow(1.05, 1/12) - 1)) + (dcaSettings[cat] || 0) + injection;
         });
 
-        const curNet = Object.values(currentBalances).reduce((a, b) => a + b, 0) - currentLoans.reduce((sum, l) => sum + l.balance, 0);
-
-        if (curNet >= nextMilestone && nextMilestone <= maxMilestoneTarget) {
-          const dateReached = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthsCounter, 1);
-          milestones.push({ target: nextMilestone, dateStr: dateReached.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }), duration: (monthsCounter / 12).toFixed(1) });
-          nextMilestone += 100000;
+        if (m % 12 === 0) {
+          seriesStd.push(Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0)));
+          seriesBoost.push(Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0)));
         }
-
-        if (monthsCounter % 12 === 0) seriesData.push(Math.round(curNet));
       }
 
-      const milestonesContainer = document.getElementById('milestonesList');
-      milestonesContainer.innerHTML = '';
-      milestones.forEach(m => {
-        const div = document.createElement('div');
-        div.className = 'fire-metric';
-        div.innerHTML = `<span class="fire-label">Palier ${formatCurrency(m.target)}</span><span class="fire-val">${m.dateStr} (${m.duration} ans)</span>`;
-        milestonesContainer.appendChild(div);
-      });
+      // Calcul de la rente projetée à 55 ans sur le capital projeté
+      const projectedCapAtTarget = seriesBoost[15] || seriesBoost[seriesBoost.length - 1];
+      const renteProjeteeTarget = (projectedCapAtTarget * 0.04) / 12;
+      document.getElementById('fireRenteVal').innerText = formatCurrency(renteProjeteeTarget) + " / mois";
 
       const labelsYear = ["Aujourd'hui"];
       for(let i = 1; i <= 20; i++) labelsYear.push(`An +${i}`);
@@ -924,8 +626,14 @@
       if (projectionChartInstance) projectionChartInstance.destroy();
       projectionChartInstance = new Chart(ctx, {
         type: 'line',
-        data: { labels: labelsYear, datasets: [{ label: 'Patrimoine Net Projeté (€)', data: seriesData, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)', tension: 0.3 }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
+        data: {
+          labels: labelsYear,
+          datasets: [
+            { label: 'Scénario Normal (€)', data: seriesStd, borderColor: '#94a3b8', fill: false },
+            { label: 'Scénario Optimisé (€)', data: seriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)' }
+          ]
+        },
+        options: { responsive: true }
       });
     }
 
@@ -934,68 +642,13 @@
       table.innerHTML = '';
       [...records].reverse().forEach(r => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${r.date}</td>
-          <td><b>${r.envelope}</b><br><span style="color:#64748b; font-size:10px;">${r.type}</span></td>
-          <td>${formatCurrency(r.value)}</td>
-          <td><button class="delete-btn" onclick="deleteRecord(${r.id})">✕</button></td>
-        `;
+        tr.innerHTML = `<td>${r.date}</td><td><b>${r.envelope}</b></td><td>${formatCurrency(r.value)}</td><td><button class="delete-btn" onclick="deleteRecord(${r.id})">✕</button></td>`;
         table.appendChild(tr);
       });
     }
 
-    function exportData() {
-      const exportObj = { records, loans, fireSettings, dcaSettings };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `patrimoine_backup_${new Date().toISOString().slice(0,10)}.json`);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importData(event) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (imported.records && Array.isArray(imported.records)) {
-            records = imported.records;
-            loans = imported.loans || [];
-            fireSettings = imported.fireSettings || fireSettings;
-            dcaSettings = imported.dcaSettings || dcaSettings;
-
-            saveData();
-            localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-            localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
-            localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
-
-            renderSynth();
-            alert("Restauration réussie !");
-          }
-        } catch(err) {
-          alert("Erreur d'importation.");
-        }
-      };
-      reader.readAsText(event.target.files[0]);
-    }
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(reg => {
-        reg.onupdatefound = () => {
-          const installingWorker = reg.installing;
-          installingWorker.onstatechange = () => {
-            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              document.getElementById('updateBanner').style.display = 'block';
-            }
-          };
-        };
-      });
-    }
-
-    migrateAndLoadData();
     initSecurity();
   </script>
 </body>
 </html>
-"Version 9.6 de l'app de patrimoine"
+"Version 9.7 de l'app de patrimoine"
