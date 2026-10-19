@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -15,20 +16,6 @@
     .brand-title { font-size: 20px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px; }
     .header-actions { display: flex; gap: 8px; }
     .action-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-
-    #updateBanner { display: none; background-color: #2563eb; color: #fff; padding: 10px; border-radius: 10px; margin-bottom: 14px; text-align: center; font-size: 12px; font-weight: bold; cursor: pointer; }
-
-    /* Modal de Verrouillage */
-    #lockScreen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; }
-    .lock-box { background: #1e293b; border: 1px solid #334155; padding: 24px; border-radius: 20px; width: 100%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .lock-title { font-size: 18px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; }
-    .lock-sub { font-size: 12px; color: #94a3b8; margin-bottom: 20px; }
-    .pin-input { font-size: 24px; letter-spacing: 12px; text-align: center; width: 160px; padding: 8px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #fff; margin-bottom: 16px; }
-
-    /* Modale d'Édition Rapide */
-    #editModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); z-index: 5000; justify-content: center; align-items: flex-end; }
-    .modal-content { background: #1e293b; border-top: 1px solid #334155; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-width: 500px; animation: slideUp 0.2s ease-out; }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
     /* Bottom Navigation Bar */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #334155; display: flex; justify-content: space-around; padding: 8px 0; z-index: 1000; }
@@ -64,48 +51,15 @@
     input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 10px; font-size: 13px; }
     button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; }
     button.danger-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #dc2626; color: #fff; font-weight: bold; font-size: 13px; cursor: pointer; }
-    button.sec-btn { width: 48%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #94a3b8; font-size: 12px; cursor: pointer; }
-
-    .success-feedback { display: none; color: #34d399; font-size: 12px; font-weight: bold; margin-top: 6px; text-align: center; }
 
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { text-align: left; padding: 10px 4px; border-bottom: 1px solid #334155; }
     th { color: #64748b; font-weight: normal; }
-    tr.clickable-row { cursor: pointer; }
-    tr.clickable-row:active { background: rgba(56, 189, 248, 0.1); }
     .delete-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 4px 8px; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .btn-row { display: flex; justify-content: space-between; margin-top: 10px; }
   </style>
 </head>
 <body>
-
-  <!-- ÉCRAN DE VERROUILLAGE -->
-  <div id="lockScreen">
-    <div class="lock-box">
-      <div style="font-size:36px; margin-bottom:12px;">🔒</div>
-      <div class="lock-title">Accès Sécurisé</div>
-      <div id="lockSub" class="lock-sub">Entrez votre code PIN à 4 chiffres</div>
-      <input type="password" id="pinInput" class="pin-input" maxlength="4" pattern="[0-9]*" inputmode="numeric">
-      <button class="submit-btn" style="margin-bottom:10px;" onclick="validatePin()">Déverrouiller</button>
-      <button id="bioBtn" class="sec-btn" style="width:100%; display:none;" onclick="authenticateBiometrics()">👆 FaceID / Empreinte</button>
-    </div>
-  </div>
-
-  <!-- HEADER -->
-  <div class="header-bar">
-    <div class="brand-title">Mon Patrimoine</div>
-    <div class="header-actions">
-      <button class="action-btn" onclick="lockApp()">🔒 Verrouiller</button>
-      <button class="action-btn" onclick="togglePrivacyMode()">
-        <span id="privacyIcon">👁️</span> <span id="privacyText">Masquer</span>
-      </button>
-    </div>
-  </div>
-
-  <div id="updateBanner" onclick="window.location.reload(true)">
-    🚀 Nouvelle version disponible ! Recharger.
-  </div>
 
   <!-- BARRE DE NAVIGATION EN BAS -->
   <div class="bottom-nav">
@@ -144,12 +98,12 @@
       <div class="kpi-box">
         <div class="kpi-box-title">Sécurité</div>
         <div id="kpiSafetyVal" class="kpi-box-value">0 €</div>
-        <div class="progress-bg"><div id="barSafety" class="progress-fill" style="width: 50%; background: #fbbf24;"></div></div>
+        <div class="progress-bg"><div id="barSafety" class="progress-fill" style="width: 0%; background: #fbbf24;"></div></div>
       </div>
       <div class="kpi-box">
         <div class="kpi-box-title">Enrichissement</div>
         <div id="kpiEnrichVal" class="kpi-box-value">+0 €/m</div>
-        <div class="progress-bg"><div id="barEnrich" class="progress-fill" style="width: 70%; background: #34d399;"></div></div>
+        <div class="progress-bg"><div id="barEnrich" class="progress-fill" style="width: 0%; background: #34d399;"></div></div>
       </div>
     </div>
 
@@ -159,212 +113,115 @@
     </div>
   </div>
 
-  <!-- SECTION 2 : CARTOGRAPHIE DU PATRIMOINE -->
+  <!-- SECTION 2 : CARTOGRAPHIE -->
   <div id="view-carto" class="tab-view">
     <div class="card">
       <h2>Répartition par Classe d'Actif</h2>
       <canvas id="allocationChart" height="200"></canvas>
     </div>
-
     <div class="card">
       <h2>Cartographie des Placements</h2>
       <table>
-        <thead>
-          <tr>
-            <th>Support / Type</th>
-            <th>Solde</th>
-            <th>Mode</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Support / Type</th><th>Solde</th><th>Mode</th></tr></thead>
         <tbody id="allocationTable"></tbody>
       </table>
     </div>
-
     <div class="card">
       <h2>Crédits & Passifs en cours</h2>
       <table>
-        <thead>
-          <tr>
-            <th>Prêt</th>
-            <th>Reste Dû</th>
-            <th>Mensualité</th>
-            <th></th>
-          </tr>
-        </thead>
+        <thead><tr><th>Prêt</th><th>Reste Dû</th><th>Mensualité</th><th></th></tr></thead>
         <tbody id="loansTable"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- SECTION 3 : STRATÉGIE FIRE & RENTE -->
+  <!-- SECTION 3 : OBJECTIF FIRE -->
   <div id="view-fire" class="tab-view">
     <div class="card">
       <h2>Paramètres de votre Objectif FIRE</h2>
       <div class="grid-2">
-        <div>
-          <label>Âge Cible FIRE</label>
-          <input type="number" id="fireAgeTarget" value="55" min="30" max="80" onchange="updateFireSettings()">
-        </div>
-        <div>
-          <label>Capital Cible (€)</label>
-          <input type="number" id="fireCapTarget" value="750000" step="10000" onchange="updateFireSettings()">
-        </div>
+        <div><label>Âge Cible FIRE</label><input type="number" id="fireAgeTarget" value="55" onchange="updateFireSettings()"></div>
+        <div><label>Capital Cible (€)</label><input type="number" id="fireCapTarget" value="750000" onchange="updateFireSettings()"></div>
       </div>
     </div>
-
     <div class="card">
       <h2>Projection de Rente Passive</h2>
-      <div class="fire-metric">
-        <span class="fire-label">Rente DIST Directe (Actuelle)</span>
-        <span id="renteDistDirect" class="fire-val" style="color:#34d399;">+0 € / mois</span>
-      </div>
-      <div class="fire-metric">
-        <span class="fire-label">Rente Projetée à l'âge FIRE (<span id="targetAgeLbl">55</span> ans)</span>
-        <span id="fireRenteVal" class="fire-val" style="color:#38bdf8;">+0 € / mois</span>
-      </div>
-      <div class="fire-metric">
-        <span class="fire-label">Progression Capital Cible (Brut)</span>
-        <span id="firePctVal" class="fire-val">0 %</span>
-      </div>
-      <div class="progress-bg" style="height:8px; margin-top:8px;">
-        <div id="fireProgressBar" class="progress-fill" style="width: 0%; background: #38bdf8;"></div>
-      </div>
+      <div class="fire-metric"><span class="fire-label">Rente DIST Directe</span><span id="renteDistDirect" class="fire-val">+0 € / mois</span></div>
+      <div class="fire-metric"><span class="fire-label">Rente Projetée (à <span id="targetAgeLbl">55</span> ans)</span><span id="fireRenteVal" class="fire-val">+0 € / mois</span></div>
+      <div class="fire-metric"><span class="fire-label">Progression Capital (Brut)</span><span id="firePctVal" class="fire-val">0 %</span></div>
+      <div class="progress-bg" style="height:8px; margin-top:8px;"><div id="fireProgressBar" class="progress-fill" style="width: 0%; background: #38bdf8;"></div></div>
     </div>
-
     <div class="card">
-      <h2>Enveloppes Fiscales (Versements vs Plafond)</h2>
-      <div class="fire-metric">
-        <span class="fire-label">Plafond Versements PEA (150k€)</span>
-        <span id="peaPlafondVal" class="fire-val">0 / 150 000 €</span>
-      </div>
-      <div class="progress-bg" style="height:6px; margin-top:4px;">
-        <div id="peaPlafondBar" class="progress-fill" style="width: 0%; background: #818cf8;"></div>
-      </div>
+      <h2>Enveloppes Fiscales</h2>
+      <div class="fire-metric"><span class="fire-label">Plafond PEA (150k€)</span><span id="peaPlafondVal" class="fire-val">0 / 150 000 €</span></div>
+      <div class="progress-bg" style="height:6px; margin-top:4px;"><div id="peaPlafondBar" class="progress-fill" style="width: 0%; background: #818cf8;"></div></div>
     </div>
-
     <div class="card">
       <h2>Simulateur Multi-Scénarios & DCA</h2>
       <div id="dcaInputs"></div>
-      
-      <h3 style="font-size:13px; color:#38bdf8; margin:12px 0 6px 0;">Scénario Ponctuel / Injection Complémentaire</h3>
-      <div class="grid-2">
-        <div>
-          <label>Apport ponctuel (€)</label>
-          <input type="number" id="boostAmount" placeholder="ex: 20000" value="0">
-        </div>
-        <div>
-          <label>Année de l'injection</label>
-          <select id="boostYear">
-            <option value="1">An +1</option>
-            <option value="2">An +2</option>
-            <option value="3">An +3</option>
-            <option value="5">An +5</option>
-          </select>
-        </div>
-      </div>
-
-      <button type="button" class="submit-btn" style="margin-top:8px;" onclick="calculateProjections()">Recalculer la Trajectoire</button>
+      <button type="button" class="submit-btn" style="margin-top:8px;" onclick="calculateProjections()">Recalculer</button>
     </div>
-
     <div class="card">
-      <h2>Courbe de Projection (Comparatif)</h2>
+      <h2>Courbe de Projection</h2>
       <canvas id="projectionChart" height="200"></canvas>
     </div>
   </div>
 
-  <!-- SECTION 4 : PATRIMOINE (SAISIE & PARAMS) -->
+  <!-- SECTION 4 : PATRIMOINE -->
   <div id="view-patrimoine" class="tab-view">
     <div class="card">
       <h2>Saisir / Mettre à jour un Placement</h2>
       <form id="entryForm">
-        <label>Date du relevé</label>
-        <input type="date" id="entryDate" required>
-
-        <label>Enveloppe Fiscale</label>
+        <label>Date</label><input type="date" id="entryDate" required>
+        <label>Enveloppe</label>
         <select id="assetEnvelope" required onchange="togglePeaDepositsField()">
-          <option value="PEA">PEA (Plan d'Épargne en Actions)</option>
-          <option value="PEG / PEE">PEG / PEE (Épargne Salariale 5 ans)</option>
-          <option value="PERCO / PERO">PERCO / PERO / PER (Retraite)</option>
+          <option value="PEA">PEA</option>
+          <option value="PEG / PEE">PEG / PEE</option>
+          <option value="PERCO / PERO">PERCO / PERO</option>
           <option value="Assurance-Vie">Assurance-Vie</option>
-          <option value="CTO">CTO (Compte-Titres Ordinaire)</option>
-          <option value="Liquidités">Comptes / Liquidités / Livrets</option>
-          <option value="Immobilier Physique">Immobilier Physique (Résidence / Locatif)</option>
-          <option value="Autre">Autre / Actif Physique</option>
+          <option value="CTO">CTO</option>
+          <option value="Liquidités">Liquidités</option>
+          <option value="Immobilier Physique">Immobilier Physique</option>
+          <option value="Autre">Autre</option>
         </select>
-
-        <div id="peaDepositsBox">
-          <label style="color:#38bdf8;">Total des Versements Nets Réalisés (€)</label>
-          <input type="number" id="peaDeposits" placeholder="ex: 35000 (hors plus-values)" step="0.01">
-        </div>
-
+        <div id="peaDepositsBox"><label style="color:#38bdf8;">Total Versements Nets PEA (€)</label><input type="number" id="peaDeposits" step="0.01"></div>
         <label>Classe d'Actif</label>
         <select id="assetType" required>
-          <option value="Actions">Actions / ETF Monde</option>
-          <option value="SCPI">SCPI / Immobilier Papier</option>
-          <option value="Obligations">Obligations / Fonds Euros</option>
-          <option value="Monétaire">Liquidités / Livrets / Cash</option>
-          <option value="Or / Commodities">Or / Matières Premières</option>
-          <option value="Crypto">Crypto-actifs</option>
+          <option value="Actions">Actions / ETF</option>
+          <option value="SCPI">SCPI</option>
+          <option value="Obligations">Obligations</option>
+          <option value="Monétaire">Monétaire / Cash</option>
+          <option value="Or / Commodities">Or</option>
+          <option value="Crypto">Crypto</option>
         </select>
-
         <div class="grid-2">
-          <div>
-            <label>Mode de Rente</label>
-            <select id="assetMode" required>
-              <option value="ACC">ACC (Capitalisation)</option>
-              <option value="DIST">DIST (Distribution Rente)</option>
-            </select>
-          </div>
-          <div>
-            <label>Rendement Rente (%)</label>
-            <input type="number" id="assetYield" placeholder="ex: 4.5" step="0.1" value="0">
-          </div>
+          <div><label>Mode</label><select id="assetMode"><option value="ACC">ACC</option><option value="DIST">DIST</option></select></div>
+          <div><label>Rendement (%)</label><input type="number" id="assetYield" step="0.1" value="0"></div>
         </div>
-
-        <label>Valeur Totale Actuelle avec Intérêts (€)</label>
-        <input type="number" id="assetValue" placeholder="ex: 41810" step="0.01" required>
-
-        <button type="submit" class="submit-btn">Enregistrer le Placement</button>
-        <div id="entryFeedback" class="success-feedback">✓ Placement enregistré avec succès !</div>
+        <label>Valeur Totale (€)</label><input type="number" id="assetValue" step="0.01" required>
+        <button type="submit" class="submit-btn">Enregistrer</button>
       </form>
     </div>
 
     <div class="card">
       <h2>Ajouter un Crédit / Prêt</h2>
       <form id="loanForm">
-        <label>Nom du Prêt</label>
-        <input type="text" id="loanName" placeholder="ex: Prêt Immobilier" required>
+        <label>Nom du Prêt</label><input type="text" id="loanName" placeholder="ex: Prêt Immo" required>
         <div class="grid-2">
-          <div><label>Solde Restant Dû (€)</label><input type="number" id="loanBalance" required></div>
+          <div><label>Reste Dû (€)</label><input type="number" id="loanBalance" required></div>
           <div><label>Mensualité (€)</label><input type="number" id="loanPayment" required></div>
         </div>
         <div class="grid-2">
           <div><label>Taux (%)</label><input type="number" id="loanRate" value="1.5" step="0.01" required></div>
-          <div><label>Durée Restante (mois)</label><input type="number" id="loanMonths" required></div>
+          <div><label>Durée (mois)</label><input type="number" id="loanMonths" required></div>
         </div>
         <button type="submit" class="submit-btn">Enregistrer le Crédit</button>
-        <div id="loanFeedback" class="success-feedback">✓ Prêt enregistré avec succès !</div>
       </form>
     </div>
 
     <div class="card">
-      <h2>Remise à Zéro Totale</h2>
-      <button class="danger-btn" onclick="clearAllData()">🗑️ Réinitialiser TOUT à zéro</button>
-    </div>
-
-    <div class="card">
-      <h2>Historique Complet des Relevés</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Support</th>
-            <th>Valeur</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="historyTable"></tbody>
-      </table>
+      <h2>Historique</h2>
+      <table><thead><tr><th>Date</th><th>Support</th><th>Valeur</th><th></th></tr></thead><tbody id="historyTable"></tbody></table>
     </div>
   </div>
 
@@ -375,108 +232,36 @@
     const LOANS_STORAGE_KEY = 'patrimoine_loans_v3';
     const FIRE_STORAGE_KEY = 'patrimoine_fire_v3';
     const DCA_STORAGE_KEY = 'patrimoine_dca_v3';
-    const PIN_STORAGE_KEY = 'patrimoine_pin_code_v1';
     const PEA_DEPOSITS_KEY = 'patrimoine_pea_deposits_v1';
 
     let viewsOrder = ['synth', 'carto', 'fire', 'patrimoine'];
     let currentViewIndex = 0;
-
-    let isPrivacyActive = false;
-    let storedPin = localStorage.getItem(PIN_STORAGE_KEY);
-    
-    // RUPTURE : CHARGEMENT DIRECT DES DONNÉES SANS CONDITION DE DRAPEAU
     let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
     let fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 750000 };
     let dcaSettings = JSON.parse(localStorage.getItem(DCA_STORAGE_KEY)) || {};
     let peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
 
-    let lineChartInstance = null;
-    let pieChartInstance = null;
-    let projectionChartInstance = null;
+    let lineChartInstance = null, pieChartInstance = null, projectionChartInstance = null;
 
-    // FUSION AUTOMATIQUE DES ANCIENNES CLES SI DONNEES V3 VIDES
-    if (records.length === 0) {
-      let oldV1 = JSON.parse(localStorage.getItem('patrimoine_records_v1')) || [];
-      let oldV2 = JSON.parse(localStorage.getItem('patrimoine_records_v2')) || [];
-      records = [...oldV1, ...oldV2];
-      if (records.length > 0) saveData();
-    }
-
-    // GESTION DU SWIPE TACTILE (GAUCHE / DROITE)
-    let touchStartX = 0;
-    let touchEndX = 0;
-
+    // Swipe tactile
+    let touchStartX = 0, touchEndX = 0;
     document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
     document.addEventListener('touchend', e => {
       touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
+      if (touchEndX < touchStartX - 50 && currentViewIndex < viewsOrder.length - 1) switchView(viewsOrder[currentViewIndex + 1]);
+      if (touchEndX > touchStartX + 50 && currentViewIndex > 0) switchView(viewsOrder[currentViewIndex - 1]);
     }, false);
 
-    function handleSwipe() {
-      const swipeThreshold = 50;
-      if (touchEndX < touchStartX - swipeThreshold) {
-        // Swipe à gauche -> Onglet suivant
-        if (currentViewIndex < viewsOrder.length - 1) {
-          switchView(viewsOrder[currentViewIndex + 1]);
-        }
-      }
-      if (touchEndX > touchStartX + swipeThreshold) {
-        // Swipe à droite -> Onglet précédent
-        if (currentViewIndex > 0) {
-          switchView(viewsOrder[currentViewIndex - 1]);
-        }
-      }
-    }
-
     function togglePeaDepositsField() {
-      const env = document.getElementById('assetEnvelope').value;
-      document.getElementById('peaDepositsBox').style.display = env === 'PEA' ? 'block' : 'none';
+      document.getElementById('peaDepositsBox').style.display = document.getElementById('assetEnvelope').value === 'PEA' ? 'block' : 'none';
     }
     togglePeaDepositsField();
 
-    function clearAllData() {
-      if (confirm("⚠️ ATTENTION : Êtes-vous sûr de vouloir tout supprimer ?") && confirm("🚨 CONFIRMATION FINALE : Réinitialiser définitivement l'application ?")) {
-        localStorage.clear();
-        location.reload();
-      }
-    }
-
-    function initSecurity() {
-      if (storedPin) unlockApp();
-      else document.getElementById('lockScreen').style.display = 'none';
-    }
-
-    function validatePin() {
-      const pinVal = document.getElementById('pinInput').value;
-      if (!storedPin) {
-        storedPin = pinVal;
-        localStorage.setItem(PIN_STORAGE_KEY, storedPin);
-        unlockApp();
-      } else if (pinVal === storedPin) unlockApp();
-      else alert("Code PIN incorrect.");
-    }
-
-    function unlockApp() { document.getElementById('lockScreen').style.display = 'none'; renderSynth(); }
-    function lockApp() { document.getElementById('lockScreen').style.display = 'flex'; }
-
-    function togglePrivacyMode() {
-      isPrivacyActive = !isPrivacyActive;
-      document.getElementById('privacyIcon').innerText = isPrivacyActive ? '🔒' : '👁️';
-      renderSynth(); renderCarto(); renderFireTab();
-    }
-
-    function formatCurrency(amount) {
-      if (isPrivacyActive) return '*** €';
-      return amount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-    }
-
     function switchView(viewName) {
       currentViewIndex = viewsOrder.indexOf(viewName);
-
       document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      
       document.getElementById(`view-${viewName}`).classList.add('active');
       document.getElementById(`btn-${viewName}`).classList.add('active');
 
@@ -486,31 +271,160 @@
       if (viewName === 'patrimoine') renderPatrimoineTab();
     }
 
-    function updateFireSettings() {
-      fireSettings.ageTarget = parseInt(document.getElementById('fireAgeTarget').value) || 55;
-      fireSettings.capTarget = parseFloat(document.getElementById('fireCapTarget').value) || 750000;
-      localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
-      renderFireTab();
+    function renderSynth() {
+      const latestList = Object.values(getLatestByCategory());
+      const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
+      const totalPassifs = loans.reduce((sum, l) => sum + l.balance, 0);
+
+      document.getElementById('totalNetVal').innerText = formatCurrency(totalActifs - totalPassifs);
+      document.getElementById('subBrutVal').innerText = `Actifs : ${formatCurrency(totalActifs)} | Crédits : ${formatCurrency(totalPassifs)}`;
+
+      // KPI Endettement
+      const debtRatio = totalActifs > 0 ? ((totalPassifs / totalActifs) * 100).toFixed(1) : 0;
+      document.getElementById('kpiDebtVal').innerText = `${debtRatio}%`;
+      document.getElementById('barDebt').style.width = `${Math.min(100, debtRatio)}%`;
+
+      // KPI Sécurité (Monétaire / Liquidités)
+      const liquidities = latestList.filter(r => r.type === 'Monétaire' || r.envelope === 'Liquidités').reduce((sum, r) => sum + r.value, 0);
+      document.getElementById('kpiSafetyVal').innerText = formatCurrency(liquidities);
+      document.getElementById('barSafety').style.width = `${Math.min(100, (liquidities / 15000) * 100)}%`;
+
+      // KPI Enrichissement
+      const monthlyDca = Object.values(dcaSettings).reduce((a, b) => a + b, 0);
+      document.getElementById('kpiEnrichVal').innerText = `+${monthlyDca} €/m`;
+      document.getElementById('barEnrich').style.width = `${Math.min(100, (monthlyDca / 1000) * 100)}%`;
+
+      // Graphique Tendance
+      let datesMapBrut = {};
+      let stateMap = {};
+      records.forEach(r => { stateMap[r.category] = r.value; datesMapBrut[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0); });
+
+      let labels = Object.keys(datesMapBrut);
+      let dataBrut = Object.values(datesMapBrut);
+      if (labels.length === 1) { labels = ['Départ', labels[0]]; dataBrut = [0, dataBrut[0]]; }
+
+      const ctx = document.getElementById('evolutionChart').getContext('2d');
+      if (lineChartInstance) lineChartInstance.destroy();
+      lineChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: labels, datasets: [{ label: 'Brut (€)', data: dataBrut, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true }] },
+        options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
+      });
     }
+
+    function renderCarto() {
+      const latestList = Object.values(getLatestByCategory());
+      
+      // Tableau Placements
+      const table = document.getElementById('allocationTable');
+      table.innerHTML = '';
+      latestList.forEach(r => {
+        table.innerHTML += `<tr><td><b>${r.envelope}</b><br><span style="color:#64748b; font-size:10px;">${r.type}</span></td><td>${formatCurrency(r.value)}</td><td>${r.mode}</td></tr>`;
+      });
+
+      // Tableau Crédits (Réintégré avec bouton de suppression fonctionnel)
+      const loansTable = document.getElementById('loansTable');
+      loansTable.innerHTML = '';
+      loans.forEach(l => {
+        loansTable.innerHTML += `<tr><td><b>${l.name}</b></td><td>${formatCurrency(l.balance)}</td><td>${l.payment} €/m</td><td><button class="delete-btn" onclick="deleteLoan(${l.id})">✕</button></td></tr>`;
+      });
+
+      let typeMap = {};
+      latestList.forEach(r => { typeMap[r.type] = (typeMap[r.type] || 0) + r.value; });
+
+      const ctx = document.getElementById('allocationChart').getContext('2d');
+      if (pieChartInstance) pieChartInstance.destroy();
+      pieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: Object.keys(typeMap), datasets: [{ data: Object.values(typeMap), backgroundColor: ['#38bdf8', '#34d399', '#fbbf24', '#818cf8', '#f472b6', '#c084fc'] }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } }
+      });
+    }
+
+    function renderFireTab() {
+      const latestList = Object.values(getLatestByCategory());
+      const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
+      let renteDist = latestList.filter(r => r.mode === 'DIST').reduce((sum, r) => sum + (r.value * (r.yield / 100) / 12), 0);
+      document.getElementById('renteDistDirect').innerText = formatCurrency(renteDist) + " / mois";
+      
+      const pctBrut = fireSettings.capTarget > 0 ? Math.min(100, (totalActifs / fireSettings.capTarget) * 100).toFixed(1) : 0;
+      document.getElementById('firePctVal').innerText = `${pctBrut} %`;
+      document.getElementById('fireProgressBar').style.width = `${pctBrut}%`;
+
+      const peaVerser = peaDeposits > 0 ? peaDeposits : latestList.filter(r => r.envelope === 'PEA').reduce((s, r) => s + r.value, 0);
+      document.getElementById('peaPlafondVal').innerText = `${formatCurrency(peaVerser)} / 150 000 €`;
+      document.getElementById('peaPlafondBar').style.width = `${Math.min(100, (peaVerser / 150000) * 100)}%`;
+
+      const container = document.getElementById('dcaInputs');
+      container.innerHTML = '';
+      latestList.forEach(r => {
+        container.innerHTML += `<div style="margin-bottom:6px;"><div style="color:#f8fafc; font-size:11px;">${r.envelope} (${r.type})</div><input type="number" data-cat="${r.category}" class="dca-field" value="${dcaSettings[r.category] || 0}"></div>`;
+      });
+      calculateProjections();
+    }
+
+    function calculateProjections() {
+      document.querySelectorAll('.dca-field').forEach(input => { dcaSettings[input.getAttribute('data-cat')] = parseFloat(input.value) || 0; });
+      localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
+
+      let balances = {};
+      Object.values(getLatestByCategory()).forEach(r => { balances[r.category] = r.value; });
+      let series = [Math.round(Object.values(balances).reduce((a,b)=>a+b,0))];
+
+      for (let m = 1; m <= 240; m++) {
+        Object.keys(balances).forEach(cat => {
+          balances[cat] += (balances[cat] * (Math.pow(1.05, 1/12) - 1)) + (dcaSettings[cat] || 0);
+        });
+        if (m % 12 === 0) series.push(Math.round(Object.values(balances).reduce((a,b)=>a+b,0)));
+      }
+
+      const renteTarget = ((series[15] || series[series.length - 1]) * 0.04) / 12;
+      document.getElementById('fireRenteVal').innerText = formatCurrency(renteTarget) + " / mois";
+
+      const ctx = document.getElementById('projectionChart').getContext('2d');
+      if (projectionChartInstance) projectionChartInstance.destroy();
+      projectionChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels: ["Aujourd'hui", ...Array.from({length:20}, (_,i)=>`An +${i+1}`)], datasets: [{ label: 'Projection (€)', data: series, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)' }] },
+        options: { responsive: true }
+      });
+    }
+
+    function renderPatrimoineTab() {
+      const table = document.getElementById('historyTable');
+      table.innerHTML = '';
+      [...records].reverse().forEach(r => {
+        table.innerHTML += `<tr><td>${r.date}</td><td><b>${r.envelope}</b></td><td>${formatCurrency(r.value)}</td><td><button class="delete-btn" onclick="deleteRecord(${r.id})">✕</button></td></tr>`;
+      });
+    }
+
+    function getLatestByCategory() {
+      let latest = {};
+      records.forEach(r => { latest[r.category] = r; });
+      return latest;
+    }
+    function saveData() { records.sort((a, b) => new Date(a.date) - new Date(b.date)); localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+    function deleteRecord(id) { records = records.filter(r => r.id !== id); saveData(); renderPatrimoineTab(); renderSynth(); }
+    
+    // FONCTION DE SUPPRESSION DES CRÉDITS RENDUE OPÉRATIONNELLE
+    function deleteLoan(id) { 
+      loans = loans.filter(l => l.id !== id); 
+      localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans)); 
+      renderCarto(); 
+      renderSynth(); 
+    }
+
+    function formatCurrency(amt) { return amt.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }); }
+    function updateFireSettings() { fireSettings.capTarget = parseFloat(document.getElementById('fireCapTarget').value) || 750000; localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings)); renderFireTab(); }
 
     document.getElementById('entryForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const date = document.getElementById('entryDate').value;
       const envelope = document.getElementById('assetEnvelope').value;
-      const type = document.getElementById('assetType').value;
-      const mode = document.getElementById('assetMode').value;
-      const assetYield = parseFloat(document.getElementById('assetYield').value) || 0;
-      const value = parseFloat(document.getElementById('assetValue').value);
-
       if (envelope === 'PEA') {
-        const depVal = parseFloat(document.getElementById('peaDeposits').value);
-        if (!isNaN(depVal)) {
-          peaDeposits = depVal;
-          localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits);
-        }
+        peaDeposits = parseFloat(document.getElementById('peaDeposits').value) || peaDeposits;
+        localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits);
       }
-
-      records.push({ id: Date.now(), date, envelope, type, mode, yield: assetYield, category: `${envelope} (${type})`, value });
+      records.push({ id: Date.now(), date: document.getElementById('entryDate').value, envelope, type: document.getElementById('assetType').value, mode: document.getElementById('assetMode').value, yield: parseFloat(document.getElementById('assetYield').value)||0, category: `${envelope} (${document.getElementById('assetType').value})`, value: parseFloat(document.getElementById('assetValue').value) });
       saveData();
       document.getElementById('assetValue').value = '';
       renderPatrimoineTab();
@@ -528,177 +442,12 @@
       });
       localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
       document.getElementById('loanForm').reset();
-      renderPatrimoineTab();
+      renderCarto();
+      renderSynth();
     });
 
-    function deleteRecord(id) {
-      if(confirm('Supprimer ce relevé ?')) {
-        records = records.filter(r => r.id !== id);
-        saveData();
-        renderPatrimoineTab(); renderSynth(); renderCarto();
-      }
-    }
-
-    function saveData() {
-      records.sort((a, b) => new Date(a.date) - new Date(b.date));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    }
-
-    function getLatestByCategory() {
-      let latest = {};
-      records.forEach(r => { latest[r.category] = r; });
-      return latest;
-    }
-
-    function renderSynth() {
-      const latestList = Object.values(getLatestByCategory());
-      const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
-      const totalPassifs = loans.reduce((sum, l) => sum + l.balance, 0);
-
-      document.getElementById('totalNetVal').innerText = formatCurrency(totalActifs - totalPassifs);
-      document.getElementById('subBrutVal').innerText = `Actifs : ${formatCurrency(totalActifs)} | Crédits : ${formatCurrency(totalPassifs)}`;
-
-      const ctx = document.getElementById('evolutionChart').getContext('2d');
-      let datesMapBrut = {};
-      let stateMap = {};
-      records.forEach(r => {
-        stateMap[r.category] = r.value;
-        datesMapBrut[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0);
-      });
-
-      if (lineChartInstance) lineChartInstance.destroy();
-      lineChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: { labels: Object.keys(datesMapBrut), datasets: [{ label: 'Brut (€)', data: Object.values(datesMapBrut), borderColor: '#38bdf8', fill: false }] },
-        options: { responsive: true }
-      });
-    }
-
-    function renderCarto() {
-      const latestList = Object.values(getLatestByCategory());
-      const table = document.getElementById('allocationTable');
-      table.innerHTML = '';
-      latestList.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td><b>${r.envelope}</b><br><span style="color:#64748b; font-size:10px;">${r.type}</span></td><td>${formatCurrency(r.value)}</td><td>${r.mode}</td>`;
-        table.appendChild(tr);
-      });
-
-      let typeMap = {};
-      latestList.forEach(r => { typeMap[r.type] = (typeMap[r.type] || 0) + r.value; });
-
-      const ctx = document.getElementById('allocationChart').getContext('2d');
-      if (pieChartInstance) pieChartInstance.destroy();
-      pieChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(typeMap),
-          datasets: [{ data: Object.values(typeMap), backgroundColor: ['#38bdf8', '#34d399', '#fbbf24', '#818cf8', '#f472b6', '#c084fc'] }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } }
-      });
-    }
-
-    function renderFireTab() {
-      document.getElementById('fireAgeTarget').value = fireSettings.ageTarget;
-      document.getElementById('fireCapTarget').value = fireSettings.capTarget;
-      document.getElementById('targetAgeLbl').innerText = fireSettings.ageTarget;
-
-      const latestList = Object.values(getLatestByCategory());
-      const totalActifs = latestList.reduce((sum, r) => sum + r.value, 0);
-
-      let renteDist = latestList.filter(r => r.mode === 'DIST').reduce((sum, r) => sum + (r.value * (r.yield / 100) / 12), 0);
-      document.getElementById('renteDistDirect').innerText = formatCurrency(renteDist) + " / mois";
-
-      const pctBrut = fireSettings.capTarget > 0 ? Math.min(100, (totalActifs / fireSettings.capTarget) * 100).toFixed(1) : 0;
-      document.getElementById('firePctVal').innerText = `${pctBrut} %`;
-      document.getElementById('fireProgressBar').style.width = `${pctBrut}%`;
-
-      const peaVerser = peaDeposits > 0 ? peaDeposits : latestList.filter(r => r.envelope === 'PEA').reduce((s, r) => s + r.value, 0);
-      const peaPct = Math.min(100, (peaVerser / 150000) * 100).toFixed(1);
-      document.getElementById('peaPlafondVal').innerText = `${formatCurrency(peaVerser)} / 150 000 €`;
-      document.getElementById('peaPlafondBar').style.width = `${peaPct}%`;
-
-      const container = document.getElementById('dcaInputs');
-      container.innerHTML = '';
-      latestList.forEach(r => {
-        const dcaVal = dcaSettings[r.category] || 0;
-        const div = document.createElement('div');
-        div.style.marginBottom = "6px";
-        div.innerHTML = `<div style="color:#f8fafc; font-size:11px;">${r.envelope} (${r.type})</div><input type="number" data-cat="${r.category}" class="dca-field" value="${dcaVal}">`;
-        container.appendChild(div);
-      });
-
-      calculateProjections();
-    }
-
-    function calculateProjections() {
-      document.querySelectorAll('.dca-field').forEach(input => {
-        dcaSettings[input.getAttribute('data-cat')] = parseFloat(input.value) || 0;
-      });
-      localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
-
-      const boostAmt = parseFloat(document.getElementById('boostAmount').value) || 0;
-      const boostYr = parseInt(document.getElementById('boostYear').value) || 1;
-
-      const latestList = Object.values(getLatestByCategory());
-      let balancesStd = {};
-      let balancesBoost = {};
-      latestList.forEach(r => { balancesStd[r.category] = r.value; balancesBoost[r.category] = r.value; });
-
-      const seriesStd = [Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0))];
-      const seriesBoost = [Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0))];
-
-      for (let m = 1; m <= 240; m++) {
-        Object.keys(balancesStd).forEach(cat => {
-          balancesStd[cat] += (balancesStd[cat] * (Math.pow(1.05, 1/12) - 1)) + (dcaSettings[cat] || 0);
-        });
-
-        Object.keys(balancesBoost).forEach(cat => {
-          let injection = (m === boostYr * 12) ? boostAmt : 0;
-          balancesBoost[cat] += (balancesBoost[cat] * (Math.pow(1.05, 1/12) - 1)) + (dcaSettings[cat] || 0) + injection;
-        });
-
-        if (m % 12 === 0) {
-          seriesStd.push(Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0)));
-          seriesBoost.push(Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0)));
-        }
-      }
-
-      const projectedCapAtTarget = seriesBoost[15] || seriesBoost[seriesBoost.length - 1];
-      const renteProjeteeTarget = (projectedCapAtTarget * 0.04) / 12;
-      document.getElementById('fireRenteVal').innerText = formatCurrency(renteProjeteeTarget) + " / mois";
-
-      const labelsYear = ["Aujourd'hui"];
-      for(let i = 1; i <= 20; i++) labelsYear.push(`An +${i}`);
-
-      const ctx = document.getElementById('projectionChart').getContext('2d');
-      if (projectionChartInstance) projectionChartInstance.destroy();
-      projectionChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labelsYear,
-          datasets: [
-            { label: 'Scénario Normal (€)', data: seriesStd, borderColor: '#94a3b8', fill: false },
-            { label: 'Scénario Optimisé (€)', data: seriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)' }
-          ]
-        },
-        options: { responsive: true }
-      });
-    }
-
-    function renderPatrimoineTab() {
-      const table = document.getElementById('historyTable');
-      table.innerHTML = '';
-      [...records].reverse().forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${r.date}</td><td><b>${r.envelope}</b></td><td>${formatCurrency(r.value)}</td><td><button class="delete-btn" onclick="deleteRecord(${r.id})">✕</button></td>`;
-        table.appendChild(tr);
-      });
-    }
-
-    initSecurity();
+    renderSynth();
   </script>
 </body>
 </html>
-"Version 9.8 de l'app de patrimoine"
+"Version 9.9 de l'app de patrimoine"
