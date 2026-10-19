@@ -10,9 +10,13 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: #0f172a; color: #f8fafc; padding: 16px; padding-bottom: 90px; }
-    h1 { font-size: 22px; margin-bottom: 12px; color: #38bdf8; }
-    h2 { font-size: 16px; margin-bottom: 10px; color: #f8fafc; }
     
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    h1 { font-size: 22px; color: #38bdf8; }
+    
+    .privacy-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 6px 12px; border-radius: 20px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .privacy-btn:active { background: #334155; }
+
     #updateBanner { display: none; background-color: #2563eb; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; }
 
     /* Navigation par 5 onglets */
@@ -23,8 +27,8 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* Cartes & Composants */
-    .card { background-color: #1e293b; border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid #334155; }
+    /* Cartes Glassmorphism */
+    .card { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(8px); border-radius: 14px; padding: 14px; margin-bottom: 14px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
     label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
     input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 10px; font-size: 14px; }
     button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; }
@@ -34,6 +38,12 @@
     .sub-val { font-size: 12px; color: #94a3b8; margin-top: 2px; }
     .enrich-val { font-size: 18px; font-weight: bold; color: #34d399; margin-top: 4px; }
     
+    /* KPI Grid Premium */
+    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .kpi-card { background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; }
+    .kpi-title { font-size: 11px; color: #94a3b8; }
+    .kpi-value { font-size: 16px; font-weight: bold; color: #f8fafc; margin-top: 2px; }
+
     table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
     th, td { text-align: left; padding: 8px 4px; border-bottom: 1px solid #334155; }
     th { color: #94a3b8; font-weight: normal; }
@@ -49,20 +59,25 @@
 </head>
 <body>
 
-  <h1>Mon Patrimoine</h1>
+  <div class="header-row">
+    <h1>Mon Patrimoine</h1>
+    <button class="privacy-btn" onclick="togglePrivacyMode()">
+      <span id="privacyIcon">👁️</span> <span id="privacyText">Masquer</span>
+    </button>
+  </div>
 
   <div id="updateBanner" onclick="window.location.reload(true)">
     🚀 Une nouvelle version est disponible ! Cliquez ici pour recharger.
   </div>
 
-  <!-- BANDEAU MARCHÉS EN TEMPS RÉEL (TRADINGVIEW) -->
+  <!-- BANDEAU MARCHÉS TRADINGVIEW -->
   <div class="card" style="padding: 8px; margin-bottom: 14px;">
     <div class="tradingview-widget-container">
       <div class="tradingview-widget-container__widget"></div>
       <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
       {
         "symbols": [
-          { "proName": "INDEX:VIX", "title": "VIX (Volatilité)" },
+          { "proName": "INDEX:VIX", "title": "VIX" },
           { "proName": "EURONEXT:CW8", "title": "MSCI World" },
           { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
           { "proName": "INDEX:PX1", "title": "CAC 40" },
@@ -87,18 +102,30 @@
     <button class="nav-btn" onclick="switchTab('entry')">+ Saisie</button>
   </div>
 
-  <!-- PAGE 1 : DASHBOARD & SYNTHÈSE -->
+  <!-- PAGE 1 : SYNTHÈSE & KPI -->
   <div id="tab-dashboard" class="tab-content active">
     <div class="card">
       <label>Patrimoine Net Actuel (Actifs − Crédits)</label>
       <div id="totalPatrimoineNet" class="net-val">0,00 €</div>
-      <div id="subPatrimoineBrut" class="sub-val">Actifs Bruts : 0,00 € | Crédits restants : 0,00 €</div>
+      <div id="subPatrimoineBrut" class="sub-val">Actifs Bruts : 0,00 € | Crédits : 0,00 €</div>
+    </div>
+
+    <!-- CARTES KPI DU BLOC 1 -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Endettement</div>
+        <div id="kpiDebtRatio" class="kpi-value">0.0 %</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Sécurité (Livrets)</div>
+        <div id="kpiSafetyRunway" class="kpi-value">0,00 €</div>
+      </div>
     </div>
 
     <div class="card">
       <label>Enrichissement Mensuel Estimé</label>
       <div id="monthlyEnrichment" class="enrich-val">+0,00 € / mois</div>
-      <div id="subEnrichment" class="sub-val">Épargne DCA : 0 € | Capital immo remboursé : 0 €</div>
+      <div id="subEnrichment" class="sub-val">DCA : 0 € | Capital Immo : 0 €</div>
     </div>
 
     <div class="card">
@@ -194,7 +221,7 @@
     </div>
   </div>
 
-  <!-- PAGE 4 : SIMULATEUR DYNAMIQUE & SCÉNARIOS -->
+  <!-- PAGE 4 : SIMULATEUR DYNAMIQUE -->
   <div id="tab-projection" class="tab-content">
     <div class="card">
       <h2>1. DCA & Rendements des Actifs</h2>
@@ -272,6 +299,7 @@
     const RATE_STORAGE_KEY = 'patrimoine_rate_settings_v1';
     const LOANS_STORAGE_KEY = 'patrimoine_loans_settings_v1';
 
+    let isPrivacyActive = false;
     let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
 
@@ -304,6 +332,19 @@
     let lineChartInstance = null;
     let pieChartInstance = null;
     let projectionChartInstance = null;
+
+    function togglePrivacyMode() {
+      isPrivacyActive = !isPrivacyActive;
+      document.getElementById('privacyIcon').innerText = isPrivacyActive ? '🔒' : '👁️';
+      document.getElementById('privacyText').innerText = isPrivacyActive ? 'Afficher' : 'Masquer';
+      renderDashboard();
+      renderAllocation();
+    }
+
+    function formatCurrency(amount) {
+      if (isPrivacyActive) return '*** €';
+      return amount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+    }
 
     function populateCategoriesSelect() {
       const select = document.getElementById('assetCategory');
@@ -348,7 +389,6 @@
       document.getElementById('customGroup').style.display = (val === 'CUSTOM') ? 'block' : 'none';
     }
 
-    // GESTION DES PRÊTS
     document.getElementById('loanForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('loanName').value.trim();
@@ -383,8 +423,8 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><b>${l.name}</b></td>
-          <td>${l.balance.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</td>
-          <td>${l.payment.toLocaleString('fr-FR')} €/m</td>
+          <td>${formatCurrency(l.balance)}</td>
+          <td>${isPrivacyActive ? '*** €' : l.payment.toLocaleString('fr-FR') + ' €/m'}</td>
           <td><button class="delete-btn" onclick="deleteLoan(${l.id})">✕</button></td>
         `;
         table.appendChild(tr);
@@ -408,7 +448,7 @@
       document.getElementById('customGroup').style.display = 'none';
       
       populateCategoriesSelect();
-      alert('Relevé d\'actif enregistré !');
+      alert('Relevé enregistré !');
       switchTab('dashboard');
     });
 
@@ -441,7 +481,7 @@
         tr.innerHTML = `
           <td>${r.date}</td>
           <td>${r.category}</td>
-          <td>${r.value.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</td>
+          <td>${formatCurrency(r.value)}</td>
           <td><button class="delete-btn" onclick="deleteRecord(${r.id})">✕</button></td>
         `;
         table.appendChild(tr);
@@ -452,10 +492,17 @@
       const totalPassifs = loans.reduce((sum, l) => sum + l.balance, 0);
       const totalNet = totalActifs - totalPassifs;
 
-      document.getElementById('totalPatrimoineNet').innerText = totalNet.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-      document.getElementById('subPatrimoineBrut').innerText = `Actifs Bruts : ${totalActifs.toLocaleString('fr-FR')} € | Crédits restants : ${totalPassifs.toLocaleString('fr-FR')} €`;
+      document.getElementById('totalPatrimoineNet').innerText = formatCurrency(totalNet);
+      document.getElementById('subPatrimoineBrut').innerText = `Actifs Bruts : ${formatCurrency(totalActifs)} | Crédits : ${formatCurrency(totalPassifs)}`;
 
-      // Calcul de l'enrichissement mensuel
+      // Mettre à jour KPI Cards
+      const debtRatio = totalActifs > 0 ? ((totalPassifs / totalActifs) * 100).toFixed(1) : 0;
+      document.getElementById('kpiDebtRatio').innerText = `${debtRatio} %`;
+
+      const liquidities = latestMap['Comptes / Liquidités'] || 0;
+      document.getElementById('kpiSafetyRunway').innerText = formatCurrency(liquidities);
+
+      // Enrichissement mensuel
       const monthlyDcaTotal = Object.values(dcaSettings).reduce((a, b) => a + b, 0);
       let monthlyAmortizationTotal = 0;
 
@@ -468,10 +515,10 @@
 
       const totalMonthlyEnrichment = monthlyDcaTotal + monthlyAmortizationTotal;
 
-      document.getElementById('monthlyEnrichment').innerText = `+${totalMonthlyEnrichment.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} € / mois`;
-      document.getElementById('subEnrichment').innerText = `Épargne DCA : ${monthlyDcaTotal.toLocaleString('fr-FR')} €/m | Capital Immo Remboursé : ${monthlyAmortizationTotal.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €/m`;
+      document.getElementById('monthlyEnrichment').innerText = isPrivacyActive ? '+*** € / mois' : `+${totalMonthlyEnrichment.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} € / mois`;
+      document.getElementById('subEnrichment').innerText = `DCA : ${formatCurrency(monthlyDcaTotal)}/m | Capital Immo : ${formatCurrency(monthlyAmortizationTotal)}/m`;
 
-      // DOUBLE COURBE TEMPORELLE (BRUT & NET)
+      // DOUBLE COURBE TEMPORELLE
       const ctx = document.getElementById('evolutionChart').getContext('2d');
       let datesMapBrut = {};
       let stateMap = {};
@@ -539,7 +586,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${cat}</td>
-          <td>${val.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</td>
+          <td>${formatCurrency(val)}</td>
           <td><b>${pct}%</b></td>
         `;
         table.appendChild(tr);
@@ -708,7 +755,7 @@
           }
 
           div.innerHTML = `
-            <div class="milestone-title">🎯 Palier Net ${mBase.target.toLocaleString('fr-FR')} €</div>
+            <div class="milestone-title">🎯 Palier Net ${formatCurrency(mBase.target)}</div>
             <div class="milestone-details">📊 Base : <b>${mBase.dateStr}</b> (${mBase.duration} ans)</div>
             ${simHtml}
           `;
@@ -762,7 +809,6 @@
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `patrimoine_full_backup_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
     }
@@ -785,16 +831,10 @@
 
             populateCategoriesSelect();
             renderDashboard();
-            alert("Restauration complète réussie !");
-          } else if (Array.isArray(imported)) {
-            records = imported;
-            saveData();
-            populateCategoriesSelect();
-            renderDashboard();
             alert("Restauration réussie !");
           }
         } catch(err) {
-          alert("Erreur lors de l'importation du fichier.");
+          alert("Erreur lors de l'importation.");
         }
       };
       reader.readAsText(event.target.files[0]);
@@ -818,4 +858,4 @@
   </script>
 </body>
 </html>
-"Version 8 de l'app de patrimoine"
+"Version 9.1 de l'app de patrimoine"
