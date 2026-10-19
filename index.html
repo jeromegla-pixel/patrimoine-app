@@ -96,7 +96,7 @@
     </div>
 
     <div class="card">
-      <label>Enrichissement Mensuel Estimer</label>
+      <label>Enrichissement Mensuel Estimé</label>
       <div id="monthlyEnrichment" class="enrich-val">+0,00 € / mois</div>
       <div id="subEnrichment" class="sub-val">Épargne investie : 0 € | Capital immobilier remboursé : 0 €</div>
     </div>
@@ -220,7 +220,7 @@
     </div>
 
     <div class="card">
-      <h2>Comparatif des Paliers Netti (+100k€)</h2>
+      <h2>Comparatif des Paliers Nets (+100k€)</h2>
       <div id="milestonesList"></div>
     </div>
 
@@ -362,6 +362,7 @@
 
       document.getElementById('loanForm').reset();
       renderLoansTable();
+      renderDashboard();
       alert('Prêt enregistré !');
     });
 
@@ -370,6 +371,7 @@
         loans = loans.filter(l => l.id !== id);
         localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
         renderLoansTable();
+        renderDashboard();
       }
     }
 
@@ -469,15 +471,19 @@
       document.getElementById('monthlyEnrichment').innerText = `+${totalMonthlyEnrichment.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} € / mois`;
       document.getElementById('subEnrichment').innerText = `Épargne DCA : ${monthlyDcaTotal.toLocaleString('fr-FR')} €/m | Capital Immo Remboursé : ${monthlyAmortizationTotal.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €/m`;
 
-      // Graphique historique net
+      // RECONSTRUCTION PROPRE DU GRAPHIQUE HISTORIQUE
       const ctx = document.getElementById('evolutionChart').getContext('2d');
       let datesMap = {};
       let stateMap = {};
 
       records.forEach(r => {
         stateMap[r.category] = r.value;
-        const totalBrut = Object.values(stateMap).reduce((a, b) => a + b, 0);
-        datesMap[r.date] = totalBrut - totalPassifs;
+        datesMap[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0);
+      });
+
+      let netDatesMap = {};
+      Object.keys(datesMap).forEach(date => {
+        netDatesMap[date] = datesMap[date] - totalPassifs;
       });
 
       if (lineChartInstance) lineChartInstance.destroy();
@@ -485,10 +491,10 @@
       lineChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: Object.keys(datesMap),
+          labels: Object.keys(netDatesMap),
           datasets: [{
             label: 'Patrimoine Net (€)',
-            data: Object.values(datesMap),
+            data: Object.values(netDatesMap),
             borderColor: '#38bdf8',
             backgroundColor: 'rgba(56, 189, 248, 0.15)',
             fill: true,
@@ -548,7 +554,6 @@
       });
     }
 
-    // PROJECTIONS ET INTÉGRATION DE L'AMORTISSEMENT DES CRÉDITS
     function renderProjectionTab() {
       const latestMap = getLatestByCategory();
       const container = document.getElementById('dcaInputs');
@@ -603,12 +608,10 @@
       while (monthsCounter < maxMonths) {
         monthsCounter++;
 
-        // Simulation injection
         if (isSimulatedScenario && monthsCounter === injMonthTarget && injAmount > 0 && currentBalances[injCat] !== undefined) {
           currentBalances[injCat] += injAmount;
         }
 
-        // Évolution des actifs (Rendement + DCA)
         Object.keys(currentBalances).forEach(cat => {
           const annRate = (rateSettings[cat] !== undefined ? rateSettings[cat] : 5.0) / 100;
           const monthlyRate = Math.pow(1 + annRate, 1/12) - 1;
@@ -618,7 +621,6 @@
           currentBalances[cat] += interestMonth + monthlyDca;
         });
 
-        // Amortissement mois par mois des crédits
         currentLoans.forEach(l => {
           if (l.balance > 0 && l.months > 0) {
             const monthlyRate = (l.rate / 100) / 12;
@@ -804,4 +806,4 @@
   </script>
 </body>
 </html>
-"Version six de l'app de patrimoine"
+"Version sept de l'app de patrimoine"
