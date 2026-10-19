@@ -13,6 +13,11 @@
     
     #errorConsole { display: none; background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; padding: 12px; border-radius: 10px; font-size: 11px; margin-bottom: 16px; font-family: monospace; white-space: pre-wrap; }
 
+    /* Système de Toasts Flottants */
+    #toastContainer { position: fixed; bottom: 95px; left: 16px; right: 16px; z-index: 10000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; align-items: center; }
+    .toast-msg { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid #38bdf8; color: #f8fafc; padding: 10px 16px; border-radius: 12px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); pointer-events: auto; animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
     .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .brand-title { font-size: 20px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px; }
     .header-actions { display: flex; gap: 8px; }
@@ -82,6 +87,7 @@
 <body>
 
   <div id="errorConsole"></div>
+  <div id="toastContainer"></div>
 
   <!-- ÉCRAN DE VERROUILLAGE PIN -->
   <div id="lockScreen" style="display:none;">
@@ -224,6 +230,14 @@
       </div>
     </div>
 
+    <!-- MODULE RÉÉQUILIBRAGE & ALIGNEMENT MBTI -->
+    <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.3);">
+      <h2>⚖️ Alignement Stratégique & Rééquilibrage</h2>
+      <div id="mbtiRebalanceReport" style="font-size:12px; color:#cbd5e1; line-height:1.5;">
+        <!-- Dynamique -->
+      </div>
+    </div>
+
     <div class="card">
       <h2>💪 Vos Points Forts Stratégiques</h2>
       <div id="mbtiStrengths"></div>
@@ -269,6 +283,16 @@
           <input type="number" id="firePeaDeposits" value="0">
         </div>
       </div>
+    </div>
+
+    <!-- MODULE TRÉSORERIE & CAPACITÉ D'ÉPARGNE -->
+    <div class="card">
+      <h2>💶 Capacité d'Épargne & Trésorerie Foyer</h2>
+      <div class="grid-2">
+        <div><label>Revenus Nets Foyer (€/m)</label><input type="number" id="cashRevenus" value="4500"></div>
+        <div><label>Charges Fixes (€/m)</label><input type="number" id="cashCharges" value="2000"></div>
+      </div>
+      <div class="fire-metric" style="margin-top:8px;"><span class="fire-label">Épargne Nette Réelle Disponible</span><span id="cashEpargneNette" class="fire-val">+0 € / mois</span></div>
     </div>
 
     <!-- MODULE STRESS TEST DE CRISE -->
@@ -397,6 +421,22 @@
       }
     });
 
+    // Système de Toast Non Intrusif
+    function showToast(message, isSuccess) {
+      var container = document.getElementById('toastContainer');
+      if (!container) return;
+      var toast = document.createElement('div');
+      toast.className = 'toast-msg';
+      toast.style.borderColor = isSuccess ? '#34d399' : '#38bdf8';
+      toast.innerHTML = (isSuccess ? '✅ ' : '💡 ') + message;
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 3000);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       if (document.getElementById('entryDate')) {
         document.getElementById('entryDate').valueAsDate = new Date();
@@ -408,12 +448,14 @@
       var ADV_DCA_KEY = 'patrimoine_adv_dca_v2';
       var PEA_DEPOSITS_KEY = 'patrimoine_pea_deposits_v1';
       var PIN_CODE_KEY = 'patrimoine_pin_v1';
+      var CASH_FLOW_KEY = 'patrimoine_cash_flow_v1';
 
       var records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       var loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
       var fireSettings = JSON.parse(localStorage.getItem(FIRE_STORAGE_KEY)) || { ageTarget: 55, capTarget: 750000, manualRente: 2500 };
       var advDcaSettings = JSON.parse(localStorage.getItem(ADV_DCA_KEY)) || {};
       var peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
+      var cashFlowSettings = JSON.parse(localStorage.getItem(CASH_FLOW_KEY)) || { revenus: 4500, charges: 2000 };
 
       var privacyMode = false;
       var viewsOrder = ['synth', 'carto', 'mbti', 'fire', 'patrimoine'];
@@ -435,7 +477,7 @@
         "ENFP": { name: "L'Inspirateur", family: "Diplomate", summary: "Enthousiaste, aime diversifier mais peut manquer de constance si le plan manque de ressort.", strengths: ["Énergie positive et vision optimiste", "Ouverture aux projets innovants", "Créativité dans l'épargne"], weaknesses: ["Manque de suivi rigoureux à long terme", "Abandon des stratégies en cours de route"], attentions: ["Mettre en place des virements automatiques", "Conserver un cap stable"] },
         "ISTJ": { name: "Le Logisticien", family: "Sentinelle", summary: "Le roi de la rigueur, des tableaux de suivi et de l'épargne de précaution sanctuarisée.", strengths: ["Organisation et comptabilité irréprochables", "Épargne de précaution toujours solide", "Stabilité émotionnelle"], weaknesses: ["Frilosité face aux opportunités boursières", "Excès de prudence"], attentions: ["Oser s'exposer aux actions long terme", "Éviter de sur-dormir sur du cash"] },
         "ISFJ": { name: "Le Défenseur", family: "Sentinelle", summary: "Très attaché à la sécurité de la pierre (immobilier, SCPI) et aux livrets garantis.", strengths: ["Sécurité de la brique et des livrets", "Protection absolue du foyer", "Constance de l'effort d'épargne"], weaknesses: ["Rendement global rogné par l'inflation", "Peur panique de la bourse"], attentions: ["Intégrer progressivement des ETF capitalisants", "Combattre l'inflation par le rendement"] },
-        "ESTJ": { name: "Le Directif", family: "Sentinelle", summary: "Bâtisseur pragmatique, aime les actifs tangibles et les flux de trésorerie récurrents.", strengths: ["Maîtrise de l'immobilier et du crédit", "Revenus passifs réactifs", "Rigueur de gestion"], weaknesses: ["Rigidité face aux nouvelles classes d'actifs", "Lourdeur administrative"], attentions: ["Garder de la flexibilité mobilière", "Surveiller l'endettement"] },
+        "ESTJ": { name: "Le Directif", family: "Sentinelle", summary: "Bâtisseur pragmatique, aime les actifs tangibles et les flux de trésorerie récurrents.", strengths: ["Maîtrise de l'immobilier et du crédit", "Revenus passifs réguliers", "Rigueur de gestion"], weaknesses: ["Rigidité face aux nouvelles classes d'actifs", "Lourdeur administrative"], attentions: ["Garder de la flexibilité mobilière", "Surveiller l'endettement"] },
         "ESFJ": { name: "Le Consul", family: "Sentinelle", summary: "Sensible à la sécurité collective, privilégie les placements consensuels et sécurisants.", strengths: ["Solidité financière du foyer", "Prudence avisée", "Régularité des versements"], weaknesses: ["Manque d'audace face au capital", "Influence excessive de l'entourage"], attentions: ["Construire sa propre conviction d'investissement", "Viser la diversification"] },
         "ISTP": { name: "Le Virtuose", family: "Explorateur", summary: "Calme, rationnel, analyse froide des chiffres, excellent pour garder son sang-froid.", strengths: ["Sang-froid total en cas de krach", "Rationnalité pure des décisions", "Pragmatisme des arbitrages"], weaknesses: ["Tendance à l'immobilisme", "Manque de vision prospective long terme"], attentions: ["Formaliser un plan d'action pluriannuel", "Maintenir l'effort d'épargne"] },
         "ISFP": { name: "L'Aventurier", family: "Explorateur", summary: "Cherche un équilibre entre plaisir immédiat et constitution progressive d'un matelas.", strengths: ["Équilibre de vie préservé", "Souplesse dans la gestion", "Approche non dogmatique"], weaknesses: ["Manque de discipline sur la durée", "Tentations de dépenses impulsives"], attentions: ["Budgétiser le plaisir et l'épargne", "Automatiser l'effort d'épargne"] },
@@ -447,6 +489,8 @@
       if (document.getElementById('fireCapTarget')) document.getElementById('fireCapTarget').value = fireSettings.capTarget;
       if (document.getElementById('fireManualRente')) document.getElementById('fireManualRente').value = fireSettings.manualRente || 2500;
       if (document.getElementById('firePeaDeposits')) document.getElementById('firePeaDeposits').value = peaDeposits;
+      if (document.getElementById('cashRevenus')) document.getElementById('cashRevenus').value = cashFlowSettings.revenus;
+      if (document.getElementById('cashCharges')) document.getElementById('cashCharges').value = cashFlowSettings.charges;
 
       document.getElementById('btn-synth').addEventListener('click', function() { switchView('synth'); });
       document.getElementById('btn-carto').addEventListener('click', function() { switchView('carto'); });
@@ -470,6 +514,9 @@
       document.getElementById('firePeaDeposits').addEventListener('change', onPeaDepositsChange);
       document.getElementById('recalcBtn').addEventListener('click', calculateProjections);
       document.getElementById('assetEnvelope').addEventListener('change', togglePeaDepositsField);
+
+      document.getElementById('cashRevenus').addEventListener('input', updateCashFlow);
+      document.getElementById('cashCharges').addEventListener('input', updateCashFlow);
 
       // Écouteurs Stress Test & JSON
       document.getElementById('stressCrashBtn').addEventListener('click', function() { runStressTest(true); });
@@ -496,6 +543,7 @@
         renderMbtiTab();
         renderFireTab();
         renderPatrimoineTab();
+        showToast('Mode confidentialité mis à jour', true);
       }
 
       function formatCurrency(amt) {
@@ -509,8 +557,9 @@
         if (pin === '1234' || pin === localStorage.getItem(PIN_CODE_KEY)) {
           document.getElementById('lockScreen').style.display = 'none';
           document.getElementById('pinInput').value = '';
+          showToast('Application déverrouillée', true);
         } else {
-          alert('Code PIN incorrect (1234)');
+          showToast('Code PIN incorrect (par défaut : 1234)', false);
         }
       }
 
@@ -533,7 +582,7 @@
         if (viewName === 'synth') renderSynth();
         if (viewName === 'carto') renderCarto();
         if (viewName === 'mbti') renderMbtiTab();
-        if (viewName === 'fire') renderFireTab();
+        if (viewName === 'fire') { renderFireTab(); updateCashFlow(); }
         if (viewName === 'patrimoine') renderPatrimoineTab();
       }
 
@@ -572,6 +621,20 @@
         renderFireTab();
       }
 
+      function updateCashFlow() {
+        var rev = parseFloat(document.getElementById('cashRevenus').value) || 0;
+        var chg = parseFloat(document.getElementById('cashCharges').value) || 0;
+        cashFlowSettings.revenus = rev;
+        cashFlowSettings.charges = chg;
+        localStorage.setItem(CASH_FLOW_KEY, JSON.stringify(cashFlowSettings));
+        var net = rev - chg;
+        var el = document.getElementById('cashEpargneNette');
+        if (el) {
+          el.innerText = '+' + net.toLocaleString('fr-FR') + ' € / mois';
+          el.style.color = net >= 0 ? '#34d399' : '#ef4444';
+        }
+      }
+
       function getLatestByCategory() {
         var latest = {};
         records.forEach(function(r) {
@@ -590,8 +653,10 @@
         var resEl = document.getElementById('stressTestResult');
         if (isCrash) {
           resEl.innerHTML = '⚠️ <span style="color:#ef4444;">Stress Test Actif :</span> Impact de -30% appliqué sur l\'ensemble des lignes Actions / ETF.';
+          showToast('Stress test -30% activé', false);
         } else {
           resEl.innerHTML = '✅ <span style="color:#34d399;">Normal :</span> Valeurs initiales rétablies.';
+          showToast('Valeurs initiales restaurées', true);
         }
         renderSynth();
         renderCarto();
@@ -605,6 +670,7 @@
           fireSettings: fireSettings,
           advDcaSettings: advDcaSettings,
           peaDeposits: peaDeposits,
+          cashFlowSettings: cashFlowSettings,
           exportDate: new Date().toISOString()
         };
         var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -614,6 +680,7 @@
         document.body.appendChild(dlAnchor);
         dlAnchor.click();
         dlAnchor.remove();
+        showToast('Export JSON réussi ✅', true);
       }
 
       function importLocalStorageJson(e) {
@@ -623,30 +690,16 @@
         reader.onload = function(evt) {
           try {
             var parsed = JSON.parse(evt.target.result);
-            if (parsed.records) {
-              records = parsed.records;
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-            }
-            if (parsed.loans) {
-              loans = parsed.loans;
-              localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-            }
-            if (parsed.fireSettings) {
-              fireSettings = parsed.fireSettings;
-              localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
-            }
-            if (parsed.advDcaSettings) {
-              advDcaSettings = parsed.advDcaSettings;
-              localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
-            }
-            if (typeof parsed.peaDeposits !== 'undefined') {
-              peaDeposits = parsed.peaDeposits;
-              localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits);
-            }
-            alert('Restauration des données effectuée avec succès !');
-            window.location.reload();
+            if (parsed.records) { records = parsed.records; localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+            if (parsed.loans) { loans = parsed.loans; localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans)); }
+            if (parsed.fireSettings) { fireSettings = parsed.fireSettings; localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings)); }
+            if (parsed.advDcaSettings) { advDcaSettings = parsed.advDcaSettings; localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings)); }
+            if (typeof parsed.peaDeposits !== 'undefined') { peaDeposits = parsed.peaDeposits; localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits); }
+            if (parsed.cashFlowSettings) { cashFlowSettings = parsed.cashFlowSettings; localStorage.setItem(CASH_FLOW_KEY, JSON.stringify(cashFlowSettings)); }
+            showToast('Restauration réussie ! Rechargement...', true);
+            setTimeout(function() { window.location.reload(); }, 1200);
           } catch(err) {
-            alert('Erreur lors de l\'import du fichier JSON : ' + err.message);
+            showToast('Erreur d\'import : ' + err.message, false);
           }
         };
         reader.readAsText(file);
@@ -755,7 +808,10 @@
           summary: baseProfile.summary,
           strengths: baseProfile.strengths,
           weaknesses: baseProfile.weaknesses,
-          attentions: baseProfile.attentions
+          attentions: baseProfile.attentions,
+          actionsPct: actionsPct.toFixed(1),
+          immoPct: immoPct.toFixed(1),
+          cashPct: cashPct.toFixed(1)
         };
       }
 
@@ -763,6 +819,15 @@
         var profile = getMbtiAnalysis();
         document.getElementById('mbtiFullTitle').innerText = profile.code + ' — ' + profile.name + ' (' + profile.family + ')';
         document.getElementById('mbtiFullSummary').innerText = profile.summary;
+
+        // Rendu de l'alignement stratégique
+        var rebalEl = document.getElementById('mbtiRebalanceReport');
+        if (rebalEl) {
+          rebalEl.innerHTML = 
+            '<div><b>Allocation Actuelle :</b> Actions (' + profile.actionsPct + '%) | Immo/SCPI (' + profile.immoPct + '%) | Cash (' + profile.cashPct + '%)</div>' +
+            '<div style="margin-top:6px; color:#38bdf8;">💡 <b>Diagnostic d\'Alignement :</b> Votre profil ' + profile.code + ' privilégie la structure. ' + 
+            (profile.actionsPct < 40 ? 'Augmenter progressivement la poche actions (via PEA) correspondrait mieux à votre potentiel de capitalisation long terme.' : 'Votre exposition actions est en phase avec votre profil analytique.') + '</div>';
+        }
 
         var strContainer = document.getElementById('mbtiStrengths');
         strContainer.innerHTML = '';
@@ -870,6 +935,7 @@
           renderSynth();
           renderCarto();
           renderFireTab();
+          showToast('Mise à jour enregistrée', true);
         }
       }
 
@@ -880,6 +946,7 @@
         renderCarto();
         renderFireTab();
         renderPatrimoineTab();
+        showToast('Support supprimé', false);
       }
 
       function updateLoanDirect(id, field, val) {
@@ -889,6 +956,7 @@
           localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
           renderSynth();
           renderCarto();
+          showToast('Prêt mis à jour', true);
         }
       }
 
@@ -897,6 +965,7 @@
         localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
         renderCarto();
         renderSynth();
+        showToast('Prêt supprimé', false);
       }
 
       function renderFireTab() {
@@ -1074,6 +1143,7 @@
         renderPatrimoineTab();
         renderSynth();
         renderCarto();
+        showToast('Entrée supprimée', false);
       }
 
       document.getElementById('entryForm').addEventListener('submit', function(e) {
@@ -1104,6 +1174,7 @@
         renderPatrimoineTab();
         renderSynth();
         renderCarto();
+        showToast('Nouvelle enveloppe enregistrée avec succès !', true);
       });
 
       document.getElementById('loanForm').addEventListener('submit', function(e) {
@@ -1120,11 +1191,15 @@
         document.getElementById('loanForm').reset();
         renderCarto();
         renderSynth();
+        showToast('Prêt enregistré avec succès !', true);
       });
 
       // Lancement initial sans boucle récursive
       renderSynth();
+      updateCashFlow();
     });
   </script>
 </body>
 </html>
+
+TheAppli
