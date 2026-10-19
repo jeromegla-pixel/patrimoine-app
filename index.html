@@ -222,6 +222,31 @@
 
   <!-- 3. PROFIL MBTI -->
   <div id="view-mbti" class="tab-view">
+    <!-- SÉLECTEUR DE PROFIL DÉCLARATIF (PHILOSOPHIQUE) -->
+    <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05);">
+      <h2>🧭 Votre Vrai Profil MBTI (Déclaratif)</h2>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:8px;">Le profil de votre allocation ne reflète pas forcément votre nature profonde. Déclarez votre véritable type MBTI ci-dessous :</div>
+      <select id="userDeclaredMbti" style="font-weight:bold; color:#38bdf8;">
+        <option value="AUTO">-- Déduire automatiquement du portefeuille --</option>
+        <option value="INTJ">INTJ — L'Architecte</option>
+        <option value="INTP">INTP — Le Logicien</option>
+        <option value="ENTJ">ENTJ — Le Commandant</option>
+        <option value="ENTP">ENTP — L'Innovateur</option>
+        <option value="INFJ">INFJ — L'Avocat</option>
+        <option value="INFP">INFP — Le Médiateur</option>
+        <option value="ENFJ">ENFJ — Le Protagoniste</option>
+        <option value="ENFP">ENFP — L'Inspirateur</option>
+        <option value="ISTJ">ISTJ — Le Logisticien</option>
+        <option value="ISFJ">ISFJ — Le Défenseur</option>
+        <option value="ESTJ">ESTJ — Le Directif</option>
+        <option value="ESFJ">ESFJ — Le Consul</option>
+        <option value="ISTP">ISTP — Le Virtuose</option>
+        <option value="ISFP">ISFP — L'Aventurier</option>
+        <option value="ESTP">ESTP — L'Entrepreneur</option>
+        <option value="ESFP">ESFP — L'Amuseur</option>
+      </select>
+    </div>
+
     <div class="card">
       <h2>🧠 Votre Carte d'Identité Psychologique</h2>
       <div id="mbtiDynamicCard">
@@ -449,6 +474,7 @@
       var PEA_DEPOSITS_KEY = 'patrimoine_pea_deposits_v1';
       var PIN_CODE_KEY = 'patrimoine_pin_v1';
       var CASH_FLOW_KEY = 'patrimoine_cash_flow_v1';
+      var DECLARED_MBTI_KEY = 'patrimoine_declared_mbti_v1';
 
       var records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       var loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
@@ -456,6 +482,7 @@
       var advDcaSettings = JSON.parse(localStorage.getItem(ADV_DCA_KEY)) || {};
       var peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
       var cashFlowSettings = JSON.parse(localStorage.getItem(CASH_FLOW_KEY)) || { revenus: 4500, charges: 2000 };
+      var declaredMbti = localStorage.getItem(DECLARED_MBTI_KEY) || 'AUTO';
 
       var privacyMode = false;
       var viewsOrder = ['synth', 'carto', 'mbti', 'fire', 'patrimoine'];
@@ -491,6 +518,7 @@
       if (document.getElementById('firePeaDeposits')) document.getElementById('firePeaDeposits').value = peaDeposits;
       if (document.getElementById('cashRevenus')) document.getElementById('cashRevenus').value = cashFlowSettings.revenus;
       if (document.getElementById('cashCharges')) document.getElementById('cashCharges').value = cashFlowSettings.charges;
+      if (document.getElementById('userDeclaredMbti')) document.getElementById('userDeclaredMbti').value = declaredMbti;
 
       document.getElementById('btn-synth').addEventListener('click', function() { switchView('synth'); });
       document.getElementById('btn-carto').addEventListener('click', function() { switchView('carto'); });
@@ -517,6 +545,12 @@
 
       document.getElementById('cashRevenus').addEventListener('input', updateCashFlow);
       document.getElementById('cashCharges').addEventListener('input', updateCashFlow);
+      document.getElementById('userDeclaredMbti').addEventListener('change', function() {
+        declaredMbti = this.value;
+        localStorage.setItem(DECLARED_MBTI_KEY, declaredMbti);
+        renderMbtiTab();
+        showToast('Profil MBTI déclaratif mis à jour', true);
+      });
 
       // Écouteurs Stress Test & JSON
       document.getElementById('stressCrashBtn').addEventListener('click', function() { runStressTest(true); });
@@ -671,6 +705,7 @@
           advDcaSettings: advDcaSettings,
           peaDeposits: peaDeposits,
           cashFlowSettings: cashFlowSettings,
+          declaredMbti: declaredMbti,
           exportDate: new Date().toISOString()
         };
         var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -696,6 +731,7 @@
             if (parsed.advDcaSettings) { advDcaSettings = parsed.advDcaSettings; localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings)); }
             if (typeof parsed.peaDeposits !== 'undefined') { peaDeposits = parsed.peaDeposits; localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits); }
             if (parsed.cashFlowSettings) { cashFlowSettings = parsed.cashFlowSettings; localStorage.setItem(CASH_FLOW_KEY, JSON.stringify(cashFlowSettings)); }
+            if (parsed.declaredMbti) { declaredMbti = parsed.declaredMbti; localStorage.setItem(DECLARED_MBTI_KEY, declaredMbti); }
             showToast('Restauration réussie ! Rechargement...', true);
             setTimeout(function() { window.location.reload(); }, 1200);
           } catch(err) {
@@ -782,27 +818,31 @@
         var cryptoPct = (cryptoVal / totalActifs) * 100;
         var goldPct = (goldVal / totalActifs) * 100;
 
-        var detectedCode = "ISTP";
-        if (actionsPct >= 70) detectedCode = "INTJ";
-        else if (actionsPct >= 50 && cryptoPct >= 15) detectedCode = "ENTP";
-        else if (actionsPct >= 50 && goldPct >= 10) detectedCode = "INTP";
-        else if (actionsPct >= 55) detectedCode = "ENTJ";
-        else if (immoPct >= 60) detectedCode = "ESTJ";
-        else if (immoPct >= 40 && cashPct >= 20) detectedCode = "ISTJ";
-        else if (immoPct >= 40) detectedCode = "ISFJ";
-        else if (cashPct >= 50) detectedCode = "ESFJ";
-        else if (cryptoPct >= 30) detectedCode = "ESTP";
-        else if (cashPct >= 30 && actionsPct >= 30) detectedCode = "ISTP";
-        else if (goldPct >= 20) detectedCode = "INFJ";
-        else if (actionsPct >= 30 && immoPct >= 30) detectedCode = "ENFJ";
-        else if (cryptoPct >= 15) detectedCode = "ESFP";
-        else if (cashPct >= 20) detectedCode = "ISFP";
-        else if (actionsPct >= 40) detectedCode = "INFP";
-        else detectedCode = "ENFP";
+        var inferredCode = "ISTP";
+        if (actionsPct >= 70) inferredCode = "INTJ";
+        else if (actionsPct >= 50 && cryptoPct >= 15) inferredCode = "ENTP";
+        else if (actionsPct >= 50 && goldPct >= 10) inferredCode = "INTP";
+        else if (actionsPct >= 55) inferredCode = "ENTJ";
+        else if (immoPct >= 60) inferredCode = "ESTJ";
+        else if (immoPct >= 40 && cashPct >= 20) inferredCode = "ISTJ";
+        else if (immoPct >= 40) inferredCode = "ISFJ";
+        else if (cashPct >= 50) inferredCode = "ESFJ";
+        else if (cryptoPct >= 30) inferredCode = "ESTP";
+        else if (cashPct >= 30 && actionsPct >= 30) inferredCode = "ISTP";
+        else if (goldPct >= 20) inferredCode = "INFJ";
+        else if (actionsPct >= 30 && immoPct >= 30) inferredCode = "ENFJ";
+        else if (cryptoPct >= 15) inferredCode = "ESFP";
+        else if (cashPct >= 20) inferredCode = "ISFP";
+        else if (actionsPct >= 40) inferredCode = "INFP";
+        else inferredCode = "ENFP";
 
-        var baseProfile = MBTI_DATABASE[detectedCode] || MBTI_DATABASE["ISTP"];
+        var activeCode = (declaredMbti && declaredMbti !== 'AUTO') ? declaredMbti : inferredCode;
+        var baseProfile = MBTI_DATABASE[activeCode] || MBTI_DATABASE["ISTP"];
+
         return {
-          code: detectedCode,
+          code: activeCode,
+          inferredCode: inferredCode,
+          isDeclared: (declaredMbti && declaredMbti !== 'AUTO'),
           name: baseProfile.name,
           family: baseProfile.family,
           summary: baseProfile.summary,
@@ -820,10 +860,15 @@
         document.getElementById('mbtiFullTitle').innerText = profile.code + ' — ' + profile.name + ' (' + profile.family + ')';
         document.getElementById('mbtiFullSummary').innerText = profile.summary;
 
-        // Rendu de l'alignement stratégique
+        // Rendu de l'alignement stratégique & dissonance déclarative
         var rebalEl = document.getElementById('mbtiRebalanceReport');
         if (rebalEl) {
+          var notice = '';
+          if (profile.isDeclared && profile.code !== profile.inferredCode) {
+            notice = '<div style="color:#fbbf24; margin-bottom:4px;">⚠️ <b>Dissonance Stratégique :</b> Votre allocation actuelle suggère un profil <b>' + profile.inferredCode + '</b>, alors que vous revendiquez le profil <b>' + profile.code + '</b>. Votre portefeuille demande à être ajusté pour refléter votre vraie nature !</div>';
+          }
           rebalEl.innerHTML = 
+            notice +
             '<div><b>Allocation Actuelle :</b> Actions (' + profile.actionsPct + '%) | Immo/SCPI (' + profile.immoPct + '%) | Cash (' + profile.cashPct + '%)</div>' +
             '<div style="margin-top:6px; color:#38bdf8;">💡 <b>Diagnostic d\'Alignement :</b> Votre profil ' + profile.code + ' privilégie la structure. ' + 
             (profile.actionsPct < 40 ? 'Augmenter progressivement la poche actions (via PEA) correspondrait mieux à votre potentiel de capitalisation long terme.' : 'Votre exposition actions est en phase avec votre profil analytique.') + '</div>';
@@ -1202,4 +1247,4 @@
 </body>
 </html>
 
-TheAppli
+MbtiPat
