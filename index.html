@@ -3,126 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suivi Patrimoine</title>
+  <title>Patrimoine PWA</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; padding: 16px; padding-bottom: 80px; }
-    h1, h2 { color: #f8fafc; margin-bottom: 12px; }
+    body { background-color: #0f172a; color: #f8fafc; padding: 16px; padding-bottom: 90px; }
+    h1 { font-size: 22px; margin-bottom: 12px; color: #38bdf8; }
+    h2 { font-size: 18px; margin-bottom: 12px; color: #f8fafc; }
+    
+    /* Navigation par onglets */
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; background-color: #1e293b; padding: 6px; border-radius: 12px; border: 1px solid #334155; }
+    .nav-btn { flex: 1; padding: 10px; background: none; border: none; color: #94a3b8; font-weight: 600; font-size: 13px; border-radius: 8px; cursor: pointer; text-align: center; }
+    .nav-btn.active { background-color: #2563eb; color: #ffffff; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cartes & Composants */
     .card { background-color: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #334155; }
-    label { display: block; font-size: 14px; color: #94a3b8; margin-bottom: 6px; }
-    input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 12px; font-size: 16px; }
-    button { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; }
-    button:active { background-color: #1d4ed8; }
+    label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 12px; font-size: 15px; }
+    button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 15px; cursor: pointer; }
+    button.submit-btn:active { background-color: #1d4ed8; }
+    
     .total-val { font-size: 28px; font-weight: bold; color: #38bdf8; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
-    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #334155; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid #334155; }
     th { color: #94a3b8; font-weight: normal; }
-    .delete-btn { background: none; border: none; color: #ef4444; width: auto; padding: 0; font-size: 14px; }
+    .delete-btn { background: none; border: none; color: #ef4444; width: auto; padding: 0; font-size: 14px; cursor: pointer; }
+    
+    .custom-input-group { display: none; }
   </style>
 </head>
 <body>
 
-  <h1>Suivi de Patrimoine</h1>
+  <h1>Mon Patrimoine</h1>
 
-  <!-- CARTE PATRIMOINE TOTAL -->
-  <div class="card">
-    <label>Patrimoine Total Actuel</label>
-    <div id="totalPatrimoine" class="total-val">0,00 €</div>
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <button class="nav-btn active" onclick="switchTab('dashboard')">Évolution</button>
+    <button class="nav-btn" onclick="switchTab('allocation')">Allocation</button>
+    <button class="nav-btn" onclick="switchTab('entry')">+ Saisie</button>
   </div>
 
-  <!-- GRAPHIQUE D'ÉVOLUTION TEMPORELLE -->
-  <div class="card">
-    <h2>Évolution Temporelle</h2>
-    <canvas id="evolutionChart" height="200"></canvas>
+  <!-- PAGE 1 : DASHBOARD & ÉVOLUTION -->
+  <div id="tab-dashboard" class="tab-content active">
+    <div class="card">
+      <label>Patrimoine Total Actuel</label>
+      <div id="totalPatrimoine" class="total-val">0,00 €</div>
+    </div>
+
+    <div class="card">
+      <h2>Évolution Temporelle</h2>
+      <canvas id="evolutionChart" height="200"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Historique des relevés</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Enveloppe</th>
+            <th>Valeur</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- FORMULAIRE DE SAISIE -->
-  <div class="card">
-    <h2>Saisir un Relevé</h2>
-    <form id="entryForm">
-      <label for="entryDate">Date du relevé</label>
-      <input type="date" id="entryDate" required>
-
-      <label for="assetCategory">Enveloppe / Actif</label>
-      <select id="assetCategory" required>
-        <option value="Linxea Spirit 2">Linxea Spirit 2 (AV)</option>
-        <option value="Louve Infinity">Louve Infinity (AV)</option>
-        <option value="Louve Invest Direct">Louve Invest (SCPI Direct)</option>
-        <option value="PEA">PEA</option>
-        <option value="PEG / PERCO">PEG / PERCO</option>
-        <option value="Assurance-Vie Autre">Autre Assurance-Vie</option>
-        <option value="Liquidités / Comptes">Liquidités / Comptes</option>
-        <option value="Autre">Autre</option>
-      </select>
-
-      <label for="assetValue">Valeur (€)</label>
-      <input type="number" id="assetValue" placeholder="ex: 15000" step="0.01" required>
-
-      <button type="submit">Enregistrer la valeur</button>
-    </form>
+  <!-- PAGE 2 : ALLOCATION D'ACTIFS -->
+  <div id="tab-allocation" class="tab-content">
+    <div class="card">
+      <h2>Répartition par Enveloppe</h2>
+      <canvas id="allocationChart" height="220"></canvas>
+    </div>
+    
+    <div class="card">
+      <h2>Détail du Portefeuille</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Enveloppe</th>
+            <th>Montant</th>
+            <th>Part</th>
+          </tr>
+        </thead>
+        <tbody id="allocationTable"></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- HISTORIQUE DES SAISIES -->
-  <div class="card">
-    <h2>Historique des relevés</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Support</th>
-          <th>Valeur</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="historyTable"></tbody>
-    </table>
+  <!-- PAGE 3 : SAISIE DES DONNÉES -->
+  <div id="tab-entry" class="tab-content">
+    <div class="card">
+      <h2>Saisir un Relevé</h2>
+      <form id="entryForm">
+        <label for="entryDate">Date du relevé</label>
+        <input type="date" id="entryDate" required>
+
+        <label for="assetCategory">Enveloppe / Support</label>
+        <select id="assetCategory" onchange="toggleCustomInput(this.value)" required>
+          <option value="Linxea Spirit 2">Linxea Spirit 2 (AV)</option>
+          <option value="Louve Infinity">Louve Infinity (AV)</option>
+          <option value="Louve Invest Direct">Louve Invest (SCPI Direct)</option>
+          <option value="PEA">PEA</option>
+          <option value="PEG / PERCO">PEG / PERCO</option>
+          <option value="Comptes / Liquidités">Comptes / Liquidités</option>
+          <option value="CUSTOM">Autre / Personnalisé...</option>
+        </select>
+
+        <div id="customGroup" class="custom-input-group">
+          <label for="customCategory">Nom de l'enveloppe personnalisée</label>
+          <input type="text" id="customCategory" placeholder="ex: Cryptos, Immobilier physique...">
+        </div>
+
+        <label for="assetValue">Valeur totale (€)</label>
+        <input type="number" id="assetValue" placeholder="ex: 12500" step="0.01" required>
+
+        <button type="submit" class="submit-btn">Enregistrer le relevé</button>
+      </form>
+    </div>
   </div>
 
   <script>
-    // Initialisation de la date du jour par défaut
     document.getElementById('entryDate').valueAsDate = new Date();
 
     let records = JSON.parse(localStorage.getItem('patrimoine_records')) || [];
-    let chartInstance = null;
+    let lineChartInstance = null;
+    let pieChartInstance = null;
 
-    const form = document.getElementById('entryForm');
-    const historyTable = document.getElementById('historyTable');
-    const totalDisplay = document.getElementById('totalPatrimoine');
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      event.target.classList.add('active');
 
-    form.addEventListener('submit', (e) => {
+      if (tabName === 'dashboard') renderDashboard();
+      if (tabName === 'allocation') renderAllocation();
+    }
+
+    function toggleCustomInput(val) {
+      const group = document.getElementById('customGroup');
+      group.style.display = (val === 'CUSTOM') ? 'block' : 'none';
+    }
+
+    document.getElementById('entryForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const date = document.getElementById('entryDate').value;
-      const category = document.getElementById('assetCategory').value;
+      const selectVal = document.getElementById('assetCategory').value;
+      const customVal = document.getElementById('customCategory').value.trim();
+      
+      const category = (selectVal === 'CUSTOM' && customVal !== '') ? customVal : selectVal;
       const value = parseFloat(document.getElementById('assetValue').value);
 
       records.push({ id: Date.now(), date, category, value });
-      saveAndRefresh();
-      form.reset();
+      saveData();
+      
+      document.getElementById('entryForm').reset();
       document.getElementById('entryDate').valueAsDate = new Date();
+      document.getElementById('customGroup').style.display = 'none';
+      
+      alert('Relevé enregistré avec succès !');
+      switchTab('dashboard');
     });
 
     function deleteRecord(id) {
-      records = records.filter(r => r.id !== id);
-      saveAndRefresh();
+      if(confirm('Supprimer ce relevé ?')) {
+        records = records.filter(r => r.id !== id);
+        saveData();
+        renderDashboard();
+      }
     }
 
-    function saveAndRefresh() {
-      // Tri par date
+    function saveData() {
       records.sort((a, b) => new Date(a.date) - new Date(b.date));
       localStorage.setItem('patrimoine_records', JSON.stringify(records));
-      renderHistory();
-      renderChart();
     }
 
-    function renderHistory() {
-      historyTable.innerHTML = '';
-      let latestByCat = {};
+    function getLatestByCategory() {
+      let latest = {};
+      records.forEach(r => { latest[r.category] = r.value; });
+      return latest;
+    }
 
-      records.forEach(r => {
-        latestByCat[r.category] = r.value;
+    function renderDashboard() {
+      // Relevés historiques
+      const table = document.getElementById('historyTable');
+      table.innerHTML = '';
+      
+      [...records].reverse().forEach(r => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${r.date}</td>
@@ -130,41 +205,35 @@
           <td>${r.value.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</td>
           <td><button class="delete-btn" onclick="deleteRecord(${r.id})">✕</button></td>
         `;
-        historyTable.prepend(tr);
+        table.appendChild(tr);
       });
 
-      // Calcul du total basé sur la dernière valeur connue de chaque support
-      const total = Object.values(latestByCat).reduce((a, b) => a + b, 0);
-      totalDisplay.innerText = total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-    }
+      // Total Actuel
+      const latestMap = getLatestByCategory();
+      const total = Object.values(latestMap).reduce((a, b) => a + b, 0);
+      document.getElementById('totalPatrimoine').innerText = total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
 
-    function renderChart() {
+      // Graphique Temporel
       const ctx = document.getElementById('evolutionChart').getContext('2d');
-      
-      // Grouper le patrimoine total cumulé par date
       let datesMap = {};
-      let currentValues = {};
+      let stateMap = {};
 
       records.forEach(r => {
-        currentValues[r.category] = r.value;
-        const dayTotal = Object.values(currentValues).reduce((a, b) => a + b, 0);
-        datesMap[r.date] = dayTotal;
+        stateMap[r.category] = r.value;
+        datesMap[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0);
       });
 
-      const labels = Object.keys(datesMap);
-      const dataValues = Object.values(datesMap);
+      if (lineChartInstance) lineChartInstance.destroy();
 
-      if (chartInstance) chartInstance.destroy();
-
-      chartInstance = new Chart(ctx, {
+      lineChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: labels,
+          labels: Object.keys(datesMap),
           datasets: [{
             label: 'Patrimoine Total (€)',
-            data: dataValues,
+            data: Object.values(datesMap),
             borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
             fill: true,
             tension: 0.3
           }]
@@ -180,9 +249,53 @@
       });
     }
 
-    // Chargement initial
-    saveAndRefresh();
+    function renderAllocation() {
+      const latestMap = getLatestByCategory();
+      const labels = Object.keys(latestMap);
+      const values = Object.values(latestMap);
+      const total = values.reduce((a, b) => a + b, 0);
+
+      // Tableau d'allocation
+      const table = document.getElementById('allocationTable');
+      table.innerHTML = '';
+
+      labels.forEach((cat, idx) => {
+        const val = values[idx];
+        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${cat}</td>
+          <td>${val.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</td>
+          <td><b>${pct}%</b></td>
+        `;
+        table.appendChild(tr);
+      });
+
+      // Camembert / Donut Chart
+      const ctx = document.getElementById('allocationChart').getContext('2d');
+      if (pieChartInstance) pieChartInstance.destroy();
+
+      pieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: ['#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#34d399', '#fbbf24', '#f87171']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    // Premier rendu au chargement
+    renderDashboard();
   </script>
 </body>
 </html>
-"Version deux de l'app de patrimoine"
+"Version trois de l'app de patrimoine"
