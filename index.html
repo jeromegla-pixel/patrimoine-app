@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Mon Patrimoine PWA - Expert</title>
+  <title>Mon Patrimoine PWA - Masterpiece Edition</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,11 +23,12 @@
     .nav-item.active { color: #38bdf8; font-weight: 600; }
 
     .tab-view { display: none; }
-    .tab-view.active { display: block; }
+    .tab-view.active { display: block; animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Cards Glassmorphism */
-    .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid rgba(255, 255, 255, 0.05); }
-    h2 { font-size: 15px; font-weight: 600; color: #f8fafc; margin-bottom: 12px; }
+    .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    h2 { font-size: 15px; font-weight: 600; color: #f8fafc; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
     
     .hero-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
     .hero-amount { font-size: 30px; font-weight: 800; color: #38bdf8; margin: 4px 0; letter-spacing: -1px; }
@@ -48,7 +49,8 @@
 
     label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
     input, select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 8px; font-size: 13px; }
-    button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; }
+    button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+    button.submit-btn:active { background-color: #1d4ed8; }
     button.danger-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #dc2626; color: #fff; font-weight: bold; font-size: 13px; cursor: pointer; }
 
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -59,22 +61,22 @@
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 
     /* Modal Plein Écran Graphique */
-    #chartModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); z-index: 9999; padding: 20px; flex-direction: column; justify-content: center; align-items: center; }
+    #chartModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.96); z-index: 9999; padding: 20px; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
     .modal-close { position: absolute; top: 20px; right: 20px; background: #334155; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- MODAL AGRANDISSEMENT GRAPHIQUE -->
+  <!-- MODAL AGRANDISSEMENT GRAPHIQUE (PLEIN ÉCRAN) -->
   <div id="chartModal">
     <button class="modal-close" onclick="closeChartModal()">✕ Fermer</button>
-    <div style="width:100%; max-width:600px;">
-      <h2 style="text-align:center; margin-bottom:12px; color:#38bdf8;">Zoom Trajectoire FIRE</h2>
-      <canvas id="modalProjectionChart" height="300"></canvas>
+    <div style="width:100%; max-width:650px; padding: 10px;">
+      <h2 style="text-align:center; margin-bottom:16px; color:#38bdf8;">Analyse Tactique & Zoom Trajectoire FIRE</h2>
+      <canvas id="modalProjectionChart" height="320"></canvas>
     </div>
   </div>
 
-  <!-- BARRE DE NAVIGATION EN BAS -->
+  <!-- BARRE DE NAVIGATION INFÉRIEURE -->
   <div class="bottom-nav">
     <button class="nav-item active" id="btn-synth" onclick="switchView('synth')">
       <span class="icon">🎯</span>
@@ -148,7 +150,7 @@
     </div>
   </div>
 
-  <!-- SECTION 3 : OBJECTIF FIRE & SIMULATEUR AVANCÉ PAR SUPPORT -->
+  <!-- SECTION 3 : OBJECTIF FIRE & SIMULATEUR AVANCÉ -->
   <div id="view-fire" class="tab-view">
     <div class="card">
       <h2>Paramètres de votre Objectif FIRE</h2>
@@ -167,17 +169,16 @@
     </div>
 
     <div class="card">
-      <h2>Enveloppes Fiscales</h2>
-      <div class="fire-metric"><span class="fire-label">Plafond PEA (150k€)</span><span id="peaPlafondVal" class="fire-val">0 / 150 000 €</span></div>
+      <h2>Enveloppes Fiscales (Plafond PEA)</h2>
+      <div class="fire-metric"><span class="fire-label">Plafond Versements PEA (150k€)</span><span id="peaPlafondVal" class="fire-val">0 / 150 000 €</span></div>
       <div class="progress-bg" style="height:6px; margin-top:4px;"><div id="peaPlafondBar" class="progress-fill" style="width: 0%; background: #818cf8;"></div></div>
     </div>
 
-    <!-- SIMULATEUR CIBLÉ PAR SUPPORT -->
     <div class="card">
-      <h2>Simulateur Avancé : DCA & Injections Ciblées par Support</h2>
-      <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">Définissez un DCA mensuel, une période active (en mois) et un apport ponctuel par enveloppe.</div>
+      <h2>Simulateur Avancé : DCA & Injections Ciblées</h2>
+      <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">Paramétrez votre effort d'épargne mensuel et vos injections exceptionnelles par support.</div>
       <div id="advancedDcaContainer"></div>
-      <button type="button" class="submit-btn" style="margin-top:12px;" onclick="calculateProjections()">Recalculer la Trajectoire Ciblée</button>
+      <button type="button" class="submit-btn" style="margin-top:12px;" onclick="calculateProjections()">Recalculer la Trajectoire</button>
     </div>
 
     <div class="card" style="position:relative;">
@@ -266,7 +267,7 @@
 
     let lineChartInstance = null, pieChartInstance = null, projectionChartInstance = null, modalChartInstance = null;
 
-    // Swipe tactile horizontal
+    // Navigation tactile horizontale (Swipe)
     let touchStartX = 0, touchEndX = 0;
     document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
     document.addEventListener('touchend', e => {
@@ -317,7 +318,6 @@
       document.getElementById('kpiSafetyVal').innerText = formatCurrency(liquidities);
       document.getElementById('barSafety').style.width = `${Math.min(100, (liquidities / 15000) * 100)}%`;
 
-      // Enrichissement (DCA global + Amortissement des prêts)
       let totalMonthlyDca = 0;
       Object.values(advDcaSettings).forEach(cfg => { totalMonthlyDca += (cfg.dca || 0); });
       const monthlyLoanAmortization = loans.reduce((sum, l) => sum + (l.payment * 0.7), 0);
@@ -338,7 +338,7 @@
       if (lineChartInstance) lineChartInstance.destroy();
       lineChartInstance = new Chart(ctx, {
         type: 'line',
-        data: { labels: labels, datasets: [{ label: 'Brut (€)', data: dataBrut, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true }] },
+        data: { labels: labels, datasets: [{ label: 'Brut (€)', data: dataBrut, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true, tension: 0.2 }] },
         options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
       });
     }
@@ -383,7 +383,6 @@
       document.getElementById('peaPlafondVal').innerText = `${formatCurrency(peaVerser)} / 150 000 €`;
       document.getElementById('peaPlafondBar').style.width = `${Math.min(100, (peaVerser / 150000) * 100)}%`;
 
-      // Génération des blocs de configuration avancée par support
       const container = document.getElementById('advancedDcaContainer');
       container.innerHTML = '';
       latestList.forEach(r => {
@@ -396,8 +395,8 @@
             <div style="color:#38bdf8; font-weight:bold; font-size:12px; margin-bottom:6px;">${r.envelope} (${r.type})</div>
             <div class="grid-3">
               <div><label>DCA (€/m)</label><input type="number" class="adv-dca" data-cat="${r.category}" value="${cfg.dca}"></div>
-              <div><label>Début (mois)</label><input type="number" class="adv-start" data-cat="${r.category}" value="${cfg.startMonth}"></div>
-              <div><label>Fin (mois)</label><input type="number" class="adv-end" data-cat="${r.category}" value="${cfg.endMonth}"></div>
+              <div><label>Début (m)</label><input type="number" class="adv-start" data-cat="${r.category}" value="${cfg.startMonth}"></div>
+              <div><label>Fin (m)</label><input type="number" class="adv-end" data-cat="${r.category}" value="${cfg.endMonth}"></div>
             </div>
             <div class="grid-2" style="margin-top:4px;">
               <div><label>Apport Ponctuel (€)</label><input type="number" class="adv-inj-amt" data-cat="${r.category}" value="${cfg.injectionAmt}"></div>
@@ -410,55 +409,33 @@
       calculateProjections();
     }
 
-    // SIMULATEUR AVANCÉ CIBLÉ PAR SUPPORT & GRAPHIQUE INTERACTIF
     let lastSeriesStd = [];
     let lastSeriesBoost = [];
 
     function calculateProjections() {
-      // Sauvegarde des réglages avancés
-      document.querySelectorAll('.adv-dca').forEach(el => {
-        let cat = el.getAttribute('data-cat');
-        if(advDcaSettings[cat]) advDcaSettings[cat].dca = parseFloat(el.value) || 0;
-      });
-      document.querySelectorAll('.adv-start').forEach(el => {
-        let cat = el.getAttribute('data-cat');
-        if(advDcaSettings[cat]) advDcaSettings[cat].startMonth = parseInt(el.value) || 1;
-      });
-      document.querySelectorAll('.adv-end').forEach(el => {
-        let cat = el.getAttribute('data-cat');
-        if(advDcaSettings[cat]) advDcaSettings[cat].endMonth = parseInt(el.value) || 240;
-      });
-      document.querySelectorAll('.adv-inj-amt').forEach(el => {
-        let cat = el.getAttribute('data-cat');
-        if(advDcaSettings[cat]) advDcaSettings[cat].injectionAmt = parseFloat(el.value) || 0;
-      });
-      document.querySelectorAll('.adv-inj-mo').forEach(el => {
-        let cat = el.getAttribute('data-cat');
-        if(advDcaSettings[cat]) advDcaSettings[cat].injectionMonth = parseInt(el.value) || 12;
-      });
+      document.querySelectorAll('.adv-dca').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].dca = parseFloat(el.value) || 0; });
+      document.querySelectorAll('.adv-start').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].startMonth = parseInt(el.value) || 1; });
+      document.querySelectorAll('.adv-end').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].endMonth = parseInt(el.value) || 240; });
+      document.querySelectorAll('.adv-inj-amt').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].injectionAmt = parseFloat(el.value) || 0; });
+      document.querySelectorAll('.adv-inj-mo').forEach(el => { let cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].injectionMonth = parseInt(el.value) || 12; });
 
       localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
 
       let latestList = Object.values(getLatestByCategory());
       let balancesStd = {};
       let balancesBoost = {};
-      latestList.forEach(r => { 
-        balancesStd[r.category] = r.value; 
-        balancesBoost[r.category] = r.value; 
-      });
+      latestList.forEach(r => { balancesStd[r.category] = r.value; balancesBoost[r.category] = r.value; });
 
       lastSeriesStd = [Math.round(Object.values(balancesStd).reduce((a,b)=>a+b,0))];
       lastSeriesBoost = [Math.round(Object.values(balancesBoost).reduce((a,b)=>a+b,0))];
 
       for (let m = 1; m <= 240; m++) {
-        // Scénario Normal (DCA constant sans période restrictive)
         Object.keys(balancesStd).forEach(cat => {
           let cfg = advDcaSettings[cat] || { dca: 0 };
           let activeDca = (m >= (cfg.startMonth || 1) && m <= (cfg.endMonth || 240)) ? cfg.dca : 0;
           balancesStd[cat] += (balancesStd[cat] * (Math.pow(1.05, 1/12) - 1)) + activeDca;
         });
 
-        // Scénario Optimisé avec DCA ciblé et Apports Ponctuels par support
         Object.keys(balancesBoost).forEach(cat => {
           let cfg = advDcaSettings[cat] || { dca: 0, injectionAmt: 0, injectionMonth: 12 };
           let activeDca = (m >= (cfg.startMonth || 1) && m <= (cfg.endMonth || 240)) ? cfg.dca : 0;
@@ -489,8 +466,8 @@
         data: {
           labels: labelsYear,
           datasets: [
-            { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false },
-            { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)' }
+            { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false, tension: 0.2 },
+            { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)', tension: 0.2 }
           ]
         },
         options: {
@@ -516,8 +493,8 @@
         data: {
           labels: labelsYear,
           datasets: [
-            { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false },
-            { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)' }
+            { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false, tension: 0.2 },
+            { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)', tension: 0.2 }
           ]
         },
         options: {
@@ -580,4 +557,4 @@
   </script>
 </body>
 </html>
-"Version 9.11 de l'app de patrimoine"
+version 10.0
