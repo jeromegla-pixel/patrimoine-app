@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>MBTI Patrimoine - Master Edition</title>
+  <title>MBTI Patrimoine - Full 16 Matrix Edition</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -74,6 +74,7 @@
     .info-banner { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px; font-size: 11px; color: #38bdf8; margin-bottom: 12px; }
     .mbti-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #38bdf8; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
     .trait-badge { background: #0f172a; border: 1px solid #334155; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; }
+    .mbti-grid-item { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 10px; margin-bottom: 8px; }
 
     #chartModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.96); z-index: 9999; padding: 20px; flex-direction: column; justify-content: center; align-items: center; }
     .modal-close { position: absolute; top: 20px; right: 20px; background: #334155; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
@@ -206,7 +207,7 @@
     </div>
   </div>
 
-  <!-- 3. ONGLET DÉDIÉ : PROFIL MBTI DE L'INVESTISSEUR -->
+  <!-- 3. ONGLET DÉDIÉ : PROFIL MBTI DE L'INVESTISSEUR (16 PROFILS COMPLETS) -->
   <div id="view-mbti" class="tab-view">
     <div class="card">
       <h2>🧠 Votre Carte d'Identité Psychologique</h2>
@@ -232,12 +233,9 @@
     </div>
 
     <div class="card">
-      <h2>📚 La Matrice MBTI des Profils Investisseurs</h2>
-      <div style="font-size:12px; color:#94a3b8; line-height:1.5;">
-        <p style="margin-bottom:8px;"><b style="color:#38bdf8;">INTJ (L'Architecte Souverain) :</b> Dominante Actions / DCA rigoureux. Visionnaire, peu sensible aux krachs boursiers, vise le long terme.</p>
-        <p style="margin-bottom:8px;"><b style="color:#38bdf8;">ESTJ (Le Bâtisseur Immobilier) :</b> Dominante Pierre / SCPI / Effet de levier. Pragmatiste, cherche des flux de trésorerie tangibles et sécurisés.</p>
-        <p style="margin-bottom:8px;"><b style="color:#38bdf8;">ENTP (L'Innovateur Tactique) :</b> Allocation hybride / Crypto / Actifs alternatifs. Agile, aime l'optimisation fiscale et saisir les opportunités de marché.</p>
-        <p style="margin-bottom:0;"><b style="color:#38bdf8;">ISTP (Le Stratège Pragmatique) :</b> Portefeuille Core-Satellite équilibré. Résilient, rationnel, ajuste ses curseurs selon la macroéconomie.</p>
+      <h2>📚 La Matrice Officielle des 16 Profils MBTI</h2>
+      <div style="font-size:12px; color:#94a3b8; line-height:1.5;" id="fullMatrixContainer">
+        <!-- Généré dynamiquement par JS -->
       </div>
     </div>
   </div>
@@ -397,6 +395,26 @@
 
       var lastSeriesBoost = [];
       var lastSeriesStd = [];
+
+      // Dictionnaire Complet des 16 Profils MBTI de l'Investisseur
+      var MBTI_DATABASE = {
+        "INTJ": { name: "L'Architecte", family: "Analyste", summary: "Visionnaire, méthodique, guidé par les intérêts composés et le long terme.", strengths: ["Discipline de fer et DCA automatisé", "Optimisation fiscale rigoureuse (PEA)", "Vision long terme inébranlable"], weaknesses: ["Impatience face aux phases de stagnation", "Sur-concentration potentielle en actions"], attentions: ["Garder une poche de sécurité", "Ne pas sur-optimiser"] },
+        "INTP": { name: "Le Logicien", family: "Analyste", summary: "Chercheur de systèmes parfaits, analyse chaque frais et ligne de façon chirurgicale.", strengths: ["Analyse mathématique irréprochable", "Recherche active de frais minimes", "Curiosité intellectuelle financière"], weaknesses: ["Analyse paralyse l'action", "Complexité excessive du portefeuille"], attentions: ["Simplifier l'allocation", "Passer à l'action régulière"] },
+        "ENTJ": { name: "Le Commandant", family: "Analyste", summary: "Leader naturel, pilote son patrimoine comme une entreprise (stratégie de holding).", strengths: ["Stratégie globale structurée (SASU/Holding)", "Ambition de capitalisation élevée", "Prise de décision rapide"], weaknesses: ["Risque d'effet de levier excessif", "Impatience des résultats rapides"], attentions: ["Valider la solidité des cash-flows", "Ménager des soupapes de sécurité"] },
+        "ENTP": { name: "L'Innovateur", family: "Analyste", summary: "Opportuniste et agile, adore explorer les actifs alternatifs, la tech et les opportunités.", strengths: ["Réactivité face aux mouvements de marché", "Diversification audacieuse", "Agilité tactique"], weaknesses: ["Dispersion et manque de constance", "Sensibilité au bruit médiatique"], attentions: ["Sanctuariser le Core (MSCI World)", "Éviter les arbitrages impulsifs"] },
+        "INFJ": { name: "L'Avocat", family: "Diplomate", summary: "Investit avec une vision philosophique et éthique, cherche le sens profond de son épargne.", strengths: ["Cohérence entre valeurs et investissements", "Épargne consciente et durable", "Patience psychologique"], weaknesses: ["Culpabilité face à l'accumulation de richesse", "Aversion excessive au risque"], attentions: ["Accepter la rentabilité sans culpabilité", "S'ouvrir aux marchés actions solides"] },
+        "INFP": { name: "Le Médiateur", family: "Diplomate", summary: "Guidé par ses valeurs, recherche l'indépendance financière (FIRE) pour sa liberté de temps.", strengths: ["Objectif de liberté clairement défini", "Sobriété financière naturelle", "Vision humaine du patrimoine"], weaknesses: ["Tendance à fuir le suivi chiffré", "Sensibilité émotionnelle en cas de baisse"], attentions: ["Automatiser le suivi pour éviter le stress", "Consulter l'appli sans anxiété"] },
+        "ENFJ": { name: "Le Protagoniste", family: "Diplomate", summary: "Pense à la transmission, à la protection de ses proches et à la gestion familiale.", strengths: ["Vision patrimoniale intergénérationnelle", "Protection familiale solide (Assurance-Vie)", "Pédagogie de l'épargne"], weaknesses: ["Oubli de ses propres besoins d'optimisation", "Conservatisme excessif pour protéger les autres"], attentions: ["Sécuriser son propre plan FIRE", "Diversifier les enveloppes de transmission"] },
+        "ENFP": { name: "L'Inspirateur", family: "Diplomate", summary: "Enthousiaste, aime diversifier mais peut manquer de constance si le plan manque de ressort.", strengths: ["Énergie positive et vision optimiste", "Ouverture aux projets innovants", "Créativité dans l'épargne"], weaknesses: ["Manque de suivi rigoureux à long terme", "Abandon des stratégies en cours de route"], attentions: ["Mettre en place des virements automatiques", "Conserver un cap stable"] },
+        "ISTJ": { name: "Le Logisticien", family: "Sentinelle", summary: "Le roi de la rigueur, des tableaux de suivi et de l'épargne de précaution sanctuarisée.", strengths: ["Organisation et comptabilité irréprochables", "Épargne de précaution toujours solide", "Stabilité émotionnelle"], weaknesses: ["Frilosité face aux opportunités boursières", "Excès de prudence"], attentions: ["Oser s'exposer aux actions long terme", "Éviter de sur-dormir sur du cash"] },
+        "ISFJ": { name: "Le Défenseur", family: "Sentinelle", summary: "Très attaché à la sécurité de la pierre (immobilier, SCPI) et aux livrets garantis.", strengths: ["Sécurité de la brique et des livrets", "Protection absolue du foyer", "Constance de l'effort d'épargne"], weaknesses: ["Rendement global rogné par l'inflation", "Peur panique de la bourse"], attentions: ["Intégrer progressivement des ETF capitalisants", "Combattre l'inflation par le rendement"] },
+        "ESTJ": { name: "Le Directif", family: "Sentinelle", summary: "Bâtisseur pragmatique, aime les actifs tangibles et les flux de trésorerie récurrents.", strengths: ["Maîtrise de l'immobilier et du crédit", "Revenus passifs réguliers", "Rigueur de gestion"], weaknesses: ["Rigidité face aux nouvelles classes d'actifs", "Lourdeur administrative"], attentions: ["Garder de la flexibilité mobilière", "Surveiller l'endettement"] },
+        "ESFJ": { name: "Le Consul", family: "Sentinelle", summary: "Sensible à la sécurité collective, privilégie les placements consensuels et sécurisants.", strengths: ["Solidité financière du foyer", "Prudence avisée", "Régularité des versements"], weaknesses: ["Manque d'audace face au capital", "Influence excessive de l'entourage"], attentions: ["Construire sa propre conviction d'investissement", "Viser la diversification"] },
+        "ISTP": { name: "Le Virtuose", family: "Explorateur", summary: "Calme, rationnel, analyse froide des chiffres, excellent pour garder son sang-froid.", strengths: ["Sang-froid total en cas de krach", "Rationnalité pure des décisions", "Pragmatisme des arbitrages"], weaknesses: ["Tendance à l'immobilisme", "Manque de vision prospective long terme"], attentions: ["Formaliser un plan d'action pluriannuel", "Maintenir l'effort d'épargne"] },
+        "ISFP": { name: "L'Aventurier", family: "Explorateur", summary: "Cherche un équilibre entre plaisir immédiat et constitution progressive d'un matelas.", strengths: ["Équilibre de vie préservé", "Souplesse dans la gestion", "Approche non dogmatique"], weaknesses: ["Manque de discipline sur la durée", "Tentations de dépenses impulsives"], attentions: ["Budgétiser le plaisir et l'épargne", "Automatiser l'effort d'épargne"] },
+        "ESTP": { name: " L'Entrepreneur", family: "Explorateur", summary: "Aime l'action, le risque calculé, le trading ou les investissements dynamiques.", strengths: ["Réactivité et goût de l'actif dynamique", "Audace et confiance en soi", "Sens des affaires"], weaknesses: ["Impulsivité et trading trop actif", "Sous-estimation du risque de perte"], attentions: ["Sanctuariser un cœur de portefeuille passif", "Limiter la part spéculative"] },
+        "ESFP": { name: "L'Amuseur", family: "Explorateur", summary: "A besoin de concret et de simplicité, redoute la complexité administrative.", strengths: ["Simplicité d'approche", "Vision concrète du patrimoine", "Pas de prise de tête"], weaknesses: ["Aversion pour la complexité des enveloppes", "Absence de vision long terme structurée"], attentions: ["S'appuyer sur des solutions automatisées", "Simplifier au maximum les supports"] }
+      };
 
       // Init UI Inputs
       if (document.getElementById('fireAgeTarget')) document.getElementById('fireAgeTarget').value = fireSettings.ageTarget;
@@ -582,94 +600,48 @@
         var immoVal = latestList.filter(function(r) { return r.type === 'SCPI' || r.envelope === 'Immobilier Physique'; }).reduce(function(s, r) { return s + r.value; }, 0);
         var cashVal = latestList.filter(function(r) { return r.type === 'Monétaire' || r.envelope === 'Liquidités'; }).reduce(function(s, r) { return s + r.value; }, 0);
         var cryptoVal = latestList.filter(function(r) { return r.type === 'Crypto'; }).reduce(function(s, r) { return s + r.value; }, 0);
+        var goldVal = latestList.filter(function(r) { return r.type === 'Or / Commodities'; }).reduce(function(s, r) { return s + r.value; }, 0);
         
         var actionsPct = (actionsVal / totalActifs) * 100;
         var immoPct = (immoVal / totalActifs) * 100;
         var cashPct = (cashVal / totalActifs) * 100;
         var cryptoPct = (cryptoVal / totalActifs) * 100;
+        var goldPct = (goldVal / totalActifs) * 100;
 
-        if (actionsPct >= 60) {
-          return {
-            code: "INTJ",
-            name: "L'Architecte Souverain (Offensif & Visionnaire)",
-            summary: "Forte exposition aux actions et ETF de capitalisation. Vous privilégiez la mécanique des intérêts composés et le long terme.",
-            strengths: [
-              "Discipline de fer et automatisation du DCA sans céder aux émotions.",
-              "Compréhension aiguë des frais de courtage et optimisation fiscale (PEA).",
-              "Vision à 15-20 ans alignée sur les objectifs FIRE."
-            ],
-            weaknesses: [
-              "Impatience face à la lenteur des phases de stagnation boursière.",
-              "Risque de sur-concentration sur les marchés actions en cas de krach majeur."
-            ],
-            attentions: [
-              "Maintenir une poche de sécurité monétaire pour amortir les chocs psychologiques.",
-              "Ne pas chercher à optimiser à l'excès les lignes satellites au détriment du core MSCI World."
-            ]
-          };
-        } else if (immoPct >= 50) {
-          return {
-            code: "ESTJ",
-            name: "Le Bâtisseur Immobilier (Tangible & Sécurisant)",
-            summary: "Dominante immobilière et SCPI. Vous cherchez des flux de trésorerie prévisibles et une protection physique contre l'inflation.",
-            strengths: [
-              "Maîtrise de l'effet de levier du crédit bancaire et de l'endettement sain.",
-              "Revenus passifs tangibles et réguliers (SCPI / loyers).",
-              "Résilience face aux turbulences boursières spéculatives."
-            ],
-            weaknesses: [
-              "Faible liquidité des actifs en cas de besoin urgent de cash.",
-              "Lourdeur administrative et fiscale des structures de détention."
-            ],
-            attentions: [
-              "Surveiller le taux d'endettement global et la vacance locative.",
-              "Diversifier une partie du cash vers des enveloppes mobilières pour garder de l'agilité."
-            ]
-          };
-        } else if (cashPct >= 30 || cryptoPct >= 20) {
-          return {
-            code: "ENTP",
-            name: "L'Innovateur Tactique (Opportuniste & Agile)",
-            summary: "Allocation alternative et flexible. Vous aimez saisir les opportunités de marché, la crypto et garder des liquidités prêtes à déployer.",
-            strengths: [
-              "Réactivité exceptionnelle face aux opportunités de correction du marché.",
-              "Curiosité intellectuelle et diversification hors des sentiers battus.",
-              "Excellente gestion des liquidités tactiques."
-            ],
-            weaknesses: [
-              "Risque de dispersion et de manque de constance sur une stratégie long terme.",
-              "Exposition émotionnelle plus forte aux variations court terme (crypto/alt)."
-            ],
-            attentions: [
-              "Formaliser une feuille de route rigide pour éviter les arbitrages impulsifs.",
-              "Sanctuariser le cœur de portefeuille (Core-Satellite)."
-            ]
-          };
-        } else {
-          return {
-            code: "ISTP",
-            name: "Le Stratège Pragmatique (Équilibré & Résilient)",
-            summary: "Portefeuille core-satellite diversifié. Vous combinez actions, sécurité et rendement passif avec un pragmatisme froid.",
-            strengths: [
-              "Équilibre parfait entre risque, rendement et sécurité patrimoniale.",
-              "Capacité d'analyse objective des performances sans orgueil.",
-              "Grande stabilité psychologique en toute saison macroéconomique."
-            ],
-            weaknesses: [
-              "Tendance à l'immobilisme ou à la sur-diversification si les critères ne sont pas clairs.",
-              "Rendement global parfois légèrement inférieur à un profil 100% offensif."
-            ],
-            attentions: [
-              "Auditer régulièrement la pertinence de chaque ligne pour éviter l'encrassement du portefeuille.",
-              "Maintenir l'effort d'épargne en période de forte inflation."
-            ]
-          };
-        }
+        // Algorithme de correspondance parmi les 16 profils MBTI
+        var detectedCode = "ISTP";
+        if (actionsPct >= 70) detectedCode = "INTJ";
+        else if (actionsPct >= 50 && cryptoPct >= 15) detectedCode = "ENTP";
+        else if (actionsPct >= 50 && goldPct >= 10) detectedCode = "INTP";
+        else if (actionsPct >= 55) detectedCode = "ENTJ";
+        else if (immoPct >= 60) detectedCode = "ESTJ";
+        else if (immoPct >= 40 && cashPct >= 20) detectedCode = "ISTJ";
+        else if (immoPct >= 40) detectedCode = "ISFJ";
+        else if (cashPct >= 50) detectedCode = "ESFJ";
+        else if (cryptoPct >= 30) detectedCode = "ESTP";
+        else if (cashPct >= 30 && actionsPct >= 30) detectedCode = "ISTP";
+        else if (goldPct >= 20) detectedCode = "INFJ";
+        else if (actionsPct >= 30 && immoPct >= 30) detectedCode = "ENFJ";
+        else if (cryptoPct >= 15) detectedCode = "ESFP";
+        else if (cashPct >= 20) detectedCode = "ISFP";
+        else if (actionsPct >= 40) detectedCode = "INFP";
+        else detectedCode = "ENFP";
+
+        var baseProfile = MBTI_DATABASE[detectedCode] || MBTI_DATABASE["ISTP"];
+        return {
+          code: detectedCode,
+          name: baseProfile.name,
+          family: baseProfile.family,
+          summary: baseProfile.summary,
+          strengths: baseProfile.strengths,
+          weaknesses: baseProfile.weaknesses,
+          attentions: baseProfile.attentions
+        };
       }
 
       function renderMbtiTab() {
         var profile = getMbtiAnalysis();
-        document.getElementById('mbtiFullTitle').innerText = profile.code + ' — ' + profile.name;
+        document.getElementById('mbtiFullTitle').innerText = profile.code + ' — ' + profile.name + ' (' + profile.family + ')';
         document.getElementById('mbtiFullSummary').innerText = profile.summary;
 
         var strContainer = document.getElementById('mbtiStrengths');
@@ -689,15 +661,28 @@
         profile.attentions.forEach(function(a) {
           attContainer.innerHTML += '<div class="trait-badge" style="border-left: 3px solid #38bdf8;">💡 ' + a + '</div>';
         });
+
+        // Rendu de la matrice complète des 16 profils
+        var matrixContainer = document.getElementById('fullMatrixContainer');
+        matrixContainer.innerHTML = '';
+        Object.keys(MBTI_DATABASE).forEach(function(code) {
+          var p = MBTI_DATABASE[code];
+          var isCurrent = (code === profile.code);
+          var borderStyle = isCurrent ? 'border: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.08);' : 'border: 1px solid #334155;';
+          matrixContainer.innerHTML += 
+            '<div class="mbti-grid-item" style="' + borderStyle + '">' +
+              '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
+                '<b style="color:' + (isCurrent ? '#38bdf8' : '#f8fafc') + '; font-size:13px;">' + code + ' — ' + p.name + '</b>' +
+                '<span style="font-size:9px; background:#1e293b; padding:2px 6px; border-radius:6px; color:#94a3b8;">' + p.family + '</span>' +
+              '</div>' +
+              '<div style="font-size:11px; color:#cbd5e1;">' + p.summary + '</div>' +
+            '</div>';
+        });
       }
 
       function renderCarto() {
         var latestList = Object.values(getLatestByCategory());
         var profile = getMbtiAnalysis();
-
-        // Encart rapide Carto
-        if(document.getElementById('mbtiTitle')) document.getElementById('mbtiTitle').innerText = profile.code + " — " + profile.name;
-        if(document.getElementById('mbtiDesc')) document.getElementById('mbtiDesc').innerText = profile.summary;
 
         var table = document.getElementById('allocationTable');
         table.innerHTML = '';
@@ -1026,5 +1011,4 @@
   </script>
 </body>
 </html>
-
-version.diamond.master
+Master.diamond.premium
