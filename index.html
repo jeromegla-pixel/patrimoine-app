@@ -159,6 +159,14 @@
       </div>
     </div>
 
+    <!-- WIDGET ACTION ITEMS (PROPACTIF) -->
+    <div class="card">
+      <h2>🚀 Prochains Pas & Recommandations</h2>
+      <div id="actionItemsContainer" style="font-size:12px; color:#cbd5e1; display:flex; flex-direction:column; gap:8px;">
+        <!-- Dynamique -->
+      </div>
+    </div>
+
     <!-- WIDGET MARCHÉS -->
     <div class="card">
       <h2>Marchés & Indicateurs Macro</h2>
@@ -263,6 +271,17 @@
       </div>
     </div>
 
+    <!-- MODULE STRESS TEST DE CRISE -->
+    <div class="card" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
+      <h2>⚡ Simulateur de Crise (Stress Test)</h2>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Évaluez la résilience de votre patrimoine face à un choc boursier ou inflationniste.</div>
+      <div class="grid-2">
+        <button type="button" class="action-btn" id="stressCrashBtn" style="justify-content:center; background:#7f1d1d; color:#fca5a5; border-color:#ef4444;">💥 Krach Boursier (-30% Actions)</button>
+        <button type="button" class="action-btn" id="stressResetBtn" style="justify-content:center; background:#1e293b; color:#38bdf8;">🔄 Réinitialiser les Chocs</button>
+      </div>
+      <div id="stressTestResult" style="font-size:12px; color:#f8fafc; margin-top:10px; font-weight:bold;"></div>
+    </div>
+
     <div class="card">
       <h2>Projection & Effort d'Épargne Requis</h2>
       <div class="fire-metric"><span class="fire-label">Rente DIST Actuelle (Reçue)</span><span id="renteDistDirect" class="fire-val">+0 € / mois</span></div>
@@ -297,6 +316,17 @@
   <div id="view-patrimoine" class="tab-view">
     <div class="info-banner">
       📝 <b>Saisie Initiale :</b> Créez une nouvelle enveloppe ou un prêt ici. Pour les ajustements de soldes au quotidien, utilisez la <b>Cartographie</b>.
+    </div>
+
+    <!-- MODULE SAUVEGARDE / RESTAURATION JSON -->
+    <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.3);">
+      <h2>💾 Sauvegarde & Restauration (JSON)</h2>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Exportez ou importez l'intégralité de vos données chiffrées en un clic pour sécuriser votre historique.</div>
+      <div class="grid-2">
+        <button type="button" class="action-btn" id="exportJsonBtn" style="justify-content:center; background:#1e293b; color:#38bdf8;">📥 Exporter la Base</button>
+        <button type="button" class="action-btn" id="importJsonBtn" style="justify-content:center; background:#1e293b; color:#34d399;">📤 Importer une Base</button>
+      </div>
+      <input type="file" id="importFileinput" style="display:none;" accept=".json">
     </div>
 
     <div class="card">
@@ -392,6 +422,7 @@
 
       var lastSeriesBoost = [];
       var lastSeriesStd = [];
+      var stressCrashActive = false;
 
       var MBTI_DATABASE = {
         "INTJ": { name: "L'Architecte", family: "Analyste", summary: "Visionnaire, méthodique, guidé par les intérêts composés et le long terme.", strengths: ["Discipline de fer et DCA automatisé", "Optimisation fiscale rigoureuse (PEA)", "Vision long terme inébranlable"], weaknesses: ["Impatience face aux phases de stagnation", "Sur-concentration potentielle en actions"], attentions: ["Garder une poche de sécurité", "Ne pas sur-optimiser"] },
@@ -404,7 +435,7 @@
         "ENFP": { name: "L'Inspirateur", family: "Diplomate", summary: "Enthousiaste, aime diversifier mais peut manquer de constance si le plan manque de ressort.", strengths: ["Énergie positive et vision optimiste", "Ouverture aux projets innovants", "Créativité dans l'épargne"], weaknesses: ["Manque de suivi rigoureux à long terme", "Abandon des stratégies en cours de route"], attentions: ["Mettre en place des virements automatiques", "Conserver un cap stable"] },
         "ISTJ": { name: "Le Logisticien", family: "Sentinelle", summary: "Le roi de la rigueur, des tableaux de suivi et de l'épargne de précaution sanctuarisée.", strengths: ["Organisation et comptabilité irréprochables", "Épargne de précaution toujours solide", "Stabilité émotionnelle"], weaknesses: ["Frilosité face aux opportunités boursières", "Excès de prudence"], attentions: ["Oser s'exposer aux actions long terme", "Éviter de sur-dormir sur du cash"] },
         "ISFJ": { name: "Le Défenseur", family: "Sentinelle", summary: "Très attaché à la sécurité de la pierre (immobilier, SCPI) et aux livrets garantis.", strengths: ["Sécurité de la brique et des livrets", "Protection absolue du foyer", "Constance de l'effort d'épargne"], weaknesses: ["Rendement global rogné par l'inflation", "Peur panique de la bourse"], attentions: ["Intégrer progressivement des ETF capitalisants", "Combattre l'inflation par le rendement"] },
-        "ESTJ": { name: "Le Directif", family: "Sentinelle", summary: "Bâtisseur pragmatique, aime les actifs tangibles et les flux de trésorerie récurrents.", strengths: ["Maîtrise de l'immobilier et du crédit", "Revenus passifs réguliers", "Rigueur de gestion"], weaknesses: ["Rigidité face aux nouvelles classes d'actifs", "Lourdeur administrative"], attentions: ["Garder de la flexibilité mobilière", "Surveiller l'endettement"] },
+        "ESTJ": { name: "Le Directif", family: "Sentinelle", summary: "Bâtisseur pragmatique, aime les actifs tangibles et les flux de trésorerie récurrents.", strengths: ["Maîtrise de l'immobilier et du crédit", "Revenus passifs réactifs", "Rigueur de gestion"], weaknesses: ["Rigidité face aux nouvelles classes d'actifs", "Lourdeur administrative"], attentions: ["Garder de la flexibilité mobilière", "Surveiller l'endettement"] },
         "ESFJ": { name: "Le Consul", family: "Sentinelle", summary: "Sensible à la sécurité collective, privilégie les placements consensuels et sécurisants.", strengths: ["Solidité financière du foyer", "Prudence avisée", "Régularité des versements"], weaknesses: ["Manque d'audace face au capital", "Influence excessive de l'entourage"], attentions: ["Construire sa propre conviction d'investissement", "Viser la diversification"] },
         "ISTP": { name: "Le Virtuose", family: "Explorateur", summary: "Calme, rationnel, analyse froide des chiffres, excellent pour garder son sang-froid.", strengths: ["Sang-froid total en cas de krach", "Rationnalité pure des décisions", "Pragmatisme des arbitrages"], weaknesses: ["Tendance à l'immobilisme", "Manque de vision prospective long terme"], attentions: ["Formaliser un plan d'action pluriannuel", "Maintenir l'effort d'épargne"] },
         "ISFP": { name: "L'Aventurier", family: "Explorateur", summary: "Cherche un équilibre entre plaisir immédiat et constitution progressive d'un matelas.", strengths: ["Équilibre de vie préservé", "Souplesse dans la gestion", "Approche non dogmatique"], weaknesses: ["Manque de discipline sur la durée", "Tentations de dépenses impulsives"], attentions: ["Budgétiser le plaisir et l'épargne", "Automatiser l'effort d'épargne"] },
@@ -439,6 +470,13 @@
       document.getElementById('firePeaDeposits').addEventListener('change', onPeaDepositsChange);
       document.getElementById('recalcBtn').addEventListener('click', calculateProjections);
       document.getElementById('assetEnvelope').addEventListener('change', togglePeaDepositsField);
+
+      // Écouteurs Stress Test & JSON
+      document.getElementById('stressCrashBtn').addEventListener('click', function() { runStressTest(true); });
+      document.getElementById('stressResetBtn').addEventListener('click', function() { runStressTest(false); });
+      document.getElementById('exportJsonBtn').addEventListener('click', exportLocalStorageJson);
+      document.getElementById('importJsonBtn').addEventListener('click', function() { document.getElementById('importFileinput').click(); });
+      document.getElementById('importFileinput').addEventListener('change', importLocalStorageJson);
 
       // Swipe sécurisé
       var touchStartX = 0, touchEndX = 0;
@@ -536,8 +574,82 @@
 
       function getLatestByCategory() {
         var latest = {};
-        records.forEach(function(r) { latest[r.category] = r; });
+        records.forEach(function(r) {
+          if (stressCrashActive && r.type === 'Actions') {
+            var cloned = Object.assign({}, r, { value: r.value * 0.7 });
+            latest[r.category] = cloned;
+          } else {
+            latest[r.category] = r;
+          }
+        });
         return latest;
+      }
+
+      function runStressTest(isCrash) {
+        stressCrashActive = isCrash;
+        var resEl = document.getElementById('stressTestResult');
+        if (isCrash) {
+          resEl.innerHTML = '⚠️ <span style="color:#ef4444;">Stress Test Actif :</span> Impact de -30% appliqué sur l\'ensemble des lignes Actions / ETF.';
+        } else {
+          resEl.innerHTML = '✅ <span style="color:#34d399;">Normal :</span> Valeurs initiales rétablies.';
+        }
+        renderSynth();
+        renderCarto();
+        renderFireTab();
+      }
+
+      function exportLocalStorageJson() {
+        var backupData = {
+          records: records,
+          loans: loans,
+          fireSettings: fireSettings,
+          advDcaSettings: advDcaSettings,
+          peaDeposits: peaDeposits,
+          exportDate: new Date().toISOString()
+        };
+        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+        var dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", "mbti_patrimoine_backup_" + new Date().toISOString().split('T')[0] + ".json");
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+      }
+
+      function importLocalStorageJson(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(evt) {
+          try {
+            var parsed = JSON.parse(evt.target.result);
+            if (parsed.records) {
+              records = parsed.records;
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            }
+            if (parsed.loans) {
+              loans = parsed.loans;
+              localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+            }
+            if (parsed.fireSettings) {
+              fireSettings = parsed.fireSettings;
+              localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
+            }
+            if (parsed.advDcaSettings) {
+              advDcaSettings = parsed.advDcaSettings;
+              localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
+            }
+            if (typeof parsed.peaDeposits !== 'undefined') {
+              peaDeposits = parsed.peaDeposits;
+              localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits);
+            }
+            alert('Restauration des données effectuée avec succès !');
+            window.location.reload();
+          } catch(err) {
+            alert('Erreur lors de l\'import du fichier JSON : ' + err.message);
+          }
+        };
+        reader.readAsText(file);
       }
 
       function renderSynth() {
@@ -563,6 +675,24 @@
 
         document.getElementById('kpiEnrichVal').innerText = '+' + totalEnrichissement + ' €/m';
         document.getElementById('barEnrich').style.width = Math.min(100, (totalEnrichissement / 1500) * 100) + '%';
+
+        // Rendu Proactif des Action Items
+        var actionContainer = document.getElementById('actionItemsContainer');
+        if (actionContainer) {
+          var itemsHtml = '';
+          if (liquidities < 10000) {
+            itemsHtml += '<div>⚠️ Épargne de précaution inférieure à 10 000 €. Priorisez le renforcement de votre poche cash.</div>';
+          } else {
+            itemsHtml += '<div>✅ Épargne de précaution solide.</div>';
+          }
+          var peaVerser = peaDeposits > 0 ? peaDeposits : latestList.filter(function(r) { return r.envelope === 'PEA'; }).reduce(function(s, r) { return s + r.value; }, 0);
+          if (peaVerser < 150000) {
+            itemsHtml += '<div>💡 Plafond PEA (' + formatCurrency(peaVerser) + ' / 150k€) : Poursuivez les versements défiscalisés.</div>';
+          } else {
+            itemsHtml += '<div>🏆 Plafond des 150 000 € du PEA atteint !</div>';
+          }
+          actionContainer.innerHTML = itemsHtml;
+        }
 
         if (typeof Chart !== 'undefined') {
           var datesMapBrut = {};
@@ -867,7 +997,6 @@
         if (document.getElementById('fireEffortRequis')) document.getElementById('fireEffortRequis').innerText = '+' + monthlyDeltaNeeded + ' € / mois';
 
         renderProjectionCharts();
-        // SUPPRESSION DE LA LIGNE PROVOQUANT LA BOUCLE INFINIE : renderSynth();
       }
 
       function renderProjectionCharts() {
@@ -999,5 +1128,3 @@
   </script>
 </body>
 </html>
-
-last.edition.gold
