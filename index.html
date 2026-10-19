@@ -11,57 +11,59 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: #0f172a; color: #f8fafc; padding: 16px; padding-bottom: 90px; }
     h1 { font-size: 22px; margin-bottom: 12px; color: #38bdf8; }
-    h2 { font-size: 18px; margin-bottom: 12px; color: #f8fafc; }
+    h2 { font-size: 16px; margin-bottom: 10px; color: #f8fafc; }
     
     #updateBanner { display: none; background-color: #2563eb; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; }
 
-    /* Navigation par onglets (4 onglets) */
+    /* Navigation par 5 onglets */
     .nav-tabs { display: flex; gap: 4px; margin-bottom: 16px; background-color: #1e293b; padding: 4px; border-radius: 12px; border: 1px solid #334155; }
-    .nav-btn { flex: 1; padding: 10px 4px; background: none; border: none; color: #94a3b8; font-weight: 600; font-size: 12px; border-radius: 8px; cursor: pointer; text-align: center; }
+    .nav-btn { flex: 1; padding: 10px 2px; background: none; border: none; color: #94a3b8; font-weight: 600; font-size: 11px; border-radius: 8px; cursor: pointer; text-align: center; }
     .nav-btn.active { background-color: #2563eb; color: #ffffff; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
     /* Cartes & Composants */
-    .card { background-color: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #334155; }
-    label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
-    input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 12px; font-size: 15px; }
-    button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 15px; cursor: pointer; }
+    .card { background-color: #1e293b; border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid #334155; }
+    label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+    input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 10px; font-size: 14px; }
+    button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; }
     button.sec-btn { width: 48%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #94a3b8; font-size: 12px; cursor: pointer; }
     
-    .total-val { font-size: 28px; font-weight: bold; color: #38bdf8; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
-    th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid #334155; }
+    .net-val { font-size: 26px; font-weight: bold; color: #38bdf8; }
+    .sub-val { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+    .enrich-val { font-size: 18px; font-weight: bold; color: #34d399; margin-top: 4px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+    th, td { text-align: left; padding: 8px 4px; border-bottom: 1px solid #334155; }
     th { color: #94a3b8; font-weight: normal; }
     .delete-btn { background: none; border: none; color: #ef4444; width: auto; padding: 0; font-size: 14px; cursor: pointer; }
     .custom-input-group { display: none; }
     .btn-row { display: flex; justify-content: space-between; margin-top: 10px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     
-    .milestone-card { background: #0f172a; border-left: 4px solid #38bdf8; padding: 12px; margin-bottom: 10px; border-radius: 6px; }
-    .milestone-title { font-weight: bold; font-size: 16px; color: #38bdf8; }
-    .milestone-details { font-size: 12px; color: #94a3b8; margin-top: 4px; }
-    .highlight-interest { color: #34d399; font-weight: bold; }
+    .milestone-card { background: #0f172a; border-left: 4px solid #38bdf8; padding: 10px; margin-bottom: 8px; border-radius: 6px; }
+    .milestone-title { font-weight: bold; font-size: 14px; color: #38bdf8; }
+    .milestone-details { font-size: 11px; color: #94a3b8; margin-top: 4px; }
   </style>
 </head>
 <body>
 
   <h1>Mon Patrimoine</h1>
 
-  <!-- BANDEAU MISE À JOUR -->
   <div id="updateBanner" onclick="window.location.reload(true)">
     🚀 Une nouvelle version est disponible ! Cliquez ici pour recharger.
   </div>
 
   <!-- BANDEAU MARCHÉS EN TEMPS RÉEL (TRADINGVIEW) -->
-  <div class="card" style="padding: 8px; margin-bottom: 16px;">
+  <div class="card" style="padding: 8px; margin-bottom: 14px;">
     <div class="tradingview-widget-container">
       <div class="tradingview-widget-container__widget"></div>
       <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
       {
         "symbols": [
           { "proName": "INDEX:VIX", "title": "VIX (Volatilité)" },
-          { "proName": "EURONEXT:CW8", "title": "MSCI World (CW8)" },
+          { "proName": "EURONEXT:CW8", "title": "MSCI World" },
           { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500" },
           { "proName": "INDEX:PX1", "title": "CAC 40" },
           { "proName": "TVC:GOLD", "title": "Or" }
@@ -78,26 +80,34 @@
 
   <!-- NAV TABS -->
   <div class="nav-tabs">
-    <button class="nav-btn active" onclick="switchTab('dashboard')">Évolution</button>
+    <button class="nav-btn active" onclick="switchTab('dashboard')">Synthèse</button>
     <button class="nav-btn" onclick="switchTab('allocation')">Allocation</button>
-    <button class="nav-btn" onclick="switchTab('projection')">Projections</button>
+    <button class="nav-btn" onclick="switchTab('liabilities')">Crédits</button>
+    <button class="nav-btn" onclick="switchTab('projection')">Simulateur</button>
     <button class="nav-btn" onclick="switchTab('entry')">+ Saisie</button>
   </div>
 
-  <!-- PAGE 1 : DASHBOARD & ÉVOLUTION -->
+  <!-- PAGE 1 : DASHBOARD & SYNTHÈSE NETTE -->
   <div id="tab-dashboard" class="tab-content active">
     <div class="card">
-      <label>Patrimoine Total Actuel</label>
-      <div id="totalPatrimoine" class="total-val">0,00 €</div>
+      <label>Patrimoine Net Actuel (Actifs − Crédits)</label>
+      <div id="totalPatrimoineNet" class="net-val">0,00 €</div>
+      <div id="subPatrimoineBrut" class="sub-val">Actifs Bruts : 0,00 € | Crédits restants : 0,00 €</div>
     </div>
 
     <div class="card">
-      <h2>Évolution Temporelle</h2>
-      <canvas id="evolutionChart" height="200"></canvas>
+      <label>Enrichissement Mensuel Estimer</label>
+      <div id="monthlyEnrichment" class="enrich-val">+0,00 € / mois</div>
+      <div id="subEnrichment" class="sub-val">Épargne investie : 0 € | Capital immobilier remboursé : 0 €</div>
     </div>
 
     <div class="card">
-      <h2>Historique des relevés</h2>
+      <h2>Évolution Temporelle du Patrimoine Net</h2>
+      <canvas id="evolutionChart" height="190"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Historique des relevés d'actifs</h2>
       <table>
         <thead>
           <tr>
@@ -116,7 +126,7 @@
   <div id="tab-allocation" class="tab-content">
     <div class="card">
       <h2>Répartition par Enveloppe</h2>
-      <canvas id="allocationChart" height="220"></canvas>
+      <canvas id="allocationChart" height="210"></canvas>
     </div>
     
     <div class="card">
@@ -134,30 +144,96 @@
     </div>
   </div>
 
-  <!-- PAGE 3 : PROJECTIONS ET INTÉRÊTS COMPOSÉS (PALIERS 100K) -->
-  <div id="tab-projection" class="tab-content">
+  <!-- PAGE 3 : PASSIFS, CRÉDITS ET MENSUALITÉS -->
+  <div id="tab-liabilities" class="tab-content">
     <div class="card">
-      <h2>Paramétrage des Mensualités (DCA)</h2>
-      <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">Définissez vos apports mensuels par enveloppe pour calculer la vitesse de franchissement des paliers de 100k€.</p>
-      <div id="dcaInputs"></div>
-      <button type="button" class="submit-btn" style="margin-top:8px;" onclick="calculateProjections()">Recalculer les Projections</button>
+      <h2>Ajouter / Mettre à jour un Crédit</h2>
+      <form id="loanForm">
+        <label>Nom du prêt</label>
+        <input type="text" id="loanName" placeholder="ex: Prêt Immo Résidence Principale" required>
+
+        <div class="grid-2">
+          <div>
+            <label>Capital Restant Dû (€)</label>
+            <input type="number" id="loanBalance" placeholder="ex: 127000" step="100" required>
+          </div>
+          <div>
+            <label>Mensualité (€/mois)</label>
+            <input type="number" id="loanPayment" placeholder="ex: 850" step="10" required>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label>Taux d'intérêt (%)</label>
+            <input type="number" id="loanRate" placeholder="ex: 1.5" step="0.01" value="1.5" required>
+          </div>
+          <div>
+            <label>Durée restante (mois)</label>
+            <input type="number" id="loanMonths" placeholder="ex: 180" min="1" required>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Enregistrer le Prêt</button>
+      </form>
     </div>
 
     <div class="card">
-      <h2>Trajectoire des Paliers (+100k€)</h2>
+      <h2>Vos Crédits en Cours</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Prêt</th>
+            <th>Reste Dû</th>
+            <th>Mensualité</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="loansTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PAGE 4 : SIMULATEUR DYNAMIQUE & ENRICHISSEMENT -->
+  <div id="tab-projection" class="tab-content">
+    <div class="card">
+      <h2>1. DCA & Rendements des Actifs</h2>
+      <div id="dcaInputs"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. Simulation d'Injection Ponctuelle</h2>
+      <div class="grid-2">
+        <div>
+          <label>Enveloppe Cible</label>
+          <select id="injTarget"></select>
+        </div>
+        <div>
+          <label>Montant (€)</label>
+          <input type="number" id="injAmount" placeholder="ex: 20000" step="500">
+        </div>
+      </div>
+      <label>Horizon d'injection (dans combien d'années ?)</label>
+      <input type="number" id="injYear" placeholder="ex: 3" min="1" max="20" value="3">
+      
+      <button type="button" class="submit-btn" style="margin-top:6px;" onclick="calculateProjections()">Calculer la Trajectoire Nette</button>
+    </div>
+
+    <div class="card">
+      <h2>Comparatif des Paliers Netti (+100k€)</h2>
       <div id="milestonesList"></div>
     </div>
 
     <div class="card">
-      <h2>Projection Intérêts Composés (20 ans)</h2>
+      <h2>Trajectoire du Patrimoine Net (20 ans)</h2>
       <canvas id="projectionChart" height="220"></canvas>
     </div>
   </div>
 
-  <!-- PAGE 4 : SAISIE & SAUVEGARDE -->
+  <!-- PAGE 5 : SAISIE & SAUVEGARDE -->
   <div id="tab-entry" class="tab-content">
     <div class="card">
-      <h2>Saisir un Relevé</h2>
+      <h2>Saisir un Relevé d'Actif</h2>
       <form id="entryForm">
         <label for="entryDate">Date du relevé</label>
         <input type="date" id="entryDate" required>
@@ -193,14 +269,27 @@
 
     const STORAGE_KEY = 'patrimoine_records_v1';
     const DCA_STORAGE_KEY = 'patrimoine_dca_settings_v1';
+    const RATE_STORAGE_KEY = 'patrimoine_rate_settings_v1';
+    const LOANS_STORAGE_KEY = 'patrimoine_loans_settings_v1';
 
     let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
+
     let dcaSettings = JSON.parse(localStorage.getItem(DCA_STORAGE_KEY)) || {
       'PEA': 300,
       'Louve Infinity': 100,
       'Linxea Spirit 2': 0,
       'PEG / PERCO': 450,
       'Comptes / Liquidités': 0
+    };
+
+    let rateSettings = JSON.parse(localStorage.getItem(RATE_STORAGE_KEY)) || {
+      'PEA': 7.0,
+      'PEG / PERCO': 6.0,
+      'Louve Infinity': 5.0,
+      'Louve Invest Direct': 5.0,
+      'Linxea Spirit 2': 5.0,
+      'Comptes / Liquidités': 2.5
     };
 
     const DEFAULT_CATEGORIES = [
@@ -211,17 +300,6 @@
       "PEG / PERCO",
       "Comptes / Liquidités"
     ];
-
-    // Rendements annuels réalistes par défaut selon l'actif
-    const DEFAULT_RETURNS = {
-      'PEA': 0.07,              // 7% Actions Monde
-      'PEG / PERCO': 0.06,       // 6% Diversifié / Actions
-      'Louve Infinity': 0.05,    // 5% SCPI & Mix
-      'Louve Invest Direct': 0.05,
-      'Linxea Spirit 2': 0.05,
-      'Comptes / Liquidités': 0.025, // 2.5% Livrets
-      'DEFAULT': 0.05
-    };
 
     let lineChartInstance = null;
     let pieChartInstance = null;
@@ -261,12 +339,54 @@
 
       if (tabName === 'dashboard') renderDashboard();
       if (tabName === 'allocation') renderAllocation();
+      if (tabName === 'liabilities') renderLoansTable();
       if (tabName === 'projection') renderProjectionTab();
       if (tabName === 'entry') populateCategoriesSelect();
     }
 
     function toggleCustomInput(val) {
       document.getElementById('customGroup').style.display = (val === 'CUSTOM') ? 'block' : 'none';
+    }
+
+    // GESTION DES PRÊTS
+    document.getElementById('loanForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('loanName').value.trim();
+      const balance = parseFloat(document.getElementById('loanBalance').value);
+      const payment = parseFloat(document.getElementById('loanPayment').value);
+      const rate = parseFloat(document.getElementById('loanRate').value);
+      const months = parseInt(document.getElementById('loanMonths').value);
+
+      loans.push({ id: Date.now(), name, balance, payment, rate, months });
+      localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+
+      document.getElementById('loanForm').reset();
+      renderLoansTable();
+      alert('Prêt enregistré !');
+    });
+
+    function deleteLoan(id) {
+      if(confirm('Supprimer ce prêt ?')) {
+        loans = loans.filter(l => l.id !== id);
+        localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+        renderLoansTable();
+      }
+    }
+
+    function renderLoansTable() {
+      const table = document.getElementById('loansTable');
+      table.innerHTML = '';
+
+      loans.forEach(l => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${l.name}</b></td>
+          <td>${l.balance.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</td>
+          <td>${l.payment.toLocaleString('fr-FR')} €/m</td>
+          <td><button class="delete-btn" onclick="deleteLoan(${l.id})">✕</button></td>
+        `;
+        table.appendChild(tr);
+      });
     }
 
     document.getElementById('entryForm').addEventListener('submit', (e) => {
@@ -286,7 +406,7 @@
       document.getElementById('customGroup').style.display = 'none';
       
       populateCategoriesSelect();
-      alert('Relevé enregistré !');
+      alert('Relevé d\'actif enregistré !');
       switchTab('dashboard');
     });
 
@@ -326,16 +446,38 @@
       });
 
       const latestMap = getLatestByCategory();
-      const total = Object.values(latestMap).reduce((a, b) => a + b, 0);
-      document.getElementById('totalPatrimoine').innerText = total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+      const totalActifs = Object.values(latestMap).reduce((a, b) => a + b, 0);
+      const totalPassifs = loans.reduce((sum, l) => sum + l.balance, 0);
+      const totalNet = totalActifs - totalPassifs;
 
+      document.getElementById('totalPatrimoineNet').innerText = totalNet.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+      document.getElementById('subPatrimoineBrut').innerText = `Actifs Bruts : ${totalActifs.toLocaleString('fr-FR')} € | Passifs/Crédits : ${totalPassifs.toLocaleString('fr-FR')} €`;
+
+      // Calcul de l'enrichissement mensuel
+      const monthlyDcaTotal = Object.values(dcaSettings).reduce((a, b) => a + b, 0);
+      let monthlyAmortizationTotal = 0;
+
+      loans.forEach(l => {
+        const monthlyRate = (l.rate / 100) / 12;
+        const interestPart = l.balance * monthlyRate;
+        const capitalPart = Math.max(0, l.payment - interestPart);
+        monthlyAmortizationTotal += capitalPart;
+      });
+
+      const totalMonthlyEnrichment = monthlyDcaTotal + monthlyAmortizationTotal;
+
+      document.getElementById('monthlyEnrichment').innerText = `+${totalMonthlyEnrichment.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} € / mois`;
+      document.getElementById('subEnrichment').innerText = `Épargne DCA : ${monthlyDcaTotal.toLocaleString('fr-FR')} €/m | Capital Immo Remboursé : ${monthlyAmortizationTotal.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €/m`;
+
+      // Graphique historique net
       const ctx = document.getElementById('evolutionChart').getContext('2d');
       let datesMap = {};
       let stateMap = {};
 
       records.forEach(r => {
         stateMap[r.category] = r.value;
-        datesMap[r.date] = Object.values(stateMap).reduce((a, b) => a + b, 0);
+        const totalBrut = Object.values(stateMap).reduce((a, b) => a + b, 0);
+        datesMap[r.date] = totalBrut - totalPassifs;
       });
 
       if (lineChartInstance) lineChartInstance.destroy();
@@ -345,7 +487,7 @@
         data: {
           labels: Object.keys(datesMap),
           datasets: [{
-            label: 'Patrimoine Total (€)',
+            label: 'Patrimoine Net (€)',
             data: Object.values(datesMap),
             borderColor: '#38bdf8',
             backgroundColor: 'rgba(56, 189, 248, 0.15)',
@@ -406,124 +548,160 @@
       });
     }
 
-    // --- LOGIQUE DE PROJECTION DES INTÉRÊTS COMPOSÉS & PALIERS DE 100K ---
+    // PROJECTIONS ET INTÉGRATION DE L'AMORTISSEMENT DES CRÉDITS
     function renderProjectionTab() {
       const latestMap = getLatestByCategory();
       const container = document.getElementById('dcaInputs');
+      const selectInj = document.getElementById('injTarget');
+      
       container.innerHTML = '';
+      selectInj.innerHTML = '';
 
       Object.keys(latestMap).forEach(cat => {
-        const val = dcaSettings[cat] !== undefined ? dcaSettings[cat] : 0;
+        const dcaVal = dcaSettings[cat] !== undefined ? dcaSettings[cat] : 0;
+        const rateVal = rateSettings[cat] !== undefined ? rateSettings[cat] : 5.0;
+
         const div = document.createElement('div');
+        div.style.marginBottom = "8px";
         div.innerHTML = `
-          <label style="color:#f8fafc; font-weight:600; margin-top:8px;">${cat} (€/mois)</label>
-          <input type="number" data-cat="${cat}" class="dca-field" value="${val}" min="0" placeholder="0">
+          <div style="color:#f8fafc; font-weight:600; font-size:12px; margin-bottom:2px;">${cat}</div>
+          <div class="grid-2">
+            <div><label>DCA (€/m)</label><input type="number" data-cat="${cat}" class="dca-field" value="${dcaVal}" min="0"></div>
+            <div><label>Rendement (%/an)</label><input type="number" data-cat="${cat}" class="rate-field" value="${rateVal}" step="0.1"></div>
+          </div>
         `;
         container.appendChild(div);
+
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        selectInj.appendChild(opt);
       });
 
       calculateProjections();
     }
 
-    function calculateProjections() {
-      // Enregistrer les réglages DCA
-      document.querySelectorAll('.dca-field').forEach(input => {
-        const cat = input.getAttribute('data-cat');
-        dcaSettings[cat] = parseFloat(input.value) || 0;
-      });
-      localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
-
-      const latestMap = getLatestByCategory();
+    function runSimulationSeries(latestMap, isSimulatedScenario, injCat, injAmount, injMonthTarget) {
       let currentBalances = { ...latestMap };
-      let initialTotal = Object.values(currentBalances).reduce((a, b) => a + b, 0);
+      let currentLoans = loans.map(l => ({ ...l }));
 
-      let totalApportsCumules = initialTotal;
-      let totalInteretsCumules = 0;
+      let initialActifs = Object.values(currentBalances).reduce((a, b) => a + b, 0);
+      let initialPassifs = currentLoans.reduce((sum, l) => sum + l.balance, 0);
+      let initialNet = initialActifs - initialPassifs;
 
       const milestones = [];
-      let nextMilestone = Math.floor(initialTotal / 100000) * 100000 + 100000;
-      const maxMilestoneTarget = initialTotal + 600000; // Calcule les 6 prochains paliers de 100k
+      let nextMilestone = Math.floor(initialNet / 100000) * 100000 + 100000;
+      const maxMilestoneTarget = initialNet + 600000;
 
       const currentDate = new Date();
-      const labelsYear = [];
-      const dataTotalSeries = [];
-      const dataApportsSeries = [];
-
+      const seriesData = [];
       let monthsCounter = 0;
-      const maxMonths = 240; // Projection sur 20 ans (240 mois)
+      const maxMonths = 240;
 
-      labelsYear.push("Aujourd'hui");
-      dataTotalSeries.push(Math.round(initialTotal));
-      dataApportsSeries.push(Math.round(initialTotal));
+      seriesData.push(Math.round(initialNet));
 
       while (monthsCounter < maxMonths) {
         monthsCounter++;
-        let monthlyApportsAll = 0;
 
-        // Calcul mois par mois pour chaque enveloppe avec son taux spécifique
+        // Simulation injection
+        if (isSimulatedScenario && monthsCounter === injMonthTarget && injAmount > 0 && currentBalances[injCat] !== undefined) {
+          currentBalances[injCat] += injAmount;
+        }
+
+        // Évolution des actifs (Rendement + DCA)
         Object.keys(currentBalances).forEach(cat => {
-          const rate = DEFAULT_RETURNS[cat] !== undefined ? DEFAULT_RETURNS[cat] : DEFAULT_RETURNS['DEFAULT'];
-          const monthlyRate = Math.pow(1 + rate, 1/12) - 1;
+          const annRate = (rateSettings[cat] !== undefined ? rateSettings[cat] : 5.0) / 100;
+          const monthlyRate = Math.pow(1 + annRate, 1/12) - 1;
           const monthlyDca = dcaSettings[cat] || 0;
 
-          // Intérêts du mois sur le solde
           const interestMonth = currentBalances[cat] * monthlyRate;
           currentBalances[cat] += interestMonth + monthlyDca;
-          
-          monthlyApportsAll += monthlyDca;
-          totalInteretsCumules += interestMonth;
         });
 
-        totalApportsCumules += monthlyApportsAll;
-        const currentTotal = Object.values(currentBalances).reduce((a, b) => a + b, 0);
+        // Amortissement mois par mois des crédits
+        currentLoans.forEach(l => {
+          if (l.balance > 0 && l.months > 0) {
+            const monthlyRate = (l.rate / 100) / 12;
+            const interestPart = l.balance * monthlyRate;
+            const capitalPart = Math.min(l.balance, Math.max(0, l.payment - interestPart));
+            l.balance = Math.max(0, l.balance - capitalPart);
+            l.months--;
+          }
+        });
 
-        // Détection franchissement de palier 100k
-        if (currentTotal >= nextMilestone && nextMilestone <= maxMilestoneTarget) {
+        const currentActifs = Object.values(currentBalances).reduce((a, b) => a + b, 0);
+        const currentPassifs = currentLoans.reduce((sum, l) => sum + l.balance, 0);
+        const currentNet = currentActifs - currentPassifs;
+
+        if (currentNet >= nextMilestone && nextMilestone <= maxMilestoneTarget) {
           const dateReached = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthsCounter, 1);
-          const yearsNeeded = (monthsCounter / 12).toFixed(1);
-          
           milestones.push({
             target: nextMilestone,
-            dateStr: dateReached.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
-            duration: yearsNeeded,
-            totalApports: Math.round(totalApportsCumules),
-            totalInterets: Math.round(totalInteretsCumules)
+            dateStr: dateReached.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }),
+            duration: (monthsCounter / 12).toFixed(1)
           });
-
           nextMilestone += 100000;
         }
 
-        // Point de courbe tous les 12 mois
         if (monthsCounter % 12 === 0) {
-          labelsYear.push(`An +${monthsCounter/12}`);
-          dataTotalSeries.push(Math.round(currentTotal));
-          dataApportsSeries.push(Math.round(totalApportsCumules));
+          seriesData.push(Math.round(currentNet));
         }
       }
 
-      // Rendu HTML des paliers
+      return { seriesData, milestones };
+    }
+
+    function calculateProjections() {
+      document.querySelectorAll('.dca-field').forEach(input => {
+        dcaSettings[input.getAttribute('data-cat')] = parseFloat(input.value) || 0;
+      });
+      document.querySelectorAll('.rate-field').forEach(input => {
+        rateSettings[input.getAttribute('data-cat')] = parseFloat(input.value) || 0;
+      });
+
+      localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
+      localStorage.setItem(RATE_STORAGE_KEY, JSON.stringify(rateSettings));
+
+      const latestMap = getLatestByCategory();
+      const injCat = document.getElementById('injTarget').value;
+      const injAmount = parseFloat(document.getElementById('injAmount').value) || 0;
+      const injYear = parseInt(document.getElementById('injYear').value) || 3;
+
+      const baseRes = runSimulationSeries(latestMap, false, '', 0, 0);
+      const simRes = runSimulationSeries(latestMap, true, injCat, injAmount, injYear * 12);
+
+      const labelsYear = ["Aujourd'hui"];
+      for(let i = 1; i <= 20; i++) labelsYear.push(`An +${i}`);
+
       const milestonesContainer = document.getElementById('milestonesList');
       milestonesContainer.innerHTML = '';
 
-      if (milestones.length === 0) {
-        milestonesContainer.innerHTML = '<p style="font-size:12px; color:#94a3b8;">Saisissez des mensualités DCA supérieures à 0 pour projeter le franchissement des paliers.</p>';
+      if (baseRes.milestones.length === 0) {
+        milestonesContainer.innerHTML = '<p style="font-size:12px; color:#94a3b8;">Ajustez vos paramètres pour projeter vos paliers de patrimoine net.</p>';
       } else {
-        milestones.forEach(m => {
-          const pctInterets = ((m.totalInterets / m.target) * 100).toFixed(0);
+        baseRes.milestones.forEach((mBase, idx) => {
+          const mSim = simRes.milestones[idx];
           const div = document.createElement('div');
           div.className = 'milestone-card';
+          
+          let simHtml = '';
+          if (mSim) {
+            const timeSaved = (parseFloat(mBase.duration) - parseFloat(mSim.duration)).toFixed(1);
+            simHtml = `<div class="milestone-details" style="color:#34d399;">
+              🚀 <b>Simulé : ${mSim.dateStr}</b> (${mSim.duration} ans) 
+              ${timeSaved > 0 ? `→ <b>+${timeSaved} an(s) gagné(s) !</b>` : ''}
+            </div>`;
+          }
+
           div.innerHTML = `
-            <div class="milestone-title">🎯 Palier ${m.target.toLocaleString('fr-FR')} €</div>
-            <div class="milestone-details">
-              📅 Horizon : <b>${m.dateStr}</b> (dans ${m.duration} ans)<br>
-              💵 Total versé : ${m.totalApports.toLocaleString('fr-FR')} € | <span class="highlight-interest">✨ Intérêts : ${m.totalInterets.toLocaleString('fr-FR')} € (${pctInterets}%)</span>
-            </div>
+            <div class="milestone-title">🎯 Palier Net ${mBase.target.toLocaleString('fr-FR')} €</div>
+            <div class="milestone-details">📊 Base : <b>${mBase.dateStr}</b> (${mBase.duration} ans)</div>
+            ${simHtml}
           `;
           milestonesContainer.appendChild(div);
         });
       }
 
-      // Graphique de projection
       const ctx = document.getElementById('projectionChart').getContext('2d');
       if (projectionChartInstance) projectionChartInstance.destroy();
 
@@ -533,20 +711,21 @@
           labels: labelsYear,
           datasets: [
             {
-              label: 'Patrimoine Total Projeté (€)',
-              data: dataTotalSeries,
+              label: 'Patrimoine Net Base (€)',
+              data: baseRes.seriesData,
               borderColor: '#38bdf8',
-              backgroundColor: 'rgba(56, 189, 248, 0.2)',
-              fill: true,
+              backgroundColor: 'rgba(56, 189, 248, 0.1)',
+              fill: false,
               tension: 0.3
             },
             {
-              label: 'Total Apports Cumulés (€)',
-              data: dataApportsSeries,
-              borderColor: '#94a3b8',
+              label: 'Patrimoine Net Simulé (€)',
+              data: simRes.seriesData,
+              borderColor: '#34d399',
               borderDash: [5, 5],
+              backgroundColor: 'rgba(52, 211, 153, 0.1)',
               fill: false,
-              tension: 0.1
+              tension: 0.3
             }
           ]
         },
@@ -564,10 +743,11 @@
     }
 
     function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records));
+      const exportObj = { records, loans, dcaSettings, rateSettings };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `patrimoine_backup_${new Date().toISOString().slice(0,10)}.json`);
+      downloadAnchor.setAttribute("download", `patrimoine_full_backup_${new Date().toISOString().slice(0,10)}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -578,14 +758,26 @@
       reader.onload = function(e) {
         try {
           const imported = JSON.parse(e.target.result);
-          if (Array.isArray(imported)) {
+          if (imported.records && Array.isArray(imported.records)) {
+            records = imported.records;
+            loans = imported.loans || [];
+            dcaSettings = imported.dcaSettings || dcaSettings;
+            rateSettings = imported.rateSettings || rateSettings;
+
+            saveData();
+            localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+            localStorage.setItem(DCA_STORAGE_KEY, JSON.stringify(dcaSettings));
+            localStorage.setItem(RATE_STORAGE_KEY, JSON.stringify(rateSettings));
+
+            populateCategoriesSelect();
+            renderDashboard();
+            alert("Restauration complète réussie !");
+          } else if (Array.isArray(imported)) {
             records = imported;
             saveData();
             populateCategoriesSelect();
             renderDashboard();
             alert("Restauration réussie !");
-          } else {
-            alert("Format JSON invalide.");
           }
         } catch(err) {
           alert("Erreur lors de l'importation du fichier.");
