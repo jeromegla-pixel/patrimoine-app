@@ -77,7 +77,6 @@
     .action-icon-btn { background: none; border: none; font-size: 14px; cursor: pointer; padding: 2px 6px; }
     .delete-btn { color: #ef4444; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 
     .info-banner { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px; font-size: 11px; color: #38bdf8; margin-bottom: 12px; }
     .alert-banner { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 10px; padding: 10px 12px; font-size: 11px; color: #fca5a5; margin-bottom: 12px; }
@@ -619,7 +618,7 @@
           summary: "Opportuniste et agile, adore explorer les actifs alternatifs, la tech et les opportunités.", 
           strengths: ["Réactivité face aux mouvements de marché", "Diversification audacieuse", "Agilité tactique"], 
           weaknesses: ["Dispersion et manque de constance", "Sensibilité au bruit médiatique"], 
-          attentions: ["Sanctuariser 85% du capital sur du très classique (ETF World)", "Isoler la poche spéculative (max 15%) sur un sous-compte séparé", "Imposer un délai de réflexion de 48h avant tout arbitrage imprevu"],
+          attentions: ["Sanctuariser 85% du capital sur du très classique (ETF World)", "Isoler la poche spéculative (max 15%) sur un sous-compte séparé", "Imposer un délai de réflexion de 48h avant tout arbitrage imprévu"],
           idealStrategy: "85% ETF World / 15% Satellite Vif (Crypto, Tech, Small Caps).",
           crashReaction: "S'excite face à la volatilité et tente des coups tactiques (risque de churn).",
           recommendedEnvelopes: "PEA + CTO / Compte Crypto séparé"
@@ -807,6 +806,63 @@
         localStorage.setItem(DECLARED_MBTI_KEY, declaredMbti);
         renderMbtiTab();
         showToast('Profil MBTI déclaré mis à jour', true);
+      });
+
+      // Formulaires Saisie
+      document.getElementById('entryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var dateVal = document.getElementById('entryDate').value;
+        var envVal = document.getElementById('assetEnvelope').value;
+        var typeVal = document.getElementById('assetType').value;
+        var modeVal = document.getElementById('assetMode').value;
+        var yieldVal = parseFloat(document.getElementById('assetYield').value) || 5.0;
+        var amtVal = parseFloat(document.getElementById('assetValue').value) || 0;
+
+        if (envVal === 'PEA') {
+          var peaDep = parseFloat(document.getElementById('peaDeposits').value);
+          if (!isNaN(peaDep)) {
+            peaDeposits = peaDep;
+            localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits);
+            if (document.getElementById('firePeaDeposits')) document.getElementById('firePeaDeposits').value = peaDeposits;
+          }
+        }
+
+        var newRec = {
+          date: dateVal,
+          envelope: envVal,
+          type: typeVal,
+          category: envVal + ' - ' + typeVal,
+          mode: modeVal,
+          yield: yieldVal,
+          value: amtVal
+        };
+
+        records.push(newRec);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        showToast('Enveloppe ajoutée avec succès !', true);
+        document.getElementById('assetValue').value = '';
+        renderPatrimoineTab();
+        renderSynth();
+      });
+
+      document.getElementById('loanForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var newLoan = {
+          id: Date.now(),
+          name: document.getElementById('loanName').value,
+          balance: parseFloat(document.getElementById('loanBalance').value) || 0,
+          payment: parseFloat(document.getElementById('loanPayment').value) || 0,
+          rate: parseFloat(document.getElementById('loanRate').value) || 1.5,
+          months: parseInt(document.getElementById('loanMonths').value) || 120
+        };
+        loans.push(newLoan);
+        localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+        showToast('Prêt ajouté avec succès !', true);
+        document.getElementById('loanName').value = '';
+        document.getElementById('loanBalance').value = '';
+        document.getElementById('loanPayment').value = '';
+        renderPatrimoineTab();
+        renderSynth();
       });
 
       // Stress Test listeners
@@ -1387,326 +1443,259 @@
           table.appendChild(tr);
         });
 
-        document.querySelectorAll('.edit-val').forEach(function(input) {
-          input.addEventListener('change', function() { updateRecordDirect(this.getAttribute('data-cat'), 'value', this.value); });
-        });
-        document.querySelectorAll('.edit-yield').forEach(function(input) {
-          input.addEventListener('change', function() { updateRecordDirect(this.getAttribute('data-cat'), 'yield', this.value); });
-        });
-        document.querySelectorAll('.del-cat').forEach(function(btn) {
-          btn.addEventListener('click', function() { deleteCategoryDirect(this.getAttribute('data-cat')); });
+        // Event listeners modification carto
+        document.querySelectorAll('.edit-val').forEach(function(inp) {
+          inp.addEventListener('change', function() {
+            var cat = this.getAttribute('data-cat');
+            var val = parseFloat(this.value) || 0;
+            var rec = records.slice().reverse().find(function(r) { return r.category === cat; });
+            if (rec) {
+              records.push({
+                date: new Date().toISOString().split('T')[0],
+                envelope: rec.envelope,
+                type: rec.type,
+                category: rec.category,
+                mode: rec.mode,
+                yield: rec.yield,
+                value: val
+              });
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+              renderCarto();
+              renderSynth();
+              showToast('Montant mis à jour !', true);
+            }
+          });
         });
 
-        var loansTable = document.getElementById('loansTable');
-        loansTable.innerHTML = '';
+        document.querySelectorAll('.edit-yield').forEach(function(inp) {
+          inp.addEventListener('change', function() {
+            var cat = this.getAttribute('data-cat');
+            var yld = parseFloat(this.value) || 0;
+            var rec = records.slice().reverse().find(function(r) { return r.category === cat; });
+            if (rec) {
+              rec.yield = yld;
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+              showToast('Rendement mis à jour !', true);
+            }
+          });
+        });
+
+        document.querySelectorAll('.del-cat').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var cat = this.getAttribute('data-cat');
+            records = records.filter(function(r) { return r.category !== cat; });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            renderCarto();
+            renderSynth();
+            showToast('Ligne supprimée.', true);
+          });
+        });
+
+        // Render Table Prêts
+        var lTable = document.getElementById('loansTable');
+        lTable.innerHTML = '';
         loans.forEach(function(l) {
           var tr = document.createElement('tr');
           tr.innerHTML = '<td><b>' + l.name + '</b></td>' +
-            '<td><input type="number" style="width:90px; margin:0; padding:4px;" value="' + l.balance + '" class="edit-loan-bal" data-id="' + l.id + '"></td>' +
-            '<td><input type="number" style="width:70px; margin:0; padding:4px;" value="' + l.payment + '" class="edit-loan-pay" data-id="' + l.id + '"></td>' +
+            '<td>' + formatCurrency(l.balance) + '</td>' +
+            '<td>' + formatCurrency(l.payment) + '/m</td>' +
             '<td style="text-align:right;"><button class="action-icon-btn delete-btn del-loan" data-id="' + l.id + '">✕</button></td>';
-          loansTable.appendChild(tr);
+          lTable.appendChild(tr);
         });
 
-        document.querySelectorAll('.edit-loan-bal').forEach(function(input) {
-          input.addEventListener('change', function() { updateLoanDirect(parseInt(this.getAttribute('data-id')), 'balance', this.value); });
-        });
-        document.querySelectorAll('.edit-loan-pay').forEach(function(input) {
-          input.addEventListener('change', function() { updateLoanDirect(parseInt(this.getAttribute('data-id')), 'payment', this.value); });
-        });
         document.querySelectorAll('.del-loan').forEach(function(btn) {
-          btn.addEventListener('click', function() { deleteLoan(parseInt(this.getAttribute('data-id'))); });
+          btn.addEventListener('click', function() {
+            var id = parseInt(this.getAttribute('data-id'));
+            loans = loans.filter(function(l) { return l.id !== id; });
+            localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+            renderCarto();
+            renderSynth();
+            showToast('Prêt supprimé.', true);
+          });
         });
 
+        // Graphique Répartition
         if (typeof Chart !== 'undefined') {
-          var typeMap = {};
-          latestList.forEach(function(r) { typeMap[r.type] = (typeMap[r.type] || 0) + r.value; });
+          var typeTotals = {};
+          latestList.forEach(function(r) { typeTotals[r.type] = (typeTotals[r.type] || 0) + r.value; });
           var ctx = document.getElementById('allocationChart').getContext('2d');
           if (pieChartInstance) pieChartInstance.destroy();
           pieChartInstance = new Chart(ctx, {
             type: 'doughnut',
-            data: { labels: Object.keys(typeMap), datasets: [{ data: Object.values(typeMap), backgroundColor: ['#38bdf8', '#34d399', '#fbbf24', '#818cf8', '#f472b6', '#c084fc'] }] },
-            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } }
+            data: {
+              labels: Object.keys(typeTotals),
+              datasets: [{ data: Object.values(typeTotals), backgroundColor: ['#38bdf8', '#fbbf24', '#34d399', '#f43f5e', '#a855f7', '#64748b'] }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } }
           });
         }
-      }
-
-      function updateRecordDirect(category, field, val) {
-        var numVal = parseFloat(val) || 0;
-        var latestList = getLatestByCategory();
-        var targetObj = latestList[category];
-        if (targetObj) {
-          var newRecord = Object.assign({}, targetObj, { id: Date.now(), date: new Date().toISOString().split('T')[0] });
-          newRecord[field] = numVal;
-          records.push(newRecord);
-          saveData();
-          renderSynth();
-          renderCarto();
-          renderFireTab();
-          showToast('Mise à jour enregistrée', true);
-        }
-      }
-
-      function deleteCategoryDirect(category) {
-        records = records.filter(function(r) { return r.category !== category; });
-        saveData();
-        renderSynth();
-        renderCarto();
-        renderFireTab();
-        renderPatrimoineTab();
-        showToast('Support supprimé', false);
-      }
-
-      function updateLoanDirect(id, field, val) {
-        var loan = loans.find(function(l) { return l.id === id; });
-        if (loan) {
-          loan[field] = parseFloat(val) || 0;
-          localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-          renderSynth();
-          renderCarto();
-          showToast('Prêt mis à jour', true);
-        }
-      }
-
-      function deleteLoan(id) {
-        loans = loans.filter(function(l) { return l.id !== id; });
-        localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-        renderCarto();
-        renderSynth();
-        showToast('Prêt supprimé', false);
       }
 
       function renderFireTab() {
         var latestList = Object.values(getLatestByCategory());
         var totalActifs = latestList.reduce(function(sum, r) { return sum + r.value; }, 0);
-        var renteDist = latestList.filter(function(r) { return r.mode === 'DIST'; }).reduce(function(sum, r) { return sum + (r.value * (r.yield / 100) / 12); }, 0);
-        
-        if (document.getElementById('renteDistDirect')) document.getElementById('renteDistDirect').innerText = formatCurrency(renteDist) + ' / mois';
-        
-        var pctBrut = fireSettings.capTarget > 0 ? Math.min(100, (totalActifs / fireSettings.capTarget) * 100).toFixed(1) : 0;
-        if (document.getElementById('firePctVal')) document.getElementById('firePctVal').innerText = pctBrut + ' %';
-        if (document.getElementById('fireProgressBar')) document.getElementById('fireProgressBar').style.width = pctBrut + '%';
 
-        var peaVerser = peaDeposits > 0 ? peaDeposits : latestList.filter(function(r) { return r.envelope === 'PEA'; }).reduce(function(s, r) { return s + r.value; }, 0);
-        if (document.getElementById('peaPlafondVal')) document.getElementById('peaPlafondVal').innerText = formatCurrency(peaVerser) + ' / 150 000 €';
-        if (document.getElementById('peaPlafondBar')) document.getElementById('peaPlafondBar').style.width = Math.min(100, (peaVerser / 150000) * 100) + '%';
+        var capTarget = fireSettings.capTarget || 750000;
+        var renteTarget = fireSettings.manualRente || 2500;
+        
+        document.getElementById('renteTheoriqueVal').innerText = formatCurrency(renteTarget) + ' / mois';
+        
+        var pctProgress = Math.min(100, ((totalActifs / capTarget) * 100)).toFixed(1);
+        document.getElementById('firePctVal').innerText = pctProgress + ' %';
+        document.getElementById('fireProgressBar').style.width = pctProgress + '%';
 
-        var container = document.getElementById('advancedDcaContainer');
-        if (container) {
-          container.innerHTML = '';
-          latestList.forEach(function(r) {
-            if (!advDcaSettings[r.category]) {
-              advDcaSettings[r.category] = { dca: 300, startMonth: 1, endMonth: 240, injectionAmt: 0, injectionMonth: 12 };
-            }
-            var cfg = advDcaSettings[r.category];
-            container.innerHTML += 
-              '<div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:10px;">' +
-                '<div style="color:#38bdf8; font-weight:bold; font-size:12px; margin-bottom:6px;">' + r.envelope + ' (' + r.type + ') — Rend: ' + r.yield + '%</div>' +
-                '<div class="grid-3">' +
-                  '<div><label>DCA (€/m)</label><input type="number" class="adv-dca" data-cat="' + r.category + '" value="' + cfg.dca + '"></div>' +
-                  '<div><label>Début (m)</label><input type="number" class="adv-start" data-cat="' + r.category + '" value="' + cfg.startMonth + '"></div>' +
-                  '<div><label>Fin (m)</label><input type="number" class="adv-end" data-cat="' + r.category + '" value="' + cfg.endMonth + '"></div>' +
-                '</div>' +
-                '<div class="grid-2" style="margin-top:4px;">' +
-                  '<div><label>Apport Ponctuel (€)</label><input type="number" class="adv-inj-amt" data-cat="' + r.category + '" value="' + cfg.injectionAmt + '"></div>' +
-                  '<div><label>Au mois N°</label><input type="number" class="adv-inj-mo" data-cat="' + r.category + '" value="' + cfg.injectionMonth + '"></div>' +
-                '</div>' +
-              '</div>';
-          });
-        }
+        var renteDist = latestList.filter(function(r) { return r.mode === 'DIST'; }).reduce(function(s, r) { return s + (r.value * ((r.yield || 5) / 100)); }, 0) / 12;
+        document.getElementById('renteDistDirect').innerText = '+' + formatCurrency(renteDist) + ' / mois';
+
+        var peaTotal = latestList.filter(function(r) { return r.envelope === 'PEA'; }).reduce(function(s, r) { return s + r.value; }, 0);
+        var peaVerser = peaDeposits > 0 ? peaDeposits : peaTotal;
+        document.getElementById('peaPlafondVal').innerText = formatCurrency(peaVerser) + ' / 150 000 €';
+        document.getElementById('peaPlafondBar').style.width = Math.min(100, (peaVerser / 150000) * 100) + '%';
+
+        // Render Conteneur DCA Avancé
+        var dcaContainer = document.getElementById('advancedDcaContainer');
+        dcaContainer.innerHTML = '';
+        
+        var categoryKeys = Object.keys(getLatestByCategory());
+        if (categoryKeys.length === 0) categoryKeys = ["PEA - Actions", "Assurance-Vie - Fonds Euros"];
+
+        categoryKeys.forEach(function(catKey) {
+          var cfg = advDcaSettings[catKey] || { dca: 200, yield: 6.0 };
+          dcaContainer.innerHTML += 
+            '<div style="background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:8px;">' +
+              '<div style="font-weight:bold; font-size:12px; color:#38bdf8; margin-bottom:6px;">' + catKey + '</div>' +
+              '<div class="grid-2">' +
+                '<div><label>DCA Mensuel (€)</label><input type="number" class="adv-dca-input" data-cat="' + catKey + '" value="' + cfg.dca + '"></div>' +
+                '<div><label>Rendement (%)</label><input type="number" class="adv-yield-input" data-cat="' + catKey + '" step="0.1" value="' + cfg.yield + '"></div>' +
+              '</div>' +
+            '</div>';
+        });
 
         calculateProjections();
       }
 
       function calculateProjections() {
-        document.querySelectorAll('.adv-dca').forEach(function(el) { var cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].dca = parseFloat(el.value) || 0; });
-        document.querySelectorAll('.adv-start').forEach(function(el) { var cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].startMonth = parseInt(el.value) || 1; });
-        document.querySelectorAll('.adv-end').forEach(function(el) { var cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].endMonth = parseInt(el.value) || 240; });
-        document.querySelectorAll('.adv-inj-amt').forEach(function(el) { var cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].injectionAmt = parseFloat(el.value) || 0; });
-        document.querySelectorAll('.adv-inj-mo').forEach(function(el) { var cat = el.getAttribute('data-cat'); if(advDcaSettings[cat]) advDcaSettings[cat].injectionMonth = parseInt(el.value) || 12; });
+        var latestList = Object.values(getLatestByCategory());
+        var currentCap = latestList.reduce(function(sum, r) { return sum + r.value; }, 0);
+        
+        var inputsDca = document.querySelectorAll('.adv-dca-input');
+        var inputsYield = document.querySelectorAll('.adv-yield-input');
+
+        var totalDca = 0;
+        var weightedYield = 0;
+
+        inputsDca.forEach(function(inp, idx) {
+          var catKey = inp.getAttribute('data-cat');
+          var dcaVal = parseFloat(inp.value) || 0;
+          var yieldVal = parseFloat(inputsYield[idx].value) || 0;
+          
+          advDcaSettings[catKey] = { dca: dcaVal, yield: yieldVal };
+          totalDca += dcaVal;
+          weightedYield += yieldVal;
+        });
+
+        if (inputsDca.length > 0) weightedYield = weightedYield / inputsDca.length;
+        else weightedYield = 5.0;
 
         localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
 
-        var latestList = Object.values(getLatestByCategory());
-        var balancesStd = {};
-        var balancesBoost = {};
-        latestList.forEach(function(r) { balancesStd[r.category] = r.value; balancesBoost[r.category] = r.value; });
+        var targetAge = fireSettings.ageTarget || 55;
+        var currentAge = 35; 
+        var years = Math.max(1, targetAge - currentAge);
 
-        lastSeriesStd = [Math.round(Object.values(balancesStd).reduce(function(a,b){return a+b;},0))];
-        lastSeriesBoost = [Math.round(Object.values(balancesBoost).reduce(function(a,b){return a+b;},0))];
+        lastSeriesStd = [];
+        lastSeriesBoost = [];
+        var labels = [];
 
-        for (var m = 1; m <= 240; m++) {
-          Object.keys(balancesStd).forEach(function(cat) {
-            var rObj = latestList.find(function(x) { return x.category === cat; });
-            var annualYield = rObj ? (rObj.yield / 100) : 0.05;
-            var monthlyRate = Math.pow(1 + annualYield, 1/12) - 1;
-            var cfg = advDcaSettings[cat] || { dca: 0 };
-            var activeDca = (m >= (cfg.startMonth || 1) && m <= (cfg.endMonth || 240)) ? cfg.dca : 0;
-            balancesStd[cat] += (balancesStd[cat] * monthlyRate) + activeDca;
-          });
+        var capStd = currentCap;
+        var capBoost = currentCap;
+        var monthlyRate = (weightedYield / 100) / 12;
 
-          Object.keys(balancesBoost).forEach(function(cat) {
-            var rObj = latestList.find(function(x) { return x.category === cat; });
-            var annualYield = rObj ? (rObj.yield / 100) : 0.05;
-            var monthlyRate = Math.pow(1 + annualYield, 1/12) - 1;
-            var cfg = advDcaSettings[cat] || { dca: 0, injectionAmt: 0, injectionMonth: 12 };
-            var activeDca = (m >= (cfg.startMonth || 1) && m <= (cfg.endMonth || 240)) ? cfg.dca : 0;
-            var injection = (m === (cfg.injectionMonth || 12)) ? (cfg.injectionAmt || 0) : 0;
-            balancesBoost[cat] += (balancesBoost[cat] * monthlyRate) + activeDca + injection;
-          });
+        for (var y = 0; y <= years; y++) {
+          labels.push('Âge ' + (currentAge + y));
+          lastSeriesStd.push(Math.round(capStd));
+          lastSeriesBoost.push(Math.round(capBoost));
 
-          if (m % 12 === 0) {
-            lastSeriesStd.push(Math.round(Object.values(balancesStd).reduce(function(a,b){return a+b;},0)));
-            lastSeriesBoost.push(Math.round(Object.values(balancesBoost).reduce(function(a,b){return a+b;},0)));
+          for (var m = 0; m < 12; m++) {
+            capStd = (capStd + totalDca) * (1 + monthlyRate);
+            capBoost = (capBoost + (totalDca * 1.25)) * (1 + monthlyRate * 1.1);
           }
         }
 
-        var durationYears = Math.max(1, (fireSettings.ageTarget || 55) - 40);
-        var renteTheorique = (fireSettings.capTarget * 0.04) / 12;
-        if (document.getElementById('renteTheoriqueVal')) document.getElementById('renteTheoriqueVal').innerText = formatCurrency(renteTheorique) + ' / mois';
+        // Calculation of required monthly effort to reach target
+        var capTarget = fireSettings.capTarget || 750000;
+        var remainingCap = capTarget - currentCap;
+        var totalMonths = years * 12;
+        var effortRequis = totalMonths > 0 ? Math.max(0, Math.round(remainingCap / totalMonths)) : 0;
+        document.getElementById('fireEffortRequis').innerText = '+' + effortRequis.toLocaleString('fr-FR') + ' € / mois';
 
-        var impliedTargetCap = fireSettings.capTarget || 750000;
-        var currentTotal = Object.values(balancesBoost).reduce(function(a,b){return a+b;},0);
-        var missingCap = Math.max(0, impliedTargetCap - currentTotal);
-        var monthlyDeltaNeeded = Math.round(missingCap / (durationYears * 12));
-        
-        if (document.getElementById('fireEffortRequis')) document.getElementById('fireEffortRequis').innerText = '+' + monthlyDeltaNeeded + ' € / mois';
-
-        renderProjectionCharts();
-      }
-
-      function renderProjectionCharts() {
-        if (typeof Chart === 'undefined') return;
-        var labelsYear = ["Aujourd'hui"];
-        for (var i = 1; i <= 20; i++) labelsYear.push('An +' + i);
-
-        var chartConfig = {
-          type: 'line',
-          data: {
-            labels: labelsYear,
-            datasets: [
-              { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false, tension: 0.2 },
-              { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)', tension: 0.2 }
-            ]
-          },
-          options: {
-            responsive: true,
-            interaction: { mode: 'index', intersect: false },
-            scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }
-          }
-        };
-
-        var ctx = document.getElementById('projectionChart').getContext('2d');
-        if (projectionChartInstance) projectionChartInstance.destroy();
-        projectionChartInstance = new Chart(ctx, chartConfig);
+        if (typeof Chart !== 'undefined') {
+          var ctx = document.getElementById('projectionChart').getContext('2d');
+          if (projectionChartInstance) projectionChartInstance.destroy();
+          projectionChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [
+                { label: 'Trajectoire Standard (€)', data: lastSeriesStd, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true },
+                { label: 'Trajectoire Optimisée (€)', data: lastSeriesBoost, borderColor: '#34d399', borderDash: [5, 5] }
+              ]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: false, ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
+          });
+        }
       }
 
       function renderModalChart() {
-        if (typeof Chart === 'undefined') return;
-        var labelsYear = ["Aujourd'hui"];
-        for (var i = 1; i <= 20; i++) labelsYear.push('An +' + i);
-
-        var ctxModal = document.getElementById('modalProjectionChart').getContext('2d');
-        if (modalChartInstance) modalChartInstance.destroy();
-        modalChartInstance = new Chart(ctxModal, {
-          type: 'line',
-          data: {
-            labels: labelsYear,
-            datasets: [
-              { label: 'Scénario Normal (€)', data: lastSeriesStd, borderColor: '#94a3b8', fill: false, tension: 0.2 },
-              { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', fill: true, backgroundColor: 'rgba(56, 189, 248, 0.1)', tension: 0.2 }
-            ]
-          },
-          options: {
-            responsive: true,
-            interaction: { mode: 'index', intersect: false },
-            scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } }
-          }
-        });
+        if (typeof Chart !== 'undefined' && lastSeriesStd.length > 0) {
+          var ctx = document.getElementById('modalProjectionChart').getContext('2d');
+          if (modalChartInstance) modalChartInstance.destroy();
+          modalChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: lastSeriesStd.map(function(_, idx) { return 'Année ' + idx; }),
+              datasets: [
+                { label: 'Trajectoire Standard (€)', data: lastSeriesStd, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.15)', fill: true },
+                { label: 'Trajectoire Optimisée (€)', data: lastSeriesBoost, borderColor: '#34d399', borderDash: [4, 4] }
+              ]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#f8fafc' } } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
+          });
+        }
       }
 
       function renderPatrimoineTab() {
-        var table = document.getElementById('historyTable');
-        table.innerHTML = '';
-        records.slice().reverse().forEach(function(r) {
+        var hTable = document.getElementById('historyTable');
+        hTable.innerHTML = '';
+        records.slice().reverse().forEach(function(r, idx) {
+          var originalIndex = records.length - 1 - idx;
           var tr = document.createElement('tr');
-          tr.innerHTML = '<td>' + r.date + '</td><td><b>' + r.envelope + '</b><br><span style="color:#64748b">' + r.type + '</span></td><td>' + formatCurrency(r.value) + '</td><td>' + r.yield + '%</td><td><button class="action-icon-btn delete-btn del-rec" data-id="' + r.id + '">✕</button></td>';
-          table.appendChild(tr);
+          tr.innerHTML = '<td>' + r.date + '</td>' +
+            '<td><b>' + r.envelope + '</b><br><span style="color:#64748b; font-size:10px;">' + r.type + '</span></td>' +
+            '<td>' + formatCurrency(r.value) + '</td>' +
+            '<td>' + (r.yield || 5) + '%</td>' +
+            '<td style="text-align:right;"><button class="action-icon-btn delete-btn del-hist" data-idx="' + originalIndex + '">✕</button></td>';
+          hTable.appendChild(tr);
         });
 
-        document.querySelectorAll('.del-rec').forEach(function(btn) {
-          btn.addEventListener('click', function() { deleteRecord(parseInt(this.getAttribute('data-id'))); });
+        document.querySelectorAll('.del-hist').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var idx = parseInt(this.getAttribute('data-idx'));
+            records.splice(idx, 1);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            renderPatrimoineTab();
+            renderSynth();
+            showToast('Entrée supprimée.', true);
+          });
         });
       }
 
-      function saveData() {
-        records.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-      }
-
-      function deleteRecord(id) {
-        records = records.filter(function(r) { return r.id !== id; });
-        saveData();
-        renderPatrimoineTab();
-        renderSynth();
-        renderCarto();
-        showToast('Entrée supprimée', false);
-      }
-
-      document.getElementById('entryForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        var envelope = document.getElementById('assetEnvelope').value;
-        var type = document.getElementById('assetType').value;
-        var category = envelope + ' (' + type + ')';
-
-        if (envelope === 'PEA') {
-          peaDeposits = parseFloat(document.getElementById('peaDeposits').value) || peaDeposits;
-          localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits);
-          if (document.getElementById('firePeaDeposits')) document.getElementById('firePeaDeposits').value = peaDeposits;
-        }
-
-        records.push({
-          id: Date.now(),
-          date: document.getElementById('entryDate').value,
-          envelope: envelope,
-          type: type,
-          mode: document.getElementById('assetMode').value,
-          yield: parseFloat(document.getElementById('assetYield').value) || 0,
-          category: category,
-          value: parseFloat(document.getElementById('assetValue').value)
-        });
-
-        saveData();
-        document.getElementById('assetValue').value = '';
-        renderPatrimoineTab();
-        renderSynth();
-        renderCarto();
-        showToast('Nouvelle enveloppe enregistrée avec succès !', true);
-      });
-
-      document.getElementById('loanForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        loans.push({
-          id: Date.now(),
-          name: document.getElementById('loanName').value,
-          balance: parseFloat(document.getElementById('loanBalance').value),
-          payment: parseFloat(document.getElementById('loanPayment').value),
-          rate: parseFloat(document.getElementById('loanRate').value),
-          months: parseInt(document.getElementById('loanMonths').value)
-        });
-        localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-        document.getElementById('loanForm').reset();
-        renderCarto();
-        renderSynth();
-        showToast('Prêt enregistré avec succès !', true);
-      });
-
-      // Lancement initial
+      // Initial Render
       renderSynth();
-      updateCashFlow();
     });
   </script>
 </body>
 </html>
 ```
-good Job PatMBTI
+
+bigdiamondMBTIPat
