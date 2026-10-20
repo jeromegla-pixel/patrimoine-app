@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -533,7 +532,8 @@
       }, 3000);
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    // Exécution immédiate sécurisée (évite le blocage DOMContentLoaded si déjà tiré)
+    (function initApp() {
       if (document.getElementById('entryDate')) {
         document.getElementById('entryDate').valueAsDate = new Date();
       }
@@ -754,7 +754,7 @@
         { title: "5. Face à la volatilité boursière", options: [{ label: "Je consulte les tableaux rationnellement pour voir s'il y a un coup mathématique à faire.", trait: "T" }, { label: "Je ressens une réaction intestine ou un besoin de protéger mon confort émotif.", trait: "F" }] },
         { title: "6. Organisation de vos finances", options: [{ label: "Tout est consigné, budgété ou automatisé avec une grande régularité.", trait: "J" }, { label: "Je gère au fil de l'eau selon les opportunités du moment.", trait: "P" }] },
         { title: "7. Source de conviction", options: [{ label: "L'expérience concrète, l'historique tangible et ce que je peux vérifier.", trait: "S" }, { label: "La théorie, les modèles statistiques et les visions prospectives.", trait: "N" }] },
-        { title: "8. Interventions sociales & projets", options: [{ label: "J'aime en parler autour de moi, débattre ou porter des projets à plusieurs.", trait: "E" }, { label: "Je reste discret sur mon patrimoine et préfère agir en autonomie.", trait: "I" }]
+        { title: "8. Interventions sociales & projets", options: [{ label: "J'aime en parler autour de moi, débattre ou porter des projets à plusieurs.", trait: "E" }, { label: "Je reste discret sur mon patrimoine et préfère agir en autonomie.", trait: "I" }] }
       ];
 
       // INITIALISATION DES CHAMPS
@@ -1718,15 +1718,14 @@
         });
       }
 
-      // Initialisation
+      // Initialisation explicite des vues et affichages
       renderSynth();
       renderCarto();
       renderMbtiTab();
       renderFireTab();
       renderPatrimoineTab();
-    });
+    })();
   </script>
 </body>
 </html>
-```
-version1.3
+version def
