@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -22,6 +23,7 @@
     .brand-title { font-size: 20px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px; }
     .header-actions { display: flex; gap: 8px; }
     .action-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .action-btn:hover { border-color: #38bdf8; color: #f8fafc; }
 
     /* Écran de Verrouillage PIN */
     #lockScreen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; }
@@ -67,6 +69,7 @@
     label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
     input, select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 8px; font-size: 13px; }
     button.submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #2563eb; color: #fff; font-weight: bold; font-size: 14px; cursor: pointer; }
+    button.submit-btn:hover { background-color: #1d4ed8; }
     
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { text-align: left; padding: 10px 4px; border-bottom: 1px solid #334155; vertical-align: middle; }
@@ -77,11 +80,23 @@
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 
     .info-banner { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px; font-size: 11px; color: #38bdf8; margin-bottom: 12px; }
+    .alert-banner { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 10px; padding: 10px 12px; font-size: 11px; color: #fca5a5; margin-bottom: 12px; }
     .trait-badge { background: #0f172a; border: 1px solid #334155; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; }
-    .mbti-grid-item { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+    .mbti-grid-item { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 10px; margin-bottom: 8px; cursor: pointer; transition: transform 0.1s; }
+    .mbti-grid-item:hover { transform: translateY(-2px); border-color: #38bdf8; }
 
-    #chartModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.96); z-index: 9999; padding: 20px; flex-direction: column; justify-content: center; align-items: center; }
-    .modal-close { position: absolute; top: 20px; right: 20px; background: #334155; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+    /* MODALES UNIFIÉES */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.96); z-index: 9999; padding: 20px; flex-direction: column; justify-content: center; align-items: center; overflow-y: auto; }
+    .modal-box { background: #1e293b; border: 1px solid #334155; border-radius: 16px; width: 100%; max-width: 600px; padding: 20px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: #334155; color: #fff; border: none; padding: 6px 14px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+    .modal-close:hover { background: #475569; }
+
+    /* Styles Questionnaire MBTI */
+    .q-box { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+    .q-title { font-size: 12px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; }
+    .q-options { display: flex; flex-direction: column; gap: 6px; }
+    .q-opt-btn { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; text-align: left; padding: 8px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; }
+    .q-opt-btn.selected { border-color: #38bdf8; background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -101,11 +116,46 @@
   </div>
 
   <!-- MODAL AGRANDISSEMENT GRAPHIQUE -->
-  <div id="chartModal">
-    <button class="modal-close" id="closeModalBtn">✕ Fermer</button>
-    <div style="width:100%; max-width:650px; padding: 10px;">
+  <div id="chartModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:700px;">
+      <button class="modal-close" id="closeModalBtn">✕ Fermer</button>
       <h2 style="text-align:center; margin-bottom:16px; color:#38bdf8;">Zoom Trajectoire FIRE</h2>
       <canvas id="modalProjectionChart" height="320"></canvas>
+    </div>
+  </div>
+
+  <!-- MODAL QUESTIONNAIRE MBTI EXPRESS -->
+  <div id="mbtiQuizModal" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close" id="closeQuizBtn">✕ Fermer</button>
+      <h2 style="color:#38bdf8; margin-bottom:6px;">🧪 Questionnaire MBTI Express (8 questions)</h2>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:14px;">Répondez spontanément. Cet outil fournit une estimation indicative sans garantie formelle.</div>
+      <div id="quizQuestionsContainer"></div>
+      <div id="quizResultBox" style="display:none; background:#0f172a; border:1px solid #38bdf8; padding:12px; border-radius:10px; margin-top:10px; text-align:center;">
+        <div style="font-size:11px; color:#94a3b8;">Résultat Estimé :</div>
+        <div id="quizEstimatedCode" style="font-size:22px; font-weight:800; color:#38bdf8; margin:4px 0;">ISTP</div>
+        <div id="quizEstimatedDesc" style="font-size:11px; color:#cbd5e1; margin-bottom:10px;"></div>
+        <button class="submit-btn" id="applyQuizResultBtn">Appliquer ce profil à mon portefeuille</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FICHE DÉTAILLÉE PROFIL MBTI MATRICE -->
+  <div id="mbtiDetailModal" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close" id="closeMbtiDetailBtn">✕ Fermer</button>
+      <div id="mbtiDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- MODAL PERSONNALISATION INDICATEURS MARCHÉS -->
+  <div id="marketCustomModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:450px;">
+      <button class="modal-close" id="closeMarketCustomBtn">✕ Fermer</button>
+      <h2 style="color:#38bdf8; margin-bottom:8px;">⚙️ Sélectionner 6 Indicateurs</h2>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:12px;">Cochez exactement 6 indicateurs à afficher en priorité dans la synthèse :</div>
+      <div id="marketChoicesContainer" style="display:flex; flex-direction:column; gap:8px; font-size:12px;"></div>
+      <button class="submit-btn" id="saveMarketCustomBtn" style="margin-top:14px;">Valider les 6 Indicateurs</button>
     </div>
   </div>
 
@@ -141,6 +191,11 @@
 
   <!-- 1. SYNTHÈSE -->
   <div id="view-synth" class="tab-view active">
+    <!-- BANDEAU STRESS TEST SI ACTIF -->
+    <div id="synthStressAlert" class="alert-banner" style="display:none;">
+      ⚠️ <b>SIMULATEUR DE CRISE ACTIF :</b> <span id="synthStressText">Impact de krach appliqué (-30% Actions).</span>
+    </div>
+
     <div class="card">
       <div class="hero-label">Patrimoine Net Total</div>
       <div id="totalNetVal" class="hero-amount">0,00 €</div>
@@ -165,24 +220,22 @@
       </div>
     </div>
 
-    <!-- WIDGET ACTION ITEMS (PROPACTIF) -->
+    <!-- WIDGET ACTION ITEMS STRUCTURÉ EN COURT / MOYEN / LONG TERME -->
     <div class="card">
-      <h2>🚀 Prochains Pas & Recommandations</h2>
-      <div id="actionItemsContainer" style="font-size:12px; color:#cbd5e1; display:flex; flex-direction:column; gap:8px;">
+      <h2>🚀 Prochains Pas & Recommandations Approfondies</h2>
+      <div id="actionItemsContainer" style="font-size:12px; color:#cbd5e1; display:flex; flex-direction:column; gap:10px;">
         <!-- Dynamique -->
       </div>
     </div>
 
-    <!-- WIDGET MARCHÉS -->
+    <!-- WIDGET MARCHÉS PERSONNALISABLES -->
     <div class="card">
-      <h2>Marchés & Indicateurs Macro</h2>
-      <div class="market-grid">
-        <div class="market-card"><div class="market-title">MSCI World</div><div class="market-val">3 420 pts</div><div class="market-sub">+0.8%</div></div>
-        <div class="market-card"><div class="market-title">VIX (Volatilité)</div><div class="market-val" style="color:#fbbf24;">14.2</div><div class="market-sub" style="color:#94a3b8;">Calme</div></div>
-        <div class="market-card"><div class="market-title">MSCI ACWI</div><div class="market-val">780 pts</div><div class="market-sub">+0.5%</div></div>
-        <div class="market-card"><div class="market-title">Or (Gold /oz)</div><div class="market-val">2 650 $</div><div class="market-sub">+1.2%</div></div>
-        <div class="market-card"><div class="market-title">Bitcoin</div><div class="market-val">64 500 $</div><div class="market-sub">+2.4%</div></div>
-        <div class="market-card"><div class="market-title">PER Europe</div><div class="market-val">13.8x</div><div class="market-sub" style="color:#94a3b8;">Neutre</div></div>
+      <h2>
+        <span>Marchés & Indicateurs Macro</span>
+        <button class="action-btn" id="openMarketCustomBtn" style="font-size:10px; padding:2px 8px;">⚙️ Choisir mes 6</button>
+      </h2>
+      <div class="market-grid" id="marketGridDisplay">
+        <!-- Dynamique -->
       </div>
     </div>
 
@@ -222,10 +275,13 @@
 
   <!-- 3. PROFIL MBTI -->
   <div id="view-mbti" class="tab-view">
-    <!-- SÉLECTEUR DE PROFIL DÉCLARATIF (PHILOSOPHIQUE) -->
+    <!-- SÉLECTEUR DE PROFIL DÉCLARATIF + TEST EXPRESS -->
     <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05);">
-      <h2>🧭 Votre Vrai Profil MBTI (Déclaratif)</h2>
-      <div style="font-size:11px; color:#94a3b8; margin-bottom:8px;">Le profil de votre allocation ne reflète pas forcément votre nature profonde. Déclarez votre véritable type MBTI ci-dessous :</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="margin:0;">🧭 Votre Vrai Profil MBTI</h2>
+        <button class="action-btn" id="openQuizBtn" style="background:#2563eb; color:#fff; border:none; font-weight:bold;">🧪 Test Express</button>
+      </div>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:8px;">Le profil de votre allocation ne reflète pas forcément votre nature profonde. Déclarez votre véritable type MBTI :</div>
       <select id="userDeclaredMbti" style="font-weight:bold; color:#38bdf8;">
         <option value="AUTO">-- Déduire automatiquement du portefeuille --</option>
         <option value="INTJ">INTJ — L'Architecte</option>
@@ -255,9 +311,9 @@
       </div>
     </div>
 
-    <!-- MODULE RÉÉQUILIBRAGE & ALIGNEMENT MBTI -->
+    <!-- MODULE RÉÉQUILIBRAGE & ALIGNEMENT MBTI CONCRET -->
     <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.3);">
-      <h2>⚖️ Alignement Stratégique & Rééquilibrage</h2>
+      <h2>⚖️ Alignement Stratégique & Rééquilibrage Comportemental</h2>
       <div id="mbtiRebalanceReport" style="font-size:12px; color:#cbd5e1; line-height:1.5;">
         <!-- Dynamique -->
       </div>
@@ -274,37 +330,40 @@
     </div>
 
     <div class="card">
-      <h2>🔍 Points d'Attention & Recommandations</h2>
+      <h2>🔍 Recommandations pour Votre Alignement Psychologique</h2>
       <div id="mbtiAttentions"></div>
     </div>
 
     <div class="card">
-      <h2>📚 La Matrice Officielle des 16 Profils MBTI</h2>
+      <h2>📚 La Matrice Officielle des 16 Profils (Cliquer pour voir le détail)</h2>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Cliquez sur n'importe quel profil pour ouvrir sa fiche d'investissement stratégique complète.</div>
       <div style="font-size:12px; color:#94a3b8; line-height:1.5;" id="fullMatrixContainer"></div>
     </div>
   </div>
 
   <!-- 4. OBJECTIF FIRE -->
   <div id="view-fire" class="tab-view">
-    <div class="card">
-      <h2>Paramètres Corrélés FIRE</h2>
+    <!-- BLOC REGROUPÉ ET HARMONISÉ PARAMÈTRES & OBJECTIFS FIRE -->
+    <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.4);">
+      <h2>🎯 Paramètres & Cibles FIRE Harmonisé</h2>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Définissez votre cible financière globale. La rente cible recalcule automatiquement le capital théorique nécessaire (Règle des 4%).</div>
       <div class="grid-2">
         <div>
           <label>Âge Cible FIRE</label>
           <input type="number" id="fireAgeTarget" value="55">
         </div>
         <div>
-          <label>Capital Cible (€)</label>
-          <input type="number" id="fireCapTarget" value="750000">
+          <label style="color:#38bdf8; font-weight:bold;">Rente Cible (€/mois)</label>
+          <input type="number" id="fireManualRente" value="2500" style="border-color:#38bdf8; color:#38bdf8; font-weight:bold;">
         </div>
       </div>
       <div class="grid-2" style="margin-top:4px;">
         <div>
-          <label style="color:#38bdf8;">Rente Cible Manuelle (€/m)</label>
-          <input type="number" id="fireManualRente" value="2500">
+          <label>Capital Cible Équivalent (€)</label>
+          <input type="number" id="fireCapTarget" value="750000">
         </div>
         <div>
-          <label style="color:#38bdf8;">Versements Nets PEA (€)</label>
+          <label style="color:#818cf8;">Versements Nets PEA (€)</label>
           <input type="number" id="firePeaDeposits" value="0">
         </div>
       </div>
@@ -320,22 +379,35 @@
       <div class="fire-metric" style="margin-top:8px;"><span class="fire-label">Épargne Nette Réelle Disponible</span><span id="cashEpargneNette" class="fire-val">+0 € / mois</span></div>
     </div>
 
-    <!-- MODULE STRESS TEST DE CRISE -->
+    <!-- MODULE STRESS TEST DE CRISE AVANCÉ (-30%, -40%, -50%, -60%) -->
     <div class="card" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
-      <h2>⚡ Simulateur de Crise (Stress Test)</h2>
-      <div style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Évaluez la résilience de votre patrimoine face à un choc boursier ou inflationniste.</div>
-      <div class="grid-2">
-        <button type="button" class="action-btn" id="stressCrashBtn" style="justify-content:center; background:#7f1d1d; color:#fca5a5; border-color:#ef4444;">💥 Krach Boursier (-30% Actions)</button>
-        <button type="button" class="action-btn" id="stressResetBtn" style="justify-content:center; background:#1e293b; color:#38bdf8;">🔄 Réinitialiser les Chocs</button>
+      <h2>⚡ Simulateur de Krach Boursier (Stress Test)</h2>
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:10px;">Sélectionnez l'amplitude du krach pour tester la résistance brute et psychologique de vos enveloppes actions.</div>
+      <div class="grid-2" style="margin-bottom:8px;">
+        <div>
+          <label style="color:#fca5a5;">Sévérité du Krach Boursier</label>
+          <select id="stressIntensitySelect" style="border-color:#ef4444; color:#fca5a5;">
+            <option value="0.30">💥 -30% (Correction Modérée)</option>
+            <option value="0.40">💥 -40% (Crise Majeure 2008)</option>
+            <option value="0.50">💥 -50% (Krach Sévère 2000)</option>
+            <option value="0.60">💥 -60% (Effondrement Extrême)</option>
+          </select>
+        </div>
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;">
+          <button type="button" class="action-btn" id="stressCrashBtn" style="justify-content:center; background:#7f1d1d; color:#fca5a5; border-color:#ef4444; padding:8px;">Simuler le Krach</button>
+        </div>
       </div>
-      <div id="stressTestResult" style="font-size:12px; color:#f8fafc; margin-top:10px; font-weight:bold;"></div>
+      <button type="button" class="action-btn" id="stressResetBtn" style="width:100%; justify-content:center; background:#1e293b; color:#38bdf8;">🔄 Réinitialiser les Chocs (Retour à la normale)</button>
+      
+      <div id="stressTestResult" style="font-size:12px; color:#f8fafc; margin-top:10px; line-height:1.4;"></div>
+      <div id="stressMbtiResilience" style="font-size:11px; color:#cbd5e1; margin-top:8px; padding-top:8px; border-top:1px dashed #334155; display:none;"></div>
     </div>
 
     <div class="card">
-      <h2>Projection & Effort d'Épargne Requis</h2>
+      <h2>Synthèse des Rentes & Effort d'Épargne Requis</h2>
       <div class="fire-metric"><span class="fire-label">Rente DIST Actuelle (Reçue)</span><span id="renteDistDirect" class="fire-val">+0 € / mois</span></div>
-      <div class="fire-metric"><span class="fire-label">Rente Théorique (4% Capital Cible)</span><span id="renteTheoriqueVal" class="fire-val">+0 € / mois</span></div>
-      <div class="fire-metric"><span class="fire-label">Effort Mensuel Requis (Basé sur Cible)</span><span id="fireEffortRequis" class="fire-val">+0 € / mois</span></div>
+      <div class="fire-metric"><span class="fire-label">Rente Théorique Cible (4% / an)</span><span id="renteTheoriqueVal" class="fire-val">+0 € / mois</span></div>
+      <div class="fire-metric"><span class="fire-label">Effort Mensuel Requis (sur Cible)</span><span id="fireEffortRequis" class="fire-val">+0 € / mois</span></div>
       <div class="fire-metric"><span class="fire-label">Progression vs Capital Cible</span><span id="firePctVal" class="fire-val">0 %</span></div>
       <div class="progress-bg" style="height:8px; margin-top:8px;"><div id="fireProgressBar" class="progress-fill" style="width: 0%; background: #38bdf8;"></div></div>
     </div>
@@ -446,7 +518,7 @@
       }
     });
 
-    // Système de Toast Non Intrusif
+    // Toast Messenger
     function showToast(message, isSuccess) {
       var container = document.getElementById('toastContainer');
       if (!container) return;
@@ -475,6 +547,7 @@
       var PIN_CODE_KEY = 'patrimoine_pin_v1';
       var CASH_FLOW_KEY = 'patrimoine_cash_flow_v1';
       var DECLARED_MBTI_KEY = 'patrimoine_declared_mbti_v1';
+      var MARKET_SELECTION_KEY = 'patrimoine_market_sel_v1';
 
       var records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       var loans = JSON.parse(localStorage.getItem(LOANS_STORAGE_KEY)) || [];
@@ -483,6 +556,7 @@
       var peaDeposits = parseFloat(localStorage.getItem(PEA_DEPOSITS_KEY)) || 0;
       var cashFlowSettings = JSON.parse(localStorage.getItem(CASH_FLOW_KEY)) || { revenus: 4500, charges: 2000 };
       var declaredMbti = localStorage.getItem(DECLARED_MBTI_KEY) || 'AUTO';
+      var selectedMarketKeys = JSON.parse(localStorage.getItem(MARKET_SELECTION_KEY)) || ["MSCI_WORLD", "VIX", "CAC40", "GOLD", "BITCOIN", "PER_EU"];
 
       var privacyMode = false;
       var viewsOrder = ['synth', 'carto', 'mbti', 'fire', 'patrimoine'];
@@ -492,26 +566,199 @@
       var lastSeriesBoost = [];
       var lastSeriesStd = [];
       var stressCrashActive = false;
+      var stressCrashRate = 0.30;
 
-      var MBTI_DATABASE = {
-        "INTJ": { name: "L'Architecte", family: "Analyste", summary: "Visionnaire, méthodique, guidé par les intérêts composés et le long terme.", strengths: ["Discipline de fer et DCA automatisé", "Optimisation fiscale rigoureuse (PEA)", "Vision long terme inébranlable"], weaknesses: ["Impatience face aux phases de stagnation", "Sur-concentration potentielle en actions"], attentions: ["Garder une poche de sécurité", "Ne pas sur-optimiser"] },
-        "INTP": { name: "Le Logicien", family: "Analyste", summary: "Chercheur de systèmes parfaits, analyse chaque frais et ligne de façon chirurgicale.", strengths: ["Analyse mathématique irréprochable", "Recherche active de frais minimes", "Curiosité intellectuelle financière"], weaknesses: ["Analyse paralyse l'action", "Complexité excessive du portefeuille"], attentions: ["Simplifier l'allocation", "Passer à l'action régulière"] },
-        "ENTJ": { name: "Le Commandant", family: "Analyste", summary: "Leader naturel, pilote son patrimoine comme une entreprise (stratégie de holding).", strengths: ["Stratégie globale structurée (SASU/Holding)", "Ambition de capitalisation élevée", "Prise de décision rapide"], weaknesses: ["Risque d'effet de levier excessif", "Impatience des résultats rapides"], attentions: ["Valider la solidité des cash-flows", "Ménager des soupapes de sécurité"] },
-        "ENTP": { name: "L'Innovateur", family: "Analyste", summary: "Opportuniste et agile, adore explorer les actifs alternatifs, la tech et les opportunités.", strengths: ["Réactivité face aux mouvements de marché", "Diversification audacieuse", "Agilité tactique"], weaknesses: ["Dispersion et manque de constance", "Sensibilité au bruit médiatique"], attentions: ["Sanctuariser le Core (MSCI World)", "Éviter les arbitrages impulsifs"] },
-        "INFJ": { name: "L'Avocat", family: "Diplomate", summary: "Investit avec une vision philosophique et éthique, cherche le sens profond de son épargne.", strengths: ["Cohérence entre valeurs et investissements", "Épargne consciente et durable", "Patience psychologique"], weaknesses: ["Culpabilité face à l'accumulation de richesse", "Aversion excessive au risque"], attentions: ["Accepter la rentabilité sans culpabilité", "S'ouvrir aux marchés actions solides"] },
-        "INFP": { name: "Le Médiateur", family: "Diplomate", summary: "Guidé par ses valeurs, recherche l'indépendance financière (FIRE) pour sa liberté de temps.", strengths: ["Objectif de liberté clairement défini", "Sobriété financière naturelle", "Vision humaine du patrimoine"], weaknesses: ["Tendance à fuir le suivi chiffré", "Sensibilité émotionnelle en cas de baisse"], attentions: ["Automatiser le suivi pour éviter le stress", "Consulter l'appli sans anxiété"] },
-        "ENFJ": { name: "Le Protagoniste", family: "Diplomate", summary: "Pense à la transmission, à la protection de ses proches et à la gestion familiale.", strengths: ["Vision patrimoniale intergénérationnelle", "Protection familiale solide (Assurance-Vie)", "Pédagogie de l'épargne"], weaknesses: ["Oubli de ses propres besoins d'optimisation", "Conservatisme excessif pour protéger les autres"], attentions: ["Sécuriser son propre plan FIRE", "Diversifier les enveloppes de transmission"] },
-        "ENFP": { name: "L'Inspirateur", family: "Diplomate", summary: "Enthousiaste, aime diversifier mais peut manquer de constance si le plan manque de ressort.", strengths: ["Énergie positive et vision optimiste", "Ouverture aux projets innovants", "Créativité dans l'épargne"], weaknesses: ["Manque de suivi rigoureux à long terme", "Abandon des stratégies en cours de route"], attentions: ["Mettre en place des virements automatiques", "Conserver un cap stable"] },
-        "ISTJ": { name: "Le Logisticien", family: "Sentinelle", summary: "Le roi de la rigueur, des tableaux de suivi et de l'épargne de précaution sanctuarisée.", strengths: ["Organisation et comptabilité irréprochables", "Épargne de précaution toujours solide", "Stabilité émotionnelle"], weaknesses: ["Frilosité face aux opportunités boursières", "Excès de prudence"], attentions: ["Oser s'exposer aux actions long terme", "Éviter de sur-dormir sur du cash"] },
-        "ISFJ": { name: "Le Défenseur", family: "Sentinelle", summary: "Très attaché à la sécurité de la pierre (immobilier, SCPI) et aux livrets garantis.", strengths: ["Sécurité de la brique et des livrets", "Protection absolue du foyer", "Constance de l'effort d'épargne"], weaknesses: ["Rendement global rogné par l'inflation", "Peur panique de la bourse"], attentions: ["Intégrer progressivement des ETF capitalisants", "Combattre l'inflation par le rendement"] },
-        "ESTJ": { name: "Le Directif", family: "Sentinelle", summary: "Bâtisseur pragmatique, aime les actifs tangibles et les flux de trésorerie récurrents.", strengths: ["Maîtrise de l'immobilier et du crédit", "Revenus passifs réguliers", "Rigueur de gestion"], weaknesses: ["Rigidité face aux nouvelles classes d'actifs", "Lourdeur administrative"], attentions: ["Garder de la flexibilité mobilière", "Surveiller l'endettement"] },
-        "ESFJ": { name: "Le Consul", family: "Sentinelle", summary: "Sensible à la sécurité collective, privilégie les placements consensuels et sécurisants.", strengths: ["Solidité financière du foyer", "Prudence avisée", "Régularité des versements"], weaknesses: ["Manque d'audace face au capital", "Influence excessive de l'entourage"], attentions: ["Construire sa propre conviction d'investissement", "Viser la diversification"] },
-        "ISTP": { name: "Le Virtuose", family: "Explorateur", summary: "Calme, rationnel, analyse froide des chiffres, excellent pour garder son sang-froid.", strengths: ["Sang-froid total en cas de krach", "Rationnalité pure des décisions", "Pragmatisme des arbitrages"], weaknesses: ["Tendance à l'immobilisme", "Manque de vision prospective long terme"], attentions: ["Formaliser un plan d'action pluriannuel", "Maintenir l'effort d'épargne"] },
-        "ISFP": { name: "L'Aventurier", family: "Explorateur", summary: "Cherche un équilibre entre plaisir immédiat et constitution progressive d'un matelas.", strengths: ["Équilibre de vie préservé", "Souplesse dans la gestion", "Approche non dogmatique"], weaknesses: ["Manque de discipline sur la durée", "Tentations de dépenses impulsives"], attentions: ["Budgétiser le plaisir et l'épargne", "Automatiser l'effort d'épargne"] },
-        "ESTP": { name: " L'Entrepreneur", family: "Explorateur", summary: "Aime l'action, le risque calculé, le trading ou les investissements dynamiques.", strengths: ["Réactivité et goût de l'actif dynamique", "Audace et confiance en soi", "Sens des affaires"], weaknesses: ["Impulsivité et trading trop actif", "Sous-estimation du risque de perte"], attentions: ["Sanctuariser un cœur de portefeuille passif", "Limiter la part spéculative"] },
-        "ESFP": { name: "L'Amuseur", family: "Explorateur", summary: "A besoin de concret et de simplicité, redoute la complexité administrative.", strengths: ["Simplicité d'approche", "Vision concrète du patrimoine", "Pas de prise de tête"], weaknesses: ["Aversion pour la complexité des enveloppes", "Absence de vision long terme structurée"], attentions: ["S'appuyer sur des solutions automatisées", "Simplifier au maximum les supports"] }
+      // BASE INDICATEURS MARCHÉS EXTENSIBLE
+      var ALL_MARKETS_CATALOG = {
+        "MSCI_WORLD": { title: "MSCI World", val: "3 420 pts", sub: "+0.8%", color: "#38bdf8" },
+        "VIX": { title: "VIX (Volatilité)", val: "14.2", sub: "Calme", color: "#fbbf24" },
+        "CAC40": { title: "CAC 40", val: "7 540 pts", sub: "+0.4%", color: "#38bdf8" },
+        "SP500": { title: "S&P 500", val: "5 810 pts", sub: "+1.1%", color: "#38bdf8" },
+        "GOLD": { title: "Or (Gold /oz)", val: "2 650 $", sub: "+1.2%", color: "#38bdf8" },
+        "BITCOIN": { title: "Bitcoin", val: "64 500 $", sub: "+2.4%", color: "#38bdf8" },
+        "PER_EU": { title: "PER Europe", val: "13.8x", sub: "Neutre", color: "#94a3b8" },
+        "TAUX_US10": { title: "Taux US 10 ans", val: "4.08%", sub: "Stable", color: "#94a3b8" },
+        "OAT_FR10": { title: "Taux OAT 10 ans", val: "3.02%", sub: "Neutre", color: "#94a3b8" },
+        "ETH": { title: "Ethereum", val: "2 620 $", sub: "+1.8%", color: "#38bdf8" }
       };
 
+      // BASE DE DONNÉES MBTI ÉTENDUE (16 PROFILS)
+      var MBTI_DATABASE = {
+        "INTJ": { 
+          name: "L'Architecte", family: "Analyste", 
+          summary: "Visionnaire, méthodique, guidé par les intérêts composés et la stratégie long terme.", 
+          strengths: ["Discipline de fer et DCA automatisé", "Optimisation fiscale rigoureuse (PEA)", "Vision long terme inébranlable"], 
+          weaknesses: ["Impatience face aux phases de stagnation", "Sur-concentration potentielle en actions"], 
+          attentions: ["Rédiger un 'Investment Policy Statement' (IPS) d'une page", "Fixer une règle de rebalancement semestriel automatique (ex: 80/20)", "Conserver un matelas cash de précaution pour éviter de devoir liquider les actions"],
+          idealStrategy: "80% ETF Monde / 20% Obligataire & Cash. Automatisation totale du DCA.",
+          crashReaction: "Lit le krach comme une décote mathématique et achète sereinement en solde.",
+          recommendedEnvelopes: "PEA + PER (Optimisation fiscale maximale)"
+        },
+        "INTP": { 
+          name: "Le Logicien", family: "Analyste", 
+          summary: "Chercheur de systèmes parfaits, analyse chaque frais et ligne de façon chirurgicale.", 
+          strengths: ["Analyse mathématique irréprochable", "Recherche active de frais minimes", "Curiosité intellectuelle financière"], 
+          weaknesses: ["Analyse paralyse l'action", "Complexité excessive du portefeuille"], 
+          attentions: ["Lutter contre la sur-analyse par la simplification (max 3-4 lignes d'ETF)", "Définir des jalons de décision figés dans le temps", "Mettre en place un virement automatique pour shunter l'overthinking"],
+          idealStrategy: "Cœur Core/Satellite simplifié : 80% MSCI World + 20% Opportunités ciblées.",
+          crashReaction: "Analyse les statistiques historiques des rebonds boursiers pour valider froidement la conservation du plan.",
+          recommendedEnvelopes: "PEA + CTO pour expérimentations contrôlées"
+        },
+        "ENTJ": { 
+          name: "Le Commandant", family: "Analyste", 
+          summary: "Leader naturel, pilote son patrimoine comme une entreprise (stratégie de holding).", 
+          strengths: ["Stratégie globale structurée (Holding/SASU)", "Ambition de capitalisation élevée", "Prise de décision rapide"], 
+          weaknesses: ["Risque d'effet de levier excessif", "Impatience des résultats rapides"], 
+          attentions: ["Fixer des limites strictes aux ratios d'endettement", "Purger le portefeuille des lignes spéculatives résiduelles", "Déléguer la gestion courante par des ETF synthétiques"],
+          idealStrategy: "Holding Patrimoniale, Immobilier au levier + PEA.",
+          crashReaction: "Cherche à réallouer agressivement de la trésorerie vers les actifs sous-évalués.",
+          recommendedEnvelopes: "PEA + Holding / SCI à l'IS"
+        },
+        "ENTP": { 
+          name: "L'Innovateur", family: "Analyste", 
+          summary: "Opportuniste et agile, adore explorer les actifs alternatifs, la tech et les opportunités.", 
+          strengths: ["Réactivité face aux mouvements de marché", "Diversification audacieuse", "Agilité tactique"], 
+          weaknesses: ["Dispersion et manque de constance", "Sensibilité au bruit médiatique"], 
+          attentions: ["Sanctuariser 85% du capital sur du très classique (ETF World)", "Isoler la poche spéculative (max 15%) sur un sous-compte séparé", "Imposer un délai de réflexion de 48h avant tout arbitrage imprevu"],
+          idealStrategy: "85% ETF World / 15% Satellite Vif (Crypto, Tech, Small Caps).",
+          crashReaction: "S'excite face à la volatilité et tente des coups tactiques (risque de churn).",
+          recommendedEnvelopes: "PEA + CTO / Compte Crypto séparé"
+        },
+        "INFJ": { 
+          name: "L'Avocat", family: "Diplomate", 
+          summary: "Investit avec une vision philosophique et éthique, cherche le sens profond de son épargne.", 
+          strengths: ["Cohérence entre valeurs et investissements", "Épargne consciente et durable", "Patience psychologique"], 
+          weaknesses: ["Culpabilité face à l'accumulation de richesse", "Aversion excessive au risque"], 
+          attentions: ["Sélectionner des ETF éco-responsables (ESG/SRI) pour aligner éthique et performance", "Se rappeler que l'indépendance financière offre de l'impact sociétal", "Définir des dons automatiques indexés sur la plus-value"],
+          idealStrategy: "ETF SRI/ESG, Immobilier ISR, SCPI à impact.",
+          crashReaction: "Garde le cap s'il est convaincu de l'utilité long terme de ses investissements.",
+          recommendedEnvelopes: "PEA (Fonds ESG) + Assurance-Vie Responsable"
+        },
+        "INFP": { 
+          name: "Le Médiateur", family: "Diplomate", 
+          summary: "Guidé par ses valeurs, recherche l'indépendance financière (FIRE) pour sa liberté de temps.", 
+          strengths: ["Objectif de liberté clairement défini", "Sobriété financière naturelle", "Vision humaine du patrimoine"], 
+          weaknesses: ["Tendance à fuir le suivi chiffré", "Sensibilité émotionnelle en cas de baisse"], 
+          attentions: ["Automatiser 100% des versements mensuels", "Consulter l'application seulement 1 fois par trimestre", "Décrocher l'attention des fluctuations de marché au quotidien"],
+          idealStrategy: "Portefeuille 'Lazy' 100% automatisé (1 seul ETF World).",
+          crashReaction: "Ressent de l'anxiété et gagne à couper les actualités financières.",
+          recommendedEnvelopes: "PEA en gestion libre programmée"
+        },
+        "ENFJ": { 
+          name: "Le Protagoniste", family: "Diplomate", 
+          summary: "Pense à la transmission, à la protection de ses proches et à la gestion familiale.", 
+          strengths: ["Vision patrimoniale intergénérationnelle", "Protection familiale solide (Assurance-Vie)", "Pédagogie de l'épargne"], 
+          weaknesses: ["Oubli de ses propres besoins d'optimisation", "Conservatisme excessif pour protéger les autres"], 
+          attentions: ["Sécuriser son propre plan FIRE avant de trop donner aux proches", "Penser aux clauses bénéficiaires rédigées sur-mesure", "Équilibrer rendement et transmission"],
+          idealStrategy: "Assurance-Vie multisupports avec co-souscription.",
+          crashReaction: "S'inquiète avant tout de l'impact sur l'héritage ou les proches.",
+          recommendedEnvelopes: "Assurance-Vie + PER pour la transmission"
+        },
+        "ENFP": { 
+          name: "L'Inspirateur", family: "Diplomate", 
+          summary: "Enthousiaste, aime diversifier mais peut manquer de constance si le plan manque de ressort.", 
+          strengths: ["Énergie positive et vision optimiste", "Ouverture aux projets innovants", "Créativité dans l'épargne"], 
+          weaknesses: ["Manque de suivi rigoureux à long terme", "Abandon des stratégies en cours de route"], 
+          attentions: ["Verrouiller les règles d'épargne dès le début du mois", "Gamifier l'atteinte des jalons FIRE", "Éviter les arbitrages compulsifs sur un coup de tête"],
+          idealStrategy: "Allocation simple mais dynamique + ludification du suivi.",
+          crashReaction: "Perd de l'intérêt momentanément ou cherche un nouveau projet stimulant.",
+          recommendedEnvelopes: "PEA + Crypto/Crowdfunding maîtrisé"
+        },
+        "ISTJ": { 
+          name: "Le Logisticien", family: "Sentinelle", 
+          summary: "Le roi de la rigueur, des tableaux de suivi et de l'épargne de précaution sanctuarisée.", 
+          strengths: ["Organisation et comptabilité irréprochables", "Épargne de précaution toujours solide", "Stabilité émotionnelle"], 
+          weaknesses: ["Frilosité face aux opportunités boursières", "Excès de prudence rongeant le rendement"], 
+          attentions: ["Accepter de réduire la part de cash au strict nécessaire (3-6 mois de charges)", "Programmer un virement systématique vers des ETF actions", "Fixer un calendrier strict de révision du patrimoine"],
+          idealStrategy: "Poche de sécurité rigide + PEA automatisé (ETF S&P500/World).",
+          crashReaction: "Conserve une impassibilité totale et respecte le tableau de marche à la lettre.",
+          recommendedEnvelopes: "Livrets + PEA + Fonds Euros"
+        },
+        "ISFJ": { 
+          name: "Le Défenseur", family: "Sentinelle", 
+          summary: "Très attaché à la sécurité de la pierre (immobilier, SCPI) et aux livrets garantis.", 
+          strengths: ["Sécurité de la brique et des livrets", "Protection absolue du foyer", "Constance de l'effort d'épargne"], 
+          weaknesses: ["Rendement global rogné par l'inflation", "Peur panique de la bourse"], 
+          attentions: ["Diversifier progressivement le cash vers des SCPI et obligations d'État", "Sécuriser le conjoint avec des contrats d'assurance adaptés", "Apprivoiser l'investissement actions via un petit DCA progressif"],
+          idealStrategy: "Immobilier physique / SCPI + Assurance-Vie Fonds Euros / Unités de compte prudentes.",
+          crashReaction: "Ressent un fort besoin de réassurance et se réfugie dans la pierre.",
+          recommendedEnvelopes: "Assurance-Vie + SCPI en nu-propriété"
+        },
+        "ESTJ": { 
+          name: "Le Directif", family: "Sentinelle", 
+          summary: "Bâtisseur pragmatique, aime les actifs tangibles et les flux de trésorerie récurrents.", 
+          strengths: ["Maîtrise de l'immobilier et du crédit", "Revenus passifs réguliers", "Rigueur de gestion"], 
+          weaknesses: ["Rigidité face aux nouvelles classes d'actifs", "Lourdeur administrative"], 
+          attentions: ["Conserver de la liquidité mobilière (PEA) pour ne pas être 'asset rich, cash poor'", "Déléguer la gestion locative lourde", "Optimiser la fiscalité foncière"],
+          idealStrategy: "Immobilier LMNP/SCI + Portefeuille de rentes (SCPI/Actions à dividendes).",
+          crashReaction: "Redouble d'efforts de gestion pragmatique pour maintenir les rendements.",
+          recommendedEnvelopes: "SCI / LMNP + PEA"
+        },
+        "ESFJ": { 
+          name: "Le Consul", family: "Sentinelle", 
+          summary: "Sensible à la sécurité collective, privilégie les placements consensuels et sécurisants.", 
+          strengths: ["Solidité financière du foyer", "Prudence avisée", "Régularité des versements"], 
+          weaknesses: ["Manque d'audace face au capital", "Influence excessive des opinions de l'entourage"], 
+          attentions: ["Se baser sur des données chiffrées plutôt que des rumeurs", "Sécuriser l'avenir des enfants", "Intégrer des actifs de croissance mesurés"],
+          idealStrategy: "Assurance-Vie équilibrée + Immobilier familial.",
+          crashReaction: "S'inquiète du consensus ambiant et cherche le conseil de tiers de confiance.",
+          recommendedEnvelopes: "Assurance-Vie multisupports + Livrets"
+        },
+        "ISTP": { 
+          name: "Le Virtuose", family: "Explorateur", 
+          summary: "Calme, rationnel, analyse froide des chiffres, excellent pour garder son sang-froid.", 
+          strengths: ["Sang-froid total en cas de krach", "Rationalité pure des décisions", "Pragmatisme des arbitrages"], 
+          weaknesses: ["Tendance à l'immobilisme", "Manque de vision prospective long terme"], 
+          attentions: ["Fixer un plan pluriannuel écrit pour engager les décisions dans le temps", "Automatiser les tâches répétitives", "Éviter le manque d'anticipation fiscale"],
+          idealStrategy: "Portefeuille simple, efficace, à faibles coûts et haut rendement.",
+          crashReaction: "Garde une impassibilité absolue et réagit froidement avec les chiffres.",
+          recommendedEnvelopes: "PEA + CTO synthétique"
+        },
+        "ISFP": { 
+          name: "L'Aventurier", family: "Explorateur", 
+          summary: "Cherche un équilibre entre plaisir immédiat et constitution progressive d'un matelas.", 
+          strengths: ["Équilibre de vie préservé", "Souplesse dans la gestion", "Approche non dogmatique"], 
+          weaknesses: ["Manque de discipline sur la durée", "Tentations de dépenses impulsives"], 
+          attentions: ["Séparer hermétiquement le compte plaisir du compte d'investissement", "Automatiser l'épargne le jour du virement du salaire", "Conserver des objectifs visuels simples"],
+          idealStrategy: "Épargne indolore automatisée + Poche loisirs Sanctuarisée.",
+          crashReaction: "Préfère détacher son attention des marchés et attendre que la tempête passe.",
+          recommendedEnvelopes: "PEA + Livrets automatisés"
+        },
+        "ESTP": { 
+          name: "L'Entrepreneur", family: "Explorateur", 
+          summary: "Aime l'action, le risque calculé, le trading ou les investissements dynamiques.", 
+          strengths: ["Réactivité et goût de l'actif dynamique", "Audace et confiance en soi", "Sens des affaires"], 
+          weaknesses: ["Impulsivité et trading trop actif", "Sous-estimation du risque de perte"], 
+          attentions: ["Sanctuariser 70% du patrimoine dans un 'coffre-fort' intouchable", "Limiter les opérations à haute fréquence", "Définir des stop-loss stricts pour la poche spéculative"],
+          idealStrategy: "Core Socle ultra-sécurisé + Satellite Trading/Crypto à haut risque contrôlé.",
+          crashReaction: "Adore la volatilité et tente d'agressives opérations de court terme.",
+          recommendedEnvelopes: "PEA + CTO Compte actif"
+        },
+        "ESFP": { 
+          name: "L'Amuseur", family: "Explorateur", 
+          summary: "A besoin de concret et de simplicité, redoute la complexité administrative.", 
+          strengths: ["Simplicité d'approche", "Vision concrète du patrimoine", "Pas de prise de tête"], 
+          weaknesses: ["Aversion pour la complexité des enveloppes", "Absence de vision long terme structurée"], 
+          attentions: ["Choisir des solutions 'clé en main' (Robo-advisors ou ETF unique)", "Éviter le jargon financier inutile", "Programmer l'épargne automatique"],
+          idealStrategy: "Gestion pilotée ou ETF World unique à versements automatiques.",
+          crashReaction: "Cherche à ne pas gâcher son quotidien avec l'anxiété des marchés.",
+          recommendedEnvelopes: "Assurance-Vie en gestion pilotée"
+        }
+      };
+
+      // QUESTIONS QUESTIONNAIRE MBTI (8 QUESTIONS)
+      var QUIZ_QUESTIONS = [
+        { title: "1. Orientation de l'énergie (E vs I)", options: [{ label: "Je préfère échanger avec d'autres pour affiner mes idées financières.", trait: "E" }, { label: "Je préfère analyser seul mes comptes et réfléchir au calme.", trait: "I" }] },
+        { title: "2. Prise d'information (S vs N)", options: [{ label: "Je me fie aux faits concrets, à la brique, au cash et aux chiffres actuels.", trait: "S" }, { label: "Je me fie aux concepts, aux tendances futures, au potentiel et à la vision globale.", trait: "N" }] },
+        { title: "3. Prise de décision (T vs F)", options: [{ label: "Mes décisions reposent sur la logique pure, les ratios et l'optimisation froide.", trait: "T" }, { label: "Mes décisions prennent en compte mes valeurs, mon éthique et le bien-être de mes proches.", trait: "F" }] },
+        { title: "4. Style de vie & Gestion (J vs P)", options: [{ label: "J'aime la structure, la planification stricte et les objectifs programmés.", trait: "J" }, { label: "J'aime la flexibilité, l'adaptabilité et garder mes options ouvertes.", trait: "P" }] },
+        { title: "5. Face à la volatilité boursière", options: [{ label: "Je consulte les tableaux rationnellement pour voir s'il y a un coup mathématique à faire.", trait: "T" }, { label: "Je ressens une réaction intestine ou un besoin de protéger mon confort émotif.", trait: "F" }] },
+        { title: "6. Organisation de vos finances", options: [{ label: "Tout est consigné, budgété ou automatisé avec une grande régularité.", trait: "J" }, { label: "Je gère au fil de l'eau selon les opportunités du moment.", trait: "P" }] },
+        { title: "7. Source de conviction", options: [{ label: "L'expérience concrète, l'historique tangible et ce que je peux vérifier.", trait: "S" }, { label: "La théorie, les modèles statistiques et les visions prospectives.", trait: "N" }] },
+        { title: "8. Interventions sociales & projets", options: [{ label: "J'aime en parler autour de moi, débattre ou porter des projets à plusieurs.", trait: "E" }, { label: "Je reste discret sur mon patrimoine et préfère agir en autonomie.", trait: "I" }]
+      ];
+
+      // INITIALISATION DES CHAMPS
       if (document.getElementById('fireAgeTarget')) document.getElementById('fireAgeTarget').value = fireSettings.ageTarget;
       if (document.getElementById('fireCapTarget')) document.getElementById('fireCapTarget').value = fireSettings.capTarget;
       if (document.getElementById('fireManualRente')) document.getElementById('fireManualRente').value = fireSettings.manualRente || 2500;
@@ -520,6 +767,7 @@
       if (document.getElementById('cashCharges')) document.getElementById('cashCharges').value = cashFlowSettings.charges;
       if (document.getElementById('userDeclaredMbti')) document.getElementById('userDeclaredMbti').value = declaredMbti;
 
+      // ÉCOUTEURS D'ÉVÉNEMENTS
       document.getElementById('btn-synth').addEventListener('click', function() { switchView('synth'); });
       document.getElementById('btn-carto').addEventListener('click', function() { switchView('carto'); });
       document.getElementById('btn-mbti').addEventListener('click', function() { switchView('mbti'); });
@@ -529,16 +777,25 @@
       document.getElementById('togglePrivacyBtn').addEventListener('click', togglePrivacyMode);
       document.getElementById('lockAppBtn').addEventListener('click', lockApp);
       document.getElementById('unlockBtn').addEventListener('click', validatePin);
-      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-      document.getElementById('openModalBtn').addEventListener('click', openModal);
       
+      // Modales listeners
+      document.getElementById('closeModalBtn').addEventListener('click', function() { document.getElementById('chartModal').style.display = 'none'; });
+      document.getElementById('openModalBtn').addEventListener('click', function() { document.getElementById('chartModal').style.display = 'flex'; renderModalChart(); });
+
+      document.getElementById('openQuizBtn').addEventListener('click', openMbtiQuizModal);
+      document.getElementById('closeQuizBtn').addEventListener('click', function() { document.getElementById('mbtiQuizModal').style.display = 'none'; });
+      document.getElementById('applyQuizResultBtn').addEventListener('click', applyQuizResult);
+
+      document.getElementById('closeMbtiDetailBtn').addEventListener('click', function() { document.getElementById('mbtiDetailModal').style.display = 'none'; });
+
+      document.getElementById('openMarketCustomBtn').addEventListener('click', openMarketCustomModal);
+      document.getElementById('closeMarketCustomBtn').addEventListener('click', function() { document.getElementById('marketCustomModal').style.display = 'none'; });
+      document.getElementById('saveMarketCustomBtn').addEventListener('click', saveMarketCustomSelection);
+
+      // FIRE listeners
       document.getElementById('fireAgeTarget').addEventListener('input', onFireAgeChange);
       document.getElementById('fireCapTarget').addEventListener('input', onFireCapChange);
-      document.getElementById('fireManualRente').addEventListener('input', function() {
-        fireSettings.manualRente = parseFloat(this.value) || 0;
-        localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
-        calculateProjections();
-      });
+      document.getElementById('fireManualRente').addEventListener('input', onFireManualRenteChange);
       document.getElementById('firePeaDeposits').addEventListener('change', onPeaDepositsChange);
       document.getElementById('recalcBtn').addEventListener('click', calculateProjections);
       document.getElementById('assetEnvelope').addEventListener('change', togglePeaDepositsField);
@@ -549,17 +806,22 @@
         declaredMbti = this.value;
         localStorage.setItem(DECLARED_MBTI_KEY, declaredMbti);
         renderMbtiTab();
-        showToast('Profil MBTI déclaratif mis à jour', true);
+        showToast('Profil MBTI déclaré mis à jour', true);
       });
 
-      // Écouteurs Stress Test & JSON
-      document.getElementById('stressCrashBtn').addEventListener('click', function() { runStressTest(true); });
-      document.getElementById('stressResetBtn').addEventListener('click', function() { runStressTest(false); });
+      // Stress Test listeners
+      document.getElementById('stressCrashBtn').addEventListener('click', function() {
+        var rate = parseFloat(document.getElementById('stressIntensitySelect').value) || 0.30;
+        runStressTest(true, rate);
+      });
+      document.getElementById('stressResetBtn').addEventListener('click', function() { runStressTest(false, 0); });
+
+      // JSON Export/Import
       document.getElementById('exportJsonBtn').addEventListener('click', exportLocalStorageJson);
       document.getElementById('importJsonBtn').addEventListener('click', function() { document.getElementById('importFileinput').click(); });
       document.getElementById('importFileinput').addEventListener('change', importLocalStorageJson);
 
-      // Swipe sécurisé
+      // Swipe tactiles
       var touchStartX = 0, touchEndX = 0;
       document.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
       document.addEventListener('touchend', function(e) {
@@ -597,9 +859,6 @@
         }
       }
 
-      function openModal() { document.getElementById('chartModal').style.display = 'flex'; renderModalChart(); }
-      function closeModal() { document.getElementById('chartModal').style.display = 'none'; }
-
       function togglePeaDepositsField() {
         var box = document.getElementById('peaDepositsBox');
         if (box) box.style.display = document.getElementById('assetEnvelope').value === 'PEA' ? 'block' : 'none';
@@ -620,14 +879,10 @@
         if (viewName === 'patrimoine') renderPatrimoineTab();
       }
 
+      // SYNC DES PARAMÈTRES FIRE
       function onFireAgeChange() {
         var ageTarget = parseInt(document.getElementById('fireAgeTarget').value) || 55;
-        var durationYears = Math.max(1, ageTarget - 40);
         fireSettings.ageTarget = ageTarget;
-        if (lastSeriesBoost && lastSeriesBoost.length > durationYears) {
-          fireSettings.capTarget = lastSeriesBoost[durationYears];
-          document.getElementById('fireCapTarget').value = fireSettings.capTarget;
-        }
         localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
         calculateProjections();
       }
@@ -635,16 +890,17 @@
       function onFireCapChange() {
         var capTarget = parseFloat(document.getElementById('fireCapTarget').value) || 750000;
         fireSettings.capTarget = capTarget;
-        if (lastSeriesBoost && lastSeriesBoost.length > 0) {
-          var closestIndex = 15;
-          var minDiff = Infinity;
-          lastSeriesBoost.forEach(function(val, idx) {
-            var diff = Math.abs(val - capTarget);
-            if (diff < minDiff) { minDiff = diff; closestIndex = idx; }
-          });
-          fireSettings.ageTarget = 40 + closestIndex;
-          document.getElementById('fireAgeTarget').value = fireSettings.ageTarget;
-        }
+        fireSettings.manualRente = Math.round((capTarget * 0.04) / 12);
+        document.getElementById('fireManualRente').value = fireSettings.manualRente;
+        localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
+        calculateProjections();
+      }
+
+      function onFireManualRenteChange() {
+        var rente = parseFloat(document.getElementById('fireManualRente').value) || 0;
+        fireSettings.manualRente = rente;
+        fireSettings.capTarget = Math.round((rente * 12) / 0.04);
+        document.getElementById('fireCapTarget').value = fireSettings.capTarget;
         localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
         calculateProjections();
       }
@@ -673,7 +929,7 @@
         var latest = {};
         records.forEach(function(r) {
           if (stressCrashActive && r.type === 'Actions') {
-            var cloned = Object.assign({}, r, { value: r.value * 0.7 });
+            var cloned = Object.assign({}, r, { value: r.value * (1 - stressCrashRate) });
             latest[r.category] = cloned;
           } else {
             latest[r.category] = r;
@@ -682,14 +938,45 @@
         return latest;
       }
 
-      function runStressTest(isCrash) {
+      // STRESS TEST AVANCÉ (-30%, -40%, -50%, -60%)
+      function runStressTest(isCrash, rate) {
         stressCrashActive = isCrash;
+        stressCrashRate = rate || 0.30;
+        var pctText = Math.round(stressCrashRate * 100);
+
         var resEl = document.getElementById('stressTestResult');
+        var resiEl = document.getElementById('stressMbtiResilience');
+        var alertEl = document.getElementById('synthStressAlert');
+        var alertTxt = document.getElementById('synthStressText');
+
         if (isCrash) {
-          resEl.innerHTML = '⚠️ <span style="color:#ef4444;">Stress Test Actif :</span> Impact de -30% appliqué sur l\'ensemble des lignes Actions / ETF.';
-          showToast('Stress test -30% activé', false);
+          var latestListNoCrash = {};
+          records.forEach(function(r) { latestListNoCrash[r.category] = r; });
+          var origActions = Object.values(latestListNoCrash).filter(function(r){ return r.type === 'Actions'; }).reduce(function(s,r){ return s + r.value; }, 0);
+          var dropVal = origActions * stressCrashRate;
+
+          if (resEl) {
+            resEl.innerHTML = 
+              '⚠️ <span style="color:#ef4444; font-weight:bold;">Stress Test Active (-' + pctText + '%) :</span><br>' +
+              'Perte théorique brute sur la poche Actions : <b style="color:#ef4444;">-' + formatCurrency(dropVal) + '</b>.<br>' +
+              '<span style="font-size:11px; color:#94a3b8;">L\'impact est visible en ROUGE sur votre onglet Synthèse.</span>';
+          }
+
+          var profile = getMbtiAnalysis();
+          if (resiEl) {
+            resiEl.style.display = 'block';
+            resiEl.innerHTML = '<b>🧠 Résilience Psychologique (' + profile.code + ') :</b> ' + (MBTI_DATABASE[profile.code] ? MBTI_DATABASE[profile.code].crashReaction : 'Réagir avec méthode.');
+          }
+
+          if (alertEl && alertTxt) {
+            alertEl.style.display = 'block';
+            alertTxt.innerText = 'Impact de -' + pctText + '% appliqué sur les Actions (-' + formatCurrency(dropVal) + ').';
+          }
+          showToast('Stress test -' + pctText + '% appliqué', false);
         } else {
-          resEl.innerHTML = '✅ <span style="color:#34d399;">Normal :</span> Valeurs initiales rétablies.';
+          if (resEl) resEl.innerHTML = '✅ <span style="color:#34d399;">Normal :</span> Valeurs initiales rétablies.';
+          if (resiEl) resiEl.style.display = 'none';
+          if (alertEl) alertEl.style.display = 'none';
           showToast('Valeurs initiales restaurées', true);
         }
         renderSynth();
@@ -697,6 +984,136 @@
         renderFireTab();
       }
 
+      // QUESTIONNAIRE MBTI EXPRESS
+      var quizAnswers = {};
+      function openMbtiQuizModal() {
+        quizAnswers = {};
+        var container = document.getElementById('quizQuestionsContainer');
+        container.innerHTML = '';
+        QUIZ_QUESTIONS.forEach(function(q, idx) {
+          var html = '<div class="q-box">' +
+            '<div class="q-title">' + q.title + '</div>' +
+            '<div class="q-options">';
+          q.options.forEach(function(opt, optIdx) {
+            html += '<button class="q-opt-btn" data-q="' + idx + '" data-trait="' + opt.trait + '" data-opt="' + optIdx + '">' + opt.label + '</button>';
+          });
+          html += '</div></div>';
+          container.innerHTML += html;
+        });
+
+        document.querySelectorAll('.q-opt-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var qIdx = this.getAttribute('data-q');
+            var trait = this.getAttribute('data-trait');
+            quizAnswers[qIdx] = trait;
+
+            // Highlight Visuel
+            var parent = this.parentElement;
+            parent.querySelectorAll('.q-opt-btn').forEach(function(b) { b.classList.remove('selected'); });
+            this.classList.add('selected');
+
+            checkQuizCompletion();
+          });
+        });
+
+        document.getElementById('quizResultBox').style.display = 'none';
+        document.getElementById('mbtiQuizModal').style.display = 'flex';
+      }
+
+      function checkQuizCompletion() {
+        if (Object.keys(quizAnswers).length >= 8) {
+          var scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+          Object.values(quizAnswers).forEach(function(t) { if (scores[t] !== undefined) scores[t]++; });
+
+          var code = '';
+          code += (scores.E >= scores.I) ? 'E' : 'I';
+          code += (scores.S >= scores.N) ? 'S' : 'N';
+          code += (scores.T >= scores.F) ? 'T' : 'F';
+          code += (scores.J >= scores.P) ? 'J' : 'P';
+
+          var p = MBTI_DATABASE[code] || MBTI_DATABASE["ISTP"];
+          document.getElementById('quizEstimatedCode').innerText = code + ' — ' + p.name;
+          document.getElementById('quizEstimatedDesc').innerText = p.summary;
+          document.getElementById('quizResultBox').style.display = 'block';
+        }
+      }
+
+      function applyQuizResult() {
+        var rawText = document.getElementById('quizEstimatedCode').innerText;
+        var code = rawText.split(' ')[0];
+        declaredMbti = code;
+        localStorage.setItem(DECLARED_MBTI_KEY, declaredMbti);
+        document.getElementById('userDeclaredMbti').value = declaredMbti;
+        renderMbtiTab();
+        document.getElementById('mbtiQuizModal').style.display = 'none';
+        showToast('Profil ' + code + ' appliqué avec succès !', true);
+      }
+
+      // FICHE DÉTAILLÉE MATRICE MBTI
+      function openMbtiDetailModal(code) {
+        var p = MBTI_DATABASE[code];
+        if (!p) return;
+        var content = document.getElementById('mbtiDetailContent');
+        content.innerHTML = 
+          '<div style="font-size:22px; font-weight:800; color:#38bdf8; margin-bottom:2px;">' + code + ' — ' + p.name + '</div>' +
+          '<div style="font-size:11px; background:#1e293b; color:#94a3b8; display:inline-block; padding:2px 8px; border-radius:6px; margin-bottom:12px;">Famille : ' + p.family + '</div>' +
+          '<div style="font-size:13px; color:#f8fafc; margin-bottom:14px; line-height:1.4;">' + p.summary + '</div>' +
+          '<div style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:10px; margin-bottom:10px;">' +
+            '<div style="font-weight:bold; color:#38bdf8; font-size:12px; margin-bottom:4px;">🎯 Stratégie d\'Investissement Idéale</div>' +
+            '<div style="font-size:12px; color:#cbd5e1;">' + p.idealStrategy + '</div>' +
+          '</div>' +
+          '<div style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:10px; margin-bottom:10px;">' +
+            '<div style="font-weight:bold; color:#ef4444; font-size:12px; margin-bottom:4px;">⚡ Réaction en Cas de Krach Boursier</div>' +
+            '<div style="font-size:12px; color:#cbd5e1;">' + p.crashReaction + '</div>' +
+          '</div>' +
+          '<div style="background:#0f172a; border:1px solid #334155; padding:12px; border-radius:10px; margin-bottom:10px;">' +
+            '<div style="font-weight:bold; color:#34d399; font-size:12px; margin-bottom:4px;">💼 Enveloppes Fiscales Recommandées</div>' +
+            '<div style="font-size:12px; color:#cbd5e1;">' + p.recommendedEnvelopes + '</div>' +
+          '</div>' +
+          '<button class="submit-btn" id="selectThisMbtiBtn" style="margin-top:10px;">Choisir ' + code + ' comme mon profil principal</button>';
+
+        document.getElementById('mbtiDetailModal').style.display = 'flex';
+        document.getElementById('selectThisMbtiBtn').onclick = function() {
+          declaredMbti = code;
+          localStorage.setItem(DECLARED_MBTI_KEY, declaredMbti);
+          document.getElementById('userDeclaredMbti').value = declaredMbti;
+          renderMbtiTab();
+          document.getElementById('mbtiDetailModal').style.display = 'none';
+          showToast('Profil ' + code + ' sélectionné', true);
+        };
+      }
+
+      // MODAL SELECTION 6 MARCHÉS
+      function openMarketCustomModal() {
+        var container = document.getElementById('marketChoicesContainer');
+        container.innerHTML = '';
+        Object.keys(ALL_MARKETS_CATALOG).forEach(function(key) {
+          var item = ALL_MARKETS_CATALOG[key];
+          var checked = selectedMarketKeys.indexOf(key) !== -1 ? 'checked' : '';
+          container.innerHTML += 
+            '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:#f8fafc;">' +
+              '<input type="checkbox" class="mkt-checkbox" value="' + key + '" ' + checked + ' style="width:auto; margin:0;">' +
+              '<span><b>' + item.title + '</b> (' + item.val + ')</span>' +
+            '</label>';
+        });
+        document.getElementById('marketCustomModal').style.display = 'flex';
+      }
+
+      function saveMarketCustomSelection() {
+        var checkedList = [];
+        document.querySelectorAll('.mkt-checkbox:checked').forEach(function(cb) { checkedList.push(cb.value); });
+        if (checkedList.length !== 6) {
+          showToast('Veuillez sélectionner exactement 6 indicateurs !', false);
+          return;
+        }
+        selectedMarketKeys = checkedList;
+        localStorage.setItem(MARKET_SELECTION_KEY, JSON.stringify(selectedMarketKeys));
+        renderSynth();
+        document.getElementById('marketCustomModal').style.display = 'none';
+        showToast('6 indicateurs marchés mis à jour', true);
+      }
+
+      // JSON EXPORT / IMPORT
       function exportLocalStorageJson() {
         var backupData = {
           records: records,
@@ -706,6 +1123,7 @@
           peaDeposits: peaDeposits,
           cashFlowSettings: cashFlowSettings,
           declaredMbti: declaredMbti,
+          selectedMarketKeys: selectedMarketKeys,
           exportDate: new Date().toISOString()
         };
         var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
@@ -732,6 +1150,7 @@
             if (typeof parsed.peaDeposits !== 'undefined') { peaDeposits = parsed.peaDeposits; localStorage.setItem(PEA_DEPOSITS_KEY, peaDeposits); }
             if (parsed.cashFlowSettings) { cashFlowSettings = parsed.cashFlowSettings; localStorage.setItem(CASH_FLOW_KEY, JSON.stringify(cashFlowSettings)); }
             if (parsed.declaredMbti) { declaredMbti = parsed.declaredMbti; localStorage.setItem(DECLARED_MBTI_KEY, declaredMbti); }
+            if (parsed.selectedMarketKeys) { selectedMarketKeys = parsed.selectedMarketKeys; localStorage.setItem(MARKET_SELECTION_KEY, JSON.stringify(selectedMarketKeys)); }
             showToast('Restauration réussie ! Rechargement...', true);
             setTimeout(function() { window.location.reload(); }, 1200);
           } catch(err) {
@@ -741,12 +1160,19 @@
         reader.readAsText(file);
       }
 
+      // RENDU SYNTHÈSE AVEC WIDGETS APPROFONDIS & MARCHÉS PERSONNALISÉS
       function renderSynth() {
         var latestList = Object.values(getLatestByCategory());
         var totalActifs = latestList.reduce(function(sum, r) { return sum + r.value; }, 0);
         var totalPassifs = loans.reduce(function(sum, l) { return sum + l.balance; }, 0);
 
-        document.getElementById('totalNetVal').innerText = formatCurrency(totalActifs - totalPassifs);
+        var netEl = document.getElementById('totalNetVal');
+        if (netEl) {
+          netEl.innerText = formatCurrency(totalActifs - totalPassifs);
+          if (stressCrashActive) netEl.style.color = '#ef4444';
+          else netEl.style.color = '#38bdf8';
+        }
+
         document.getElementById('subBrutVal').innerText = 'Actifs : ' + formatCurrency(totalActifs) + ' | Crédits : ' + formatCurrency(totalPassifs);
 
         var debtRatio = totalActifs > 0 ? ((totalPassifs / totalActifs) * 100).toFixed(1) : 0;
@@ -765,22 +1191,43 @@
         document.getElementById('kpiEnrichVal').innerText = '+' + totalEnrichissement + ' €/m';
         document.getElementById('barEnrich').style.width = Math.min(100, (totalEnrichissement / 1500) * 100) + '%';
 
-        // Rendu Proactif des Action Items
+        // PROCHAINS PAS & RECOMMANDATIONS APPROFONDIES (COURT / MOYEN / LONG TERME)
         var actionContainer = document.getElementById('actionItemsContainer');
         if (actionContainer) {
-          var itemsHtml = '';
-          if (liquidities < 10000) {
-            itemsHtml += '<div>⚠️ Épargne de précaution inférieure à 10 000 €. Priorisez le renforcement de votre poche cash.</div>';
-          } else {
-            itemsHtml += '<div>✅ Épargne de précaution solide.</div>';
-          }
           var peaVerser = peaDeposits > 0 ? peaDeposits : latestList.filter(function(r) { return r.envelope === 'PEA'; }).reduce(function(s, r) { return s + r.value; }, 0);
-          if (peaVerser < 150000) {
-            itemsHtml += '<div>💡 Plafond PEA (' + formatCurrency(peaVerser) + ' / 150k€) : Poursuivez les versements défiscalisés.</div>';
-          } else {
-            itemsHtml += '<div>🏆 Plafond des 150 000 € du PEA atteint !</div>';
-          }
-          actionContainer.innerHTML = itemsHtml;
+          
+          var html = 
+            '<div style="background:#0f172a; border-left:3px solid #38bdf8; padding:8px 12px; border-radius:6px;">' +
+              '<b style="color:#38bdf8;">📅 Court Terme (< 3 mois) :</b><br>' +
+              (liquidities < 10000 ? '⚠️ Secourir l\'épargne de précaution. Atteindre au moins 10 000 € en cash sécurisé avant tout investissement dynamique.' : '✅ Matelas de sécurité opérationnel (' + formatCurrency(liquidities) + '). Automatiser vos versements mensuels DCA.') +
+            '</div>' +
+
+            '<div style="background:#0f172a; border-left:3px solid #34d399; padding:8px 12px; border-radius:6px;">' +
+              '<b style="color:#34d399;">⏳ Moyen Terme (1 à 3 ans) :</b><br>' +
+              (peaVerser < 150000 ? '💡 Maximiser le PEA (' + formatCurrency(peaVerser) + ' / 150k€). Exposer les flux excédentaires aux ETF actions capitalisants.' : '🏆 PEA au plafond ! Envisager l\'ouverture d\'un PER ou la diversification vers l\'Assurance-Vie/SCPI.') +
+            '</div>' +
+
+            '<div style="background:#0f172a; border-left:3px solid #818cf8; padding:8px 12px; border-radius:6px;">' +
+              '<b style="color:#818cf8;">🚀 Long Terme (Cible FIRE & Transmission) :</b><br>' +
+              'Viser le capital cible de ' + formatCurrency(fireSettings.capTarget || 750000) + ' pour générer la rente souhaitée de ' + (fireSettings.manualRente || 2500) + ' €/mois. Maintenir un effort d\'épargne régulier.' +
+            '</div>';
+
+          actionContainer.innerHTML = html;
+        }
+
+        // RENDU DYNAMIQUE DES 6 MARCHÉS
+        var marketGrid = document.getElementById('marketGridDisplay');
+        if (marketGrid) {
+          marketGrid.innerHTML = '';
+          selectedMarketKeys.forEach(function(key) {
+            var m = ALL_MARKETS_CATALOG[key] || ALL_MARKETS_CATALOG["MSCI_WORLD"];
+            marketGrid.innerHTML += 
+              '<div class="market-card">' +
+                '<div class="market-title">' + m.title + '</div>' +
+                '<div class="market-val" style="color:' + m.color + ';">' + m.val + '</div>' +
+                '<div class="market-sub">' + m.sub + '</div>' +
+              '</div>';
+          });
         }
 
         if (typeof Chart !== 'undefined') {
@@ -860,18 +1307,26 @@
         document.getElementById('mbtiFullTitle').innerText = profile.code + ' — ' + profile.name + ' (' + profile.family + ')';
         document.getElementById('mbtiFullSummary').innerText = profile.summary;
 
-        // Rendu de l'alignement stratégique & dissonance déclarative
+        // Rendu de l'alignement stratégique avec points d'alignement psychologique concrets
         var rebalEl = document.getElementById('mbtiRebalanceReport');
         if (rebalEl) {
           var notice = '';
           if (profile.isDeclared && profile.code !== profile.inferredCode) {
-            notice = '<div style="color:#fbbf24; margin-bottom:4px;">⚠️ <b>Dissonance Stratégique :</b> Votre allocation actuelle suggère un profil <b>' + profile.inferredCode + '</b>, alors que vous revendiquez le profil <b>' + profile.code + '</b>. Votre portefeuille demande à être ajusté pour refléter votre vraie nature !</div>';
+            notice = '<div style="background:rgba(251, 191, 36, 0.1); border:1px solid #fbbf24; border-radius:8px; padding:10px; color:#fbbf24; margin-bottom:10px;">' +
+              '⚠️ <b>Dissonance Stratégique Identifiée :</b><br>' +
+              'Votre allocation actuelle suggère un profil <b>' + profile.inferredCode + '</b>, alors que vous revendiquez le profil <b>' + profile.code + '</b>.<br>' +
+              '<i>Ajuster votre structure pour être en phase avec votre vraie nature améliore la sérénité décisionnelle !</i>' +
+            '</div>';
           }
           rebalEl.innerHTML = 
             notice +
             '<div><b>Allocation Actuelle :</b> Actions (' + profile.actionsPct + '%) | Immo/SCPI (' + profile.immoPct + '%) | Cash (' + profile.cashPct + '%)</div>' +
-            '<div style="margin-top:6px; color:#38bdf8;">💡 <b>Diagnostic d\'Alignement :</b> Votre profil ' + profile.code + ' privilégie la structure. ' + 
-            (profile.actionsPct < 40 ? 'Augmenter progressivement la poche actions (via PEA) correspondrait mieux à votre potentiel de capitalisation long terme.' : 'Votre exposition actions est en phase avec votre profil analytique.') + '</div>';
+            '<div style="margin-top:8px; color:#38bdf8;">💡 <b>Diagnostic d\'Alignement Psychologique :</b></div>' +
+            '<div style="font-size:11px; color:#cbd5e1; margin-top:4px;">' +
+              (profile.code === 'INTP' || profile.code === 'INTJ' ? 
+                'En tant que profil analytique, votre besoin de rationalité demande un système clair : mettez en place un rebalancement automatique semestriel et rédigez un Investment Policy Statement (IPS) pour figer vos règles froides.' : 
+                'Votre profil recherche un équilibre entre sécurité et liberté. Assurez-vous que l\'automatisation prenne le relais pour alléger votre charge mentale.') +
+            '</div>';
         }
 
         var strContainer = document.getElementById('mbtiStrengths');
@@ -897,15 +1352,23 @@
         Object.keys(MBTI_DATABASE).forEach(function(code) {
           var p = MBTI_DATABASE[code];
           var isCurrent = (code === profile.code);
-          var borderStyle = isCurrent ? 'border: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.08);' : 'border: 1px solid #334155;';
+          var borderStyle = isCurrent ? 'border: 2px solid #38bdf8; background: rgba(56, 189, 248, 0.1);' : 'border: 1px solid #334155;';
           matrixContainer.innerHTML += 
-            '<div class="mbti-grid-item" style="' + borderStyle + '">' +
+            '<div class="mbti-grid-item" data-code="' + code + '" style="' + borderStyle + '">' +
               '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
                 '<b style="color:' + (isCurrent ? '#38bdf8' : '#f8fafc') + '; font-size:13px;">' + code + ' — ' + p.name + '</b>' +
                 '<span style="font-size:9px; background:#1e293b; padding:2px 6px; border-radius:6px; color:#94a3b8;">' + p.family + '</span>' +
               '</div>' +
               '<div style="font-size:11px; color:#cbd5e1;">' + p.summary + '</div>' +
+              '<div style="font-size:9px; color:#38bdf8; margin-top:4px;">🔍 Cliquer pour voir la fiche stratégie complète →</div>' +
             '</div>';
+        });
+
+        document.querySelectorAll('.mbti-grid-item').forEach(function(item) {
+          item.addEventListener('click', function() {
+            var code = this.getAttribute('data-code');
+            openMbtiDetailModal(code);
+          });
         });
       }
 
@@ -1102,8 +1565,7 @@
         var renteTheorique = (fireSettings.capTarget * 0.04) / 12;
         if (document.getElementById('renteTheoriqueVal')) document.getElementById('renteTheoriqueVal').innerText = formatCurrency(renteTheorique) + ' / mois';
 
-        var manualRente = fireSettings.manualRente || 2500;
-        var impliedTargetCap = (manualRente * 12) / 0.04;
+        var impliedTargetCap = fireSettings.capTarget || 750000;
         var currentTotal = Object.values(balancesBoost).reduce(function(a,b){return a+b;},0);
         var missingCap = Math.max(0, impliedTargetCap - currentTotal);
         var monthlyDeltaNeeded = Math.round(missingCap / (durationYears * 12));
@@ -1239,12 +1701,12 @@
         showToast('Prêt enregistré avec succès !', true);
       });
 
-      // Lancement initial sans boucle récursive
+      // Lancement initial
       renderSynth();
       updateCashFlow();
     });
   </script>
 </body>
 </html>
-
-MbtiPat
+```
+good Job PatMBTI
