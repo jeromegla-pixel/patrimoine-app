@@ -1412,15 +1412,16 @@
           matrixContainer.innerHTML += 
             '<div class="mbti-grid-item" data-code="' + code + '" style="' + borderStyle + '">' +
               '<div style="font-weight:bold; color:#38bdf8; font-size:13px;">' + code + ' — ' + p.name + (isCurrent ? ' (Actif)' : '') + '</div>' +
-              '<div style="font-size:11px; color:#94a3b8; margin:2px 0;">Famille : ' + p.family + '</div>' +
-              '<div style="font-size:11px; color:#cbd5e1;">' + p.summary + '</div>' +
+              '<div style="font-size:11px; color:#94a3b8; margin:2px 0;">' + p.family + '</div>' +
+              '<div style="font-size:11px; color:#cbd5e1; line-height:1.3;">' + p.summary + '</div>' +
             '</div>';
         });
 
+        // Attachement de l'événement de clic sur les cartes MBTI
         document.querySelectorAll('.mbti-grid-item').forEach(function(item) {
           item.addEventListener('click', function() {
-            var c = this.getAttribute('data-code');
-            openMbtiDetailModal(c);
+            var code = this.getAttribute('data-code');
+            openMbtiDetailModal(code);
           });
         });
       }
@@ -1429,125 +1430,109 @@
         var latestMap = getLatestByCategory();
         var latestList = Object.values(latestMap);
 
-        var allocTable = document.getElementById('allocationTable');
-        if (allocTable) {
-          allocTable.innerHTML = '';
-          latestList.forEach(function(r) {
-            allocTable.innerHTML += 
-              '<tr>' +
-                '<td><b>' + r.envelope + '</b><br><span style="font-size:10px; color:#64748b;">' + r.type + ' (' + r.mode + ')</span></td>' +
-                '<td><input type="number" value="' + r.value + '" data-cat="' + r.category + '" class="carto-value-input" style="width:90px; margin:0; padding:4px 6px; font-size:11px;"></td>' +
-                '<td><input type="number" step="0.1" value="' + (r.yield || 5.0) + '" data-cat="' + r.category + '" class="carto-yield-input" style="width:55px; margin:0; padding:4px 6px; font-size:11px;">%</td>' +
-                '<td style="text-align:right;"><button class="action-icon-btn delete-btn" data-cat="' + r.category + '">🗑️</button></td>' +
-              '</tr>';
-          });
+        // Tableau Cartographie des Placements
+        var allocBody = document.getElementById('allocationTable');
+        allocBody.innerHTML = '';
+        latestList.forEach(function(r) {
+          allocBody.innerHTML += 
+            '<tr>' +
+              '<td><b>' + r.envelope + '</b><br><span style="font-size:10px; color:#94a3b8;">' + r.type + ' (' + r.mode + ')</span></td>' +
+              '<td><input type="number" class="table-input carto-val" data-cat="' + r.category + '" value="' + r.value + '" style="width:90px; padding:4px; font-size:12px;"></td>' +
+              '<td><input type="number" class="table-input carto-yield" data-cat="' + r.category + '" value="' + r.yield + '" step="0.1" style="width:50px; padding:4px; font-size:12px;">%</td>' +
+              '<td><button class="action-icon-btn delete-btn delete-record-btn" data-cat="' + r.category + '">🗑️</button></td>' +
+            '</tr>';
+        });
 
-          document.querySelectorAll('.carto-value-input').forEach(function(input) {
-            input.addEventListener('change', function() {
-              var cat = this.getAttribute('data-cat');
-              var newVal = parseFloat(this.value) || 0;
-              if (latestMap[cat]) {
-                var updated = Object.assign({}, latestMap[cat], { value: newVal, date: new Date().toISOString().split('T')[0] });
-                records.push(updated);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-                renderCarto();
-                renderSynth();
-                showToast('Solde mis à jour', true);
-              }
-            });
-          });
+        // Tableau Prêts / Crédits
+        var loansBody = document.getElementById('loansTable');
+        loansBody.innerHTML = '';
+        loans.forEach(function(l) {
+          loansBody.innerHTML += 
+            '<tr>' +
+              '<td><b>' + l.name + '</b><br><span style="font-size:10px; color:#94a3b8;">Taux: ' + l.rate + '%</span></td>' +
+              '<td><input type="number" class="table-input loan-val" data-id="' + l.id + '" value="' + l.balance + '" style="width:80px; padding:4px; font-size:12px;"></td>' +
+              '<td>' + formatCurrency(l.payment) + '</td>' +
+              '<td><button class="action-icon-btn delete-btn delete-loan-btn" data-id="' + l.id + '">🗑️</button></td>' +
+            '</tr>';
+        });
 
-          document.querySelectorAll('.carto-yield-input').forEach(function(input) {
-            input.addEventListener('change', function() {
-              var cat = this.getAttribute('data-cat');
-              var newYield = parseFloat(this.value) || 0;
-              if (latestMap[cat]) {
-                var updated = Object.assign({}, latestMap[cat], { yield: newYield, date: new Date().toISOString().split('T')[0] });
-                records.push(updated);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-                renderCarto();
-                showToast('Rendement mis à jour', true);
-              }
-            });
-          });
-
-          document.querySelectorAll('#allocationTable .delete-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              var cat = this.getAttribute('data-cat');
-              records = records.filter(function(r) { return r.category !== cat; });
+        // Listeners modification en direct Carto
+        document.querySelectorAll('.carto-val').forEach(function(inp) {
+          inp.addEventListener('change', function() {
+            var cat = this.getAttribute('data-cat');
+            var val = parseFloat(this.value) || 0;
+            if (latestMap[cat]) {
+              latestMap[cat].value = val;
+              records.push(Object.assign({}, latestMap[cat], { date: new Date().toISOString().split('T')[0] }));
               localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-              renderCarto();
+              showToast('Solde mis à jour', true);
               renderSynth();
-              showToast('Ligne supprimée du portefeuille', true);
-            });
-          });
-        }
-
-        var loansTable = document.getElementById('loansTable');
-        if (loansTable) {
-          loansTable.innerHTML = '';
-          loans.forEach(function(l) {
-            loansTable.innerHTML += 
-              '<tr>' +
-                '<td><b>' + l.name + '</b><br><span style="font-size:10px; color:#64748b;">' + l.rate + '% | ' + l.months + 'm</span></td>' +
-                '<td><input type="number" value="' + l.balance + '" data-id="' + l.id + '" class="loan-balance-input" style="width:85px; margin:0; padding:4px 6px; font-size:11px;"></td>' +
-                '<td><input type="number" value="' + l.payment + '" data-id="' + l.id + '" class="loan-payment-input" style="width:70px; margin:0; padding:4px 6px; font-size:11px;"></td>' +
-                '<td style="text-align:right;"><button class="action-icon-btn delete-btn" data-id="' + l.id + '">🗑️</button></td>' +
-              '</tr>';
-          });
-
-          document.querySelectorAll('.loan-balance-input').forEach(function(input) {
-            input.addEventListener('change', function() {
-              var id = parseInt(this.getAttribute('data-id'));
-              var val = parseFloat(this.value) || 0;
-              loans.forEach(function(l) { if (l.id === id) l.balance = val; });
-              localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
               renderCarto();
-              renderSynth();
-              showToast('Prêt mis à jour', true);
-            });
+            }
           });
+        });
 
-          document.querySelectorAll('.loan-payment-input').forEach(function(input) {
-            input.addEventListener('change', function() {
-              var id = parseInt(this.getAttribute('data-id'));
-              var val = parseFloat(this.value) || 0;
-              loans.forEach(function(l) { if (l.id === id) l.payment = val; });
-              localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-              renderCarto();
+        document.querySelectorAll('.carto-yield').forEach(function(inp) {
+          inp.addEventListener('change', function() {
+            var cat = this.getAttribute('data-cat');
+            var yld = parseFloat(this.value) || 0;
+            if (latestMap[cat]) {
+              latestMap[cat].yield = yld;
+              records.push(Object.assign({}, latestMap[cat], { date: new Date().toISOString().split('T')[0] }));
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+              showToast('Rendement mis à jour', true);
               renderSynth();
-              showToast('Mensualité mise à jour', true);
-            });
+            }
           });
+        });
 
-          document.querySelectorAll('#loansTable .delete-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              var id = parseInt(this.getAttribute('data-id'));
-              loans = loans.filter(function(l) { return l.id !== id; });
-              localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
-              renderCarto();
-              renderSynth();
-              showToast('Prêt supprimé', true);
-            });
+        document.querySelectorAll('.delete-record-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var cat = this.getAttribute('data-cat');
+            records = records.filter(function(r) { return r.category !== cat; });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            showToast('Ligne supprimée', true);
+            renderCarto();
+            renderSynth();
           });
-        }
+        });
 
+        document.querySelectorAll('.loan-val').forEach(function(inp) {
+          inp.addEventListener('change', function() {
+            var id = parseInt(this.getAttribute('data-id'));
+            var val = parseFloat(this.value) || 0;
+            loans.forEach(function(l) { if (l.id === id) l.balance = val; });
+            localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+            showToast('Solde du prêt mis à jour', true);
+            renderSynth();
+          });
+        });
+
+        document.querySelectorAll('.delete-loan-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var id = parseInt(this.getAttribute('data-id'));
+            loans = loans.filter(function(l) { return l.id !== id; });
+            localStorage.setItem(LOANS_STORAGE_KEY, JSON.stringify(loans));
+            showToast('Prêt supprimé', true);
+            renderCarto();
+            renderSynth();
+          });
+        });
+
+        // Camembert Répartition par Classe d'Actif
         if (typeof Chart !== 'undefined') {
-          var allocTypes = {};
-          latestList.forEach(function(r) { allocTypes[r.type] = (allocTypes[r.type] || 0) + r.value; });
-          var labels = Object.keys(allocTypes);
-          var data = Object.values(allocTypes);
-          if (labels.length === 0) { labels = ['Aucun actif']; data = [1]; }
+          var typeTotals = {};
+          latestList.forEach(function(r) { typeTotals[r.type] = (typeTotals[r.type] || 0) + r.value; });
 
-          var ctx = document.getElementById('allocationChart').getContext('2d');
+          var ctxPie = document.getElementById('allocationChart').getContext('2d');
           if (pieChartInstance) pieChartInstance.destroy();
-          pieChartInstance = new Chart(ctx, {
+          pieChartInstance = new Chart(ctxPie, {
             type: 'doughnut',
             data: {
-              labels: labels,
+              labels: Object.keys(typeTotals),
               datasets: [{
-                data: data,
-                backgroundColor: ['#38bdf8', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#e879f9', '#60a5fa']
+                data: Object.values(typeTotals),
+                backgroundColor: ['#38bdf8', '#34d399', '#fbbf24', '#a855f7', '#f43f5e', '#64748b']
               }]
             },
             options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } }
@@ -1557,210 +1542,191 @@
 
       function renderFireTab() {
         var latestList = Object.values(getLatestByCategory());
-        var totalActifs = latestList.reduce(function(sum, r) { return sum + r.value; }, 0);
-        var totalPassifs = loans.reduce(function(sum, l) { return sum + l.balance; }, 0);
-        var netPatrimoine = totalActifs - totalPassifs;
+        var totalCap = latestList.reduce(function(s, r) { return s + r.value; }, 0);
 
-        var totalDirectDistAnnual = 0;
-        latestList.forEach(function(r) {
-          if (r.mode === 'DIST') {
-            var y = typeof r.yield !== 'undefined' ? r.yield : 5.0;
-            totalDirectDistAnnual += (r.value * (y / 100));
-          }
-        });
-        var renteDistDirectMonthly = Math.round(totalDirectDistAnnual / 12);
-        document.getElementById('renteDistDirect').innerText = '+' + renteDistDirectMonthly.toLocaleString('fr-FR') + ' € / mois';
+        // Rente DIST directe reçue
+        var renteDist = latestList.filter(function(r) { return r.mode === 'DIST'; }).reduce(function(sum, r) {
+          return sum + ((r.value * (r.yield / 100)) / 12);
+        }, 0);
+        document.getElementById('renteDistDirect').innerText = '+' + Math.round(renteDist).toLocaleString('fr-FR') + ' € / mois';
+
+        // Rente théorique globale (4%)
+        var renteTheo = (totalCap * 0.04) / 12;
+        document.getElementById('renteTheoriqueVal').innerText = '+' + Math.round(renteTheo).toLocaleString('fr-FR') + ' € / mois';
 
         var capTarget = fireSettings.capTarget || 750000;
-        var renteTheorique = Math.round((capTarget * 0.04) / 12);
-        document.getElementById('renteTheoriqueVal').innerText = '+' + renteTheorique.toLocaleString('fr-FR') + ' € / mois';
+        var pct = Math.min(100, Math.round((totalCap / capTarget) * 100));
+        document.getElementById('firePctVal').innerText = pct + '%';
+        document.getElementById('fireProgressBar').style.width = pct + '%';
 
-        var pctFire = capTarget > 0 ? ((netPatrimoine / capTarget) * 100).toFixed(1) : 0;
-        document.getElementById('firePctVal').innerText = pctFire + ' %';
-        document.getElementById('fireProgressBar').style.width = Math.min(100, Math.max(0, pctFire)) + '%';
-
+        // Plafond PEA 150k€
         var peaVerser = peaDeposits > 0 ? peaDeposits : latestList.filter(function(r) { return r.envelope === 'PEA'; }).reduce(function(s, r) { return s + r.value; }, 0);
-        document.getElementById('peaPlafondVal').innerText = peaVerser.toLocaleString('fr-FR') + ' / 150 000 €';
-        var pctPea = Math.min(100, (peaVerser / 150000) * 100).toFixed(1);
-        document.getElementById('peaPlafondBar').style.width = pctPea + '%';
+        document.getElementById('peaPlafondVal').innerText = Math.round(peaVerser).toLocaleString('fr-FR') + ' / 150 000 €';
+        document.getElementById('peaPlafondBar').style.width = Math.min(100, (peaVerser / 150000) * 100) + '%';
 
-        var dcaContainer = document.getElementById('advancedDcaContainer');
-        if (dcaContainer) {
-          dcaContainer.innerHTML = '';
-          latestList.forEach(function(r) {
-            var cfg = advDcaSettings[r.category] || { dca: 0, customYield: r.yield || 5.0 };
-            dcaContainer.innerHTML += 
-              '<div style="background:#0f172a; border:1px solid #334155; padding:8px 10px; border-radius:10px; margin-bottom:8px;">' +
-                '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
-                  '<span style="font-size:12px; font-weight:bold; color:#38bdf8;">' + r.envelope + ' (' + r.type + ')</span>' +
-                  '<span style="font-size:10px; color:#94a3b8;">Actuel : ' + formatCurrency(r.value) + '</span>' +
-                '</div>' +
-                '<div class="grid-2">' +
-                  '<div><label style="font-size:9px;">DCA (€/mois)</label><input type="number" class="dca-input" data-cat="' + r.category + '" value="' + (cfg.dca || 0) + '" style="margin:0; padding:4px 6px; font-size:11px;"></div>' +
-                  '<div><label style="font-size:9px;">Rdt Attendu (%)</label><input type="number" step="0.1" class="yield-input" data-cat="' + r.category + '" value="' + (cfg.customYield !== undefined ? cfg.customYield : (r.yield || 5.0)) + '" style="margin:0; padding:4px 6px; font-size:11px;"></div>' +
-                '</div>' +
-              '</div>';
+        // Conteneur DCA Avancé par Support
+        var advContainer = document.getElementById('advancedDcaContainer');
+        advContainer.innerHTML = '';
+        latestList.forEach(function(r) {
+          var cfg = advDcaSettings[r.category] || { dca: 100, yield: r.yield };
+          advContainer.innerHTML += 
+            '<div style="background:#0f172a; border:1px solid #334155; padding:8px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">' +
+              '<div>' +
+                '<div style="font-weight:bold; font-size:12px; color:#f8fafc;">' + r.envelope + ' — ' + r.type + '</div>' +
+                '<div style="font-size:10px; color:#94a3b8;">Actuel : ' + formatCurrency(r.value) + '</div>' +
+              '</div>' +
+              '<div style="display:flex; gap:6px;">' +
+                '<div><label style="font-size:9px;">DCA (€/m)</label><input type="number" class="adv-dca-input" data-cat="' + r.category + '" value="' + cfg.dca + '" style="width:65px; padding:2px 4px; font-size:11px;"></div>' +
+                '<div><label style="font-size:9px;">Rend (%)</label><input type="number" class="adv-yield-input" data-cat="' + r.category + '" value="' + cfg.yield + '" step="0.1" style="width:50px; padding:2px 4px; font-size:11px;"></div>' +
+              '</div>' +
+            '</div>';
+        });
+
+        document.querySelectorAll('.adv-dca-input').forEach(function(inp) {
+          inp.addEventListener('change', function() {
+            var cat = this.getAttribute('data-cat');
+            if (!advDcaSettings[cat]) advDcaSettings[cat] = {};
+            advDcaSettings[cat].dca = parseFloat(this.value) || 0;
+            localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
           });
-        }
+        });
+
+        document.querySelectorAll('.adv-yield-input').forEach(function(inp) {
+          inp.addEventListener('change', function() {
+            var cat = this.getAttribute('data-cat');
+            if (!advDcaSettings[cat]) advDcaSettings[cat] = {};
+            advDcaSettings[cat].yield = parseFloat(this.value) || 0;
+            localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
+          });
+        });
 
         calculateProjections();
       }
 
       function calculateProjections() {
         var latestList = Object.values(getLatestByCategory());
-        var totalActifs = latestList.reduce(function(sum, r) { return sum + r.value; }, 0);
-        var totalPassifs = loans.reduce(function(sum, l) { return sum + l.balance; }, 0);
-        var netStarting = totalActifs - totalPassifs;
-
-        var dcaInputs = document.querySelectorAll('.dca-input');
-        var yieldInputs = document.querySelectorAll('.yield-input');
-
-        dcaInputs.forEach(function(inp) {
-          var cat = inp.getAttribute('data-cat');
-          var dcaVal = parseFloat(inp.value) || 0;
-          if (!advDcaSettings[cat]) advDcaSettings[cat] = {};
-          advDcaSettings[cat].dca = dcaVal;
-        });
-
-        yieldInputs.forEach(function(inp) {
-          var cat = inp.getAttribute('data-cat');
-          var yVal = parseFloat(inp.value) || 0;
-          if (!advDcaSettings[cat]) advDcaSettings[cat] = {};
-          advDcaSettings[cat].customYield = yVal;
-        });
-
-        localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
+        var totalCap = latestList.reduce(function(s, r) { return s + r.value; }, 0);
+        var targetCap = fireSettings.capTarget || 750000;
+        var years = 15;
 
         var labels = [];
-        var seriesBoost = [];
-        var seriesStd = [];
-
         var currentYear = new Date().getFullYear();
-        var capTarget = fireSettings.capTarget || 750000;
+        for (var i = 0; i <= years; i++) labels.push(currentYear + i);
 
-        var runningValBoost = netStarting;
-        var runningValStd = netStarting;
+        // Trajectoire Standard
+        var seriesStd = [totalCap];
+        var runningCapStd = totalCap;
 
-        var totalMonthlyDca = 0;
-        var weightedYieldSum = 0;
+        // Trajectoire Boostée (DCA cumulé)
+        var seriesBoost = [totalCap];
+        var runningCapBoost = totalCap;
 
-        latestList.forEach(function(r) {
-          var cfg = advDcaSettings[r.category] || { dca: 0, customYield: r.yield || 5.0 };
-          totalMonthlyDca += cfg.dca;
-          weightedYieldSum += cfg.customYield;
-        });
+        for (var y = 1; y <= years; y++) {
+          var yearDca = 0;
+          var yearYieldTotal = 0;
 
-        var avgYield = latestList.length > 0 ? (weightedYieldSum / latestList.length) / 100 : 0.05;
+          latestList.forEach(function(r) {
+            var cfg = advDcaSettings[r.category] || { dca: 100, yield: r.yield };
+            yearDca += (cfg.dca * 12);
+            yearYieldTotal += (cfg.yield / 100);
+          });
 
-        // CALCUL DE L'EFFORT REQUIS
-        var annualTargetNet = capTarget * 0.04;
-        var gapCap = Math.max(0, capTarget - netStarting);
-        var monthlyRequiredEffort = Math.round((gapCap * (avgYield > 0 ? avgYield : 0.05)) / 12);
-        document.getElementById('fireEffortRequis').innerText = '+' + monthlyRequiredEffort.toLocaleString('fr-FR') + ' € / mois';
+          var avgYield = latestList.length > 0 ? (yearYieldTotal / latestList.length) : 0.05;
 
-        for (var i = 0; i <= 20; i++) {
-          labels.push((currentYear + i).toString());
+          runningCapStd = runningCapStd * (1 + avgYield);
+          seriesStd.push(Math.round(runningCapStd));
 
-          if (i === 0) {
-            seriesBoost.push(Math.round(runningValBoost));
-            seriesStd.push(Math.round(runningValStd));
-          } else {
-            for (var m = 0; m < 12; m++) {
-              runningValBoost = (runningValBoost + totalMonthlyDca) * (1 + avgYield / 12);
-              runningValStd = (runningValStd + totalMonthlyDca) * (1 + 0.03 / 12);
-            }
-            seriesBoost.push(Math.round(runningValBoost));
-            seriesStd.push(Math.round(runningValStd));
-          }
+          runningCapBoost = (runningCapBoost + yearDca) * (1 + avgYield);
+          seriesBoost.push(Math.round(runningCapBoost));
         }
 
-        lastSeriesBoost = seriesBoost;
         lastSeriesStd = seriesStd;
+        lastSeriesBoost = seriesBoost;
+
+        // Effort mensuel requis pour atteindre la cible en X années
+        var targetYears = Math.max(1, (fireSettings.ageTarget || 55) - 40); // Base indicative 40 ans
+        var netGap = Math.max(0, targetCap - totalCap);
+        var monthlyEffort = Math.round((netGap / (targetYears * 12)));
+        document.getElementById('fireEffortRequis').innerText = '+' + monthlyEffort.toLocaleString('fr-FR') + ' € / mois';
 
         if (typeof Chart !== 'undefined') {
-          var ctx = document.getElementById('projectionChart').getContext('2d');
+          var ctxProj = document.getElementById('projectionChart').getContext('2d');
           if (projectionChartInstance) projectionChartInstance.destroy();
-
-          var targetLine = labels.map(function() { return capTarget; });
-
-          projectionChartInstance = new Chart(ctx, {
+          projectionChartInstance = new Chart(ctxProj, {
             type: 'line',
             data: {
               labels: labels,
               datasets: [
-                { label: 'Scénario Optimisé (€)', data: seriesBoost, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true, tension: 0.2 },
-                { label: 'Scénario Prudent (€)', data: seriesStd, borderColor: '#fbbf24', borderDash: [5, 5], fill: false, tension: 0.2 },
-                { label: 'Cible FIRE (€)', data: targetLine, borderColor: '#ef4444', borderDash: [2, 2], pointRadius: 0, fill: false }
+                { label: 'Croissance Naturelle', data: seriesStd, borderColor: '#94a3b8', borderDash: [5, 5], fill: false },
+                { label: 'Avec DCA Optimisé', data: seriesBoost, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true },
+                { label: 'Cible FIRE', data: Array(years + 1).fill(targetCap), borderColor: '#34d399', borderDash: [2, 2], pointRadius: 0 }
               ]
             },
-            options: { responsive: true, scales: { y: { beginAtZero: false, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
+            options: { responsive: true, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
           });
         }
       }
 
       function renderModalChart() {
         if (typeof Chart === 'undefined') return;
-        var ctx = document.getElementById('modalProjectionChart').getContext('2d');
+        var ctxModal = document.getElementById('modalProjectionChart').getContext('2d');
         if (modalChartInstance) modalChartInstance.destroy();
 
-        var currentYear = new Date().getFullYear();
+        var years = 15;
         var labels = [];
-        for (var i = 0; i <= 20; i++) labels.push((currentYear + i).toString());
+        var currentYear = new Date().getFullYear();
+        for (var i = 0; i <= years; i++) labels.push(currentYear + i);
 
-        var capTarget = fireSettings.capTarget || 750000;
-        var targetLine = labels.map(function() { return capTarget; });
-
-        modalChartInstance = new Chart(ctx, {
+        modalChartInstance = new Chart(ctxModal, {
           type: 'line',
           data: {
             labels: labels,
             datasets: [
-              { label: 'Scénario Optimisé (€)', data: lastSeriesBoost, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.15)', fill: true, tension: 0.2 },
-              { label: 'Scénario Prudent (€)', data: lastSeriesStd, borderColor: '#fbbf24', borderDash: [5, 5], fill: false, tension: 0.2 },
-              { label: 'Cible FIRE (€)', data: targetLine, borderColor: '#ef4444', borderDash: [2, 2], pointRadius: 0, fill: false }
+              { label: 'Croissance Naturelle', data: lastSeriesStd, borderColor: '#94a3b8', borderDash: [5, 5], fill: false },
+              { label: 'Avec DCA Optimisé', data: lastSeriesBoost, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.15)', fill: true },
+              { label: 'Cible FIRE', data: Array(years + 1).fill(fireSettings.capTarget || 750000), borderColor: '#34d399', borderDash: [2, 2], pointRadius: 0 }
             ]
           },
-          options: { responsive: true, scales: { y: { beginAtZero: false, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
+          options: { responsive: true, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
         });
       }
 
       function renderPatrimoineTab() {
-        var latestMap = getLatestByCategory();
-        var latestList = Object.values(latestMap);
+        var histBody = document.getElementById('historyTable');
+        histBody.innerHTML = '';
+        records.slice().reverse().forEach(function(r) {
+          histBody.innerHTML += 
+            '<tr>' +
+              '<td>' + r.date + '</td>' +
+              '<td><b>' + r.envelope + '</b><br><span style="font-size:10px; color:#94a3b8;">' + r.type + '</span></td>' +
+              '<td>' + formatCurrency(r.value) + '</td>' +
+              '<td>' + r.yield + '%</td>' +
+              '<td><button class="action-icon-btn delete-btn delete-hist-btn" data-date="' + r.date + '" data-cat="' + r.category + '">🗑️</button></td>' +
+            '</tr>';
+        });
 
-        var histTable = document.getElementById('historyTable');
-        if (histTable) {
-          histTable.innerHTML = '';
-          latestList.forEach(function(r) {
-            histTable.innerHTML += 
-              '<tr>' +
-                '<td>' + (r.date || 'N/A') + '</td>' +
-                '<td><b>' + r.envelope + '</b><br><span style="font-size:10px; color:#64748b;">' + r.type + '</span></td>' +
-                '<td>' + formatCurrency(r.value) + '</td>' +
-                '<td>' + (r.yield || 5.0) + '%</td>' +
-                '<td style="text-align:right;"><button class="action-icon-btn delete-btn" data-cat="' + r.category + '">🗑️</button></td>' +
-              '</tr>';
+        document.querySelectorAll('.delete-hist-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var date = this.getAttribute('data-date');
+            var cat = this.getAttribute('data-cat');
+            records = records.filter(function(r) { return !(r.date === date && r.category === cat); });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            showToast('Entrée supprimée', true);
+            renderPatrimoineTab();
+            renderSynth();
           });
-
-          document.querySelectorAll('#historyTable .delete-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-              var cat = this.getAttribute('data-cat');
-              records = records.filter(function(r) { return r.category !== cat; });
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-              renderPatrimoineTab();
-              renderSynth();
-              showToast('Ligne supprimée', true);
-            });
-          });
-        }
+        });
       }
 
-      // PREMIER RENDU SÉCURISÉ AU CHARGEMENT DE LA PAGE
+      // Initialisation
       renderSynth();
+      renderCarto();
+      renderMbtiTab();
+      renderFireTab();
+      renderPatrimoineTab();
     });
   </script>
 </body>
 </html>
 ```
-
-version1.2
+version1.3
