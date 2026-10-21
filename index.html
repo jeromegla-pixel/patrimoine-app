@@ -405,6 +405,7 @@
       <h2>Synthèse des Rentes & Effort d'Épargne Requis</h2>
       <div class="fire-metric"><span class="fire-label">Rente DIST Actuelle (Reçue)</span><span id="renteDistDirect" class="fire-val">+0 € / mois</span></div>
       <div class="fire-metric"><span class="fire-label">Rente Théorique Cible (4% / an)</span><span id="renteTheoriqueVal" class="fire-val">+0 € / mois</span></div>
+      <div class="fire-metric"><span class="fire-label" style="color:#38bdf8; font-weight:bold;">Rente Projetée à l'Âge Cible</span><span id="renteProjeteeAgeCible" class="fire-val" style="color:#38bdf8; font-weight:800;">+0 € / mois</span></div>
       <div class="fire-metric"><span class="fire-label">Effort Mensuel Requis (sur Cible)</span><span id="fireEffortRequis" class="fire-val">+0 € / mois</span></div>
       <div class="fire-metric"><span class="fire-label">Progression vs Capital Cible</span><span id="firePctVal" class="fire-val">0 %</span></div>
       <div class="progress-bg" style="height:8px; margin-top:8px;"><div id="fireProgressBar" class="progress-fill" style="width: 0%; background: #38bdf8;"></div></div>
@@ -584,7 +585,6 @@
       // FONCTION DE MISE À JOUR TEMPS RÉEL DES MARCHÉS
       async function fetchLiveMarketData() {
         try {
-          // Simulation d'un rafraîchissement temps réel avec légère variation organique pour le live
           var rand = (Math.random() - 0.48) * 0.4;
           var v = parseFloat(ALL_MARKETS_CATALOG["VIX"].val) + rand;
           ALL_MARKETS_CATALOG["VIX"].val = v.toFixed(1);
@@ -609,7 +609,6 @@
         }
       }
 
-      // Lancement du timer temps réel (toutes les 30 secondes)
       setInterval(fetchLiveMarketData, 30000);
 
       // BASE DE DONNÉES MBTI ÉTENDUE (16 PROFILS)
@@ -981,7 +980,6 @@
         document.getElementById('fireManualRente').value = fireSettings.manualRente;
         localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
         renderFireTab();
-        calculateProjections();
       }
 
       function onFireManualRenteChange() {
@@ -991,7 +989,6 @@
         document.getElementById('fireCapTarget').value = fireSettings.capTarget;
         localStorage.setItem(FIRE_STORAGE_KEY, JSON.stringify(fireSettings));
         renderFireTab();
-        calculateProjections();
       }
 
       function onPeaDepositsChange() {
@@ -1096,7 +1093,6 @@
             var trait = this.getAttribute('data-trait');
             quizAnswers[qIdx] = trait;
 
-            // Highlight Visuel
             var parent = this.parentElement;
             parent.querySelectorAll('.q-opt-btn').forEach(function(b) { b.classList.remove('selected'); });
             this.classList.add('selected');
@@ -1614,6 +1610,7 @@
             if (!advDcaSettings[cat]) advDcaSettings[cat] = {};
             advDcaSettings[cat].dca = parseFloat(this.value) || 0;
             localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
+            calculateProjections();
           });
         });
 
@@ -1623,6 +1620,7 @@
             if (!advDcaSettings[cat]) advDcaSettings[cat] = {};
             advDcaSettings[cat].yield = parseFloat(this.value) || 0;
             localStorage.setItem(ADV_DCA_KEY, JSON.stringify(advDcaSettings));
+            calculateProjections();
           });
         });
 
@@ -1633,41 +1631,64 @@
         var latestList = Object.values(getLatestByCategory());
         var totalCap = latestList.reduce(function(s, r) { return s + r.value; }, 0);
         var targetCap = fireSettings.capTarget || 750000;
-        var years = 15;
+        
+        // Âge actuel fixe = 40 ans (2026), horizon calculé selon l'âge cible sélectionné
+        var currentAge = 40;
+        var ageTarget = Math.max(currentAge + 1, parseInt(fireSettings.ageTarget) || 55);
+        var horizonYears = ageTarget - currentAge;
 
         var labels = [];
         var currentYear = new Date().getFullYear();
-        for (var i = 0; i <= years; i++) labels.push(currentYear + i);
+        for (var i = 0; i <= horizonYears; i++) {
+          labels.push((currentYear + i) + ' (' + (currentAge + i) + ' ans)');
+        }
 
         var seriesStd = [totalCap];
-        var runningCapStd = totalCap;
-
         var seriesBoost = [totalCap];
-        var runningCapBoost = totalCap;
 
-        for (var y = 1; y <= years; y++) {
-          var yearDca = 0;
-          var yearYieldTotal = 0;
+        // Simulation granulaire par enveloppe intégrant les soldes, DCA et rendements individuels
+        var envelopeStateStd = {};
+        var envelopeStateBoost = {};
+        latestList.forEach(function(r) {
+          envelopeStateStd[r.category] = r.value;
+          envelopeStateBoost[r.category] = r.value;
+        });
+
+        for (var y = 1; y <= horizonYears; y++) {
+          var sumYearStd = 0;
+          var sumYearBoost = 0;
 
           latestList.forEach(function(r) {
             var cfg = advDcaSettings[r.category] || { dca: 100, yield: r.yield };
-            yearDca += (cfg.dca * 12);
-            yearYieldTotal += (cfg.yield / 100);
+            var annualYield = (parseFloat(cfg.yield) || 0) / 100;
+            var annualDca = (parseFloat(cfg.dca) || 0) * 12;
+
+            // Sans DCA (croissance pure)
+            envelopeStateStd[r.category] = envelopeStateStd[r.category] * (1 + annualYield);
+            sumYearStd += envelopeStateStd[r.category];
+
+            // Avec DCA et intérêts composés
+            envelopeStateBoost[r.category] = (envelopeStateBoost[r.category] + annualDca) * (1 + annualYield);
+            sumYearBoost += envelopeStateBoost[r.category];
           });
 
-          var avgYield = latestList.length > 0 ? (yearYieldTotal / latestList.length) : 0.05;
-
-          runningCapStd = runningCapStd * (1 + avgYield);
-          seriesStd.push(Math.round(runningCapStd));
-
-          runningCapBoost = (runningCapBoost + yearDca) * (1 + avgYield);
-          seriesBoost.push(Math.round(runningCapBoost));
+          seriesStd.push(Math.round(sumYearStd));
+          seriesBoost.push(Math.round(sumYearBoost));
         }
 
         lastSeriesStd = seriesStd;
         lastSeriesBoost = seriesBoost;
 
-        var targetYears = Math.max(1, (fireSettings.ageTarget || 55) - 40);
+        // CALCUL ET AFFICHAGE DE LA RENTE PROJETÉE À L'ÂGE CIBLE (Règle des 4% sur le capital accumulé avec DCA)
+        var finalCapitalAgeCible = seriesBoost[seriesBoost.length - 1] || totalCap;
+        var renteProjeteeAgeCible = Math.round((finalCapitalAgeCible * 0.04) / 12);
+
+        var renteProjEl = document.getElementById('renteProjeteeAgeCible');
+        if (renteProjEl) {
+          renteProjEl.innerText = '+' + renteProjeteeAgeCible.toLocaleString('fr-FR') + ' € / mois (' + ageTarget + ' ans)';
+        }
+
+        var targetYears = horizonYears;
         var netGap = Math.max(0, targetCap - totalCap);
         var monthlyEffort = Math.round((netGap / (targetYears * 12)));
         document.getElementById('fireEffortRequis').innerText = '+' + monthlyEffort.toLocaleString('fr-FR') + ' € / mois';
@@ -1681,8 +1702,8 @@
               labels: labels,
               datasets: [
                 { label: 'Croissance Naturelle', data: seriesStd, borderColor: '#94a3b8', borderDash: [5, 5], fill: false },
-                { label: 'Avec DCA Optimisé', data: seriesBoost, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true },
-                { label: 'Cible FIRE', data: Array(years + 1).fill(targetCap), borderColor: '#34d399', borderDash: [2, 2], pointRadius: 0 }
+                { label: 'Avec DCA & Rendements', data: seriesBoost, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', fill: true },
+                { label: 'Cible FIRE', data: Array(horizonYears + 1).fill(targetCap), borderColor: '#34d399', borderDash: [2, 2], pointRadius: 0 }
               ]
             },
             options: { responsive: true, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
@@ -1695,10 +1716,15 @@
         var ctxModal = document.getElementById('modalProjectionChart').getContext('2d');
         if (modalChartInstance) modalChartInstance.destroy();
 
-        var years = 15;
+        var currentAge = 40;
+        var ageTarget = Math.max(currentAge + 1, parseInt(fireSettings.ageTarget) || 55);
+        var horizonYears = ageTarget - currentAge;
+
         var labels = [];
         var currentYear = new Date().getFullYear();
-        for (var i = 0; i <= years; i++) labels.push(currentYear + i);
+        for (var i = 0; i <= horizonYears; i++) {
+          labels.push((currentYear + i) + ' (' + (currentAge + i) + ' ans)');
+        }
 
         modalChartInstance = new Chart(ctxModal, {
           type: 'line',
@@ -1706,8 +1732,8 @@
             labels: labels,
             datasets: [
               { label: 'Croissance Naturelle', data: lastSeriesStd, borderColor: '#94a3b8', borderDash: [5, 5], fill: false },
-              { label: 'Avec DCA Optimisé', data: lastSeriesBoost, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.15)', fill: true },
-              { label: 'Cible FIRE', data: Array(years + 1).fill(fireSettings.capTarget || 750000), borderColor: '#34d399', borderDash: [2, 2], pointRadius: 0 }
+              { label: 'Avec DCA & Rendements', data: lastSeriesBoost, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.15)', fill: true },
+              { label: 'Cible FIRE', data: Array(horizonYears + 1).fill(fireSettings.capTarget || 750000), borderColor: '#34d399', borderDash: [2, 2], pointRadius: 0 }
             ]
           },
           options: { responsive: true, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } }
@@ -1751,4 +1777,4 @@
   </script>
 </body>
 </html>
-version1.4
+version1.14
